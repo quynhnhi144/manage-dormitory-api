@@ -1,6 +1,7 @@
 package com.managedormitory.models.dao;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -8,13 +9,13 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.sql.Date;
+import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
-@ToString
-@Table(name="users")
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,4 +53,8 @@ public class User {
 
     @Column(length = 11, nullable = true)
     private String phone;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userManager")
+    @JsonIgnore
+    private List<Campus> campuses;
 }

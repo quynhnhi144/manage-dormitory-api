@@ -62,11 +62,11 @@ public class VehicleBill {
     @JoinColumn(name = "vehicle_id")
     @NonNull
     @NotBlank
-    protected Vehicle vehicleId;
+    protected Vehicle vehicle;
 
     @OneToOne
     @JoinColumn(name = "price_list_id")
     @NonNull
     @NotBlank
-    protected PriceList priceListId;
+    protected PriceList priceList;
 }

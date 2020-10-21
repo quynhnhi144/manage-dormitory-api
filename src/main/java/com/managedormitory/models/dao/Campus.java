@@ -1,16 +1,17 @@
 package com.managedormitory.models.dao;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 public class Campus {
 
     @Id
@@ -28,5 +29,9 @@ public class Campus {
     @JoinColumn(name = "user_id")
     @NonNull
     @NotBlank(message = "User is mandatory")
-    private User user;
+    private User userManager;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "campus")
+    @JsonIgnore
+    private List<Room> rooms;
 }

@@ -1,10 +1,12 @@
 package com.managedormitory.models.dao;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @Entity
 @Data
@@ -44,4 +46,12 @@ public class Room {
     @NonNull
     @NotBlank
     private PriceList priceList;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "room")
+    @JsonIgnore
+    private List<DetailRoom> detailRoomList;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "room")
+    @JsonIgnore
+    private List<PowerBill> powerBills;
 }

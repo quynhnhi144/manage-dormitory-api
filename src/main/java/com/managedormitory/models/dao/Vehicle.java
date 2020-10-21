@@ -1,5 +1,6 @@
 package com.managedormitory.models.dao;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.NonNull;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 @Entity
 @Data
@@ -34,5 +36,9 @@ public class Vehicle {
     @NonNull
     @NotBlank
     private Student studentId;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "vehicle")
+    @JsonIgnore
+    private List<VehicleBill> vehicleBills;
 
 }
