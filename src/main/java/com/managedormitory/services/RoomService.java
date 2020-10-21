@@ -1,11 +1,11 @@
 package com.managedormitory.services;
 
 import com.managedormitory.models.dao.Room;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 public interface RoomService {
-    List<Room> getAllRooms(Pageable pageable);
-    List<Room> getRoomsByCampus(String campusName, Pageable pageable);
+    Page<Room> getAllRooms(Pageable pageable);
+    Page<Room> getRoomsByCampus(String campusName, String searchText, Pageable pageable);
+    Page<Room> getRoomsByCampusAndCampusManager(String campusName, String searchText, Pageable pageable);
 }

@@ -15,32 +15,6 @@ import java.time.LocalDate;
 @ToString
 public class DetailRoom {
 
-    @Embeddable
-    public static class Id implements Serializable {
-        @Column(name = "student_id")
-        protected Integer studentId;
-
-        @Column(name = "room_id")
-        protected Integer roomId;
-
-        public Id() {
-
-        }
-
-        public Id(Integer studentId, Integer roomId) {
-            this.studentId = studentId;
-            this.roomId = roomId;
-        }
-
-        public boolean equals(Object o) {
-            if (o != null && o instanceof Id) {
-                Id that = (Id) o;
-                return this.studentId.equals(that.studentId) && this.roomId.equals(that.roomId);
-            }
-            return false;
-        }
-    }
-
     @EmbeddedId
     protected Id id;
 
@@ -64,12 +38,38 @@ public class DetailRoom {
     @JoinColumn(name = "student_id")
     @NonNull
     @NotBlank
-    protected Student studentId;
+    protected Student student;
 
     @ManyToOne
     @MapsId("roomId")
     @JoinColumn(name = "room_id")
     @NonNull
     @NotBlank
-    protected Room roomId;
+    protected Room room;
+
+    @Embeddable
+    public static class Id implements Serializable {
+        @Column(name = "student_id")
+        protected Integer studentId;
+
+        @Column(name = "room_id")
+        protected Integer roomId;
+
+        public Id() {
+
+        }
+
+        public Id(Integer studentId, Integer roomId) {
+            this.studentId = studentId;
+            this.roomId = roomId;
+        }
+
+        public boolean equals(Object o) {
+            if (o instanceof Id) {
+                Id that = (Id) o;
+                return this.studentId.equals(that.studentId) && this.roomId.equals(that.roomId);
+            }
+            return false;
+        }
+    }
 }

@@ -68,5 +68,5 @@ public class PowerBill {
     @JoinColumn(name = "room_id")
     @NonNull
     @NotBlank
-    protected Room roomId;
+    protected Room room;
 }

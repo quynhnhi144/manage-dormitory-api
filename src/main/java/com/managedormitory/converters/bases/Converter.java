@@ -5,7 +5,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class Converter<S, T> {
-    public abstract T convert(S source);
+    public T convert(S source){
+        return (T)source;
+    }
 
     public List<T> convert(List<S> sources) {
         return sources.stream().map(this::convert).collect(Collectors.toList());

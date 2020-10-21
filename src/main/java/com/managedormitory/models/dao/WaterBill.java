@@ -57,10 +57,10 @@ public class WaterBill {
     @MapsId("studentId")
     @JoinColumn(name = "student_id")
     @NonNull
-    protected Student studentId;
+    protected Student student;
 
     @OneToOne
     @JoinColumn(name = "price_list_is")
     @NonNull
-    private PriceList priceListId;
+    private PriceList priceList;
 }

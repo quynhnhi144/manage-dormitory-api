@@ -4,10 +4,9 @@ import com.managedormitory.models.dao.Room;
 import com.managedormitory.repositories.RoomRepository;
 import com.managedormitory.services.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class RoomServiceImpl implements RoomService {
@@ -16,12 +15,17 @@ public class RoomServiceImpl implements RoomService {
     RoomRepository roomRepository;
 
     @Override
-    public List<Room> getAllRooms(Pageable pageable) {
-        return roomRepository.findAll(pageable).getContent();
+    public Page<Room> getAllRooms(Pageable pageable) {
+        return roomRepository.findAllRooms(pageable);
     }
 
     @Override
-    public List<Room> getRoomsByCampus(String campusName, Pageable pageable) {
-        return roomRepository.findByCampus_Name(campusName, pageable);
+    public Page<Room> getRoomsByCampus(String campusName, String searchText, Pageable pageable) {
+        return roomRepository.findAllRoomsByCampusName(campusName, searchText, pageable);
+    }
+
+    @Override
+    public Page<Room> getRoomsByCampusAndCampusManager(String campusName, String searchText, Pageable pageable) {
+        return roomRepository.findAllRoomsByCampusName(campusName, searchText, pageable);
     }
 }

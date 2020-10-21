@@ -2,6 +2,7 @@ package com.managedormitory.models.dao;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -11,8 +12,9 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.sql.Date;
 import java.time.LocalDate;
-import java.util.Date;
+import java.util.List;
 
 @Entity
 @Data
@@ -33,7 +35,7 @@ public class Student {
 
     @Column
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date birthDate;
+    private Date birthday;
 
     @Column(length = 100)
     private String address;
@@ -53,4 +55,12 @@ public class Student {
     @Column
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endingDateOfStay;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "student")
+    @JsonIgnore
+    private List<DetailRoom> detailRoomList;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "student")
+    @JsonIgnore
+    private List<WaterBill> waterBills;
 }
