@@ -1,11 +1,14 @@
 package com.managedormitory.services;
-
 import com.managedormitory.models.dao.Room;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.managedormitory.models.dto.DetailRoomDto;
+import com.managedormitory.models.dto.PaginationRoom;
+import com.managedormitory.models.dto.RoomFilterDto;
+
+import java.util.List;
 
 public interface RoomService {
-    Page<Room> getAllRooms(Pageable pageable);
-    Page<Room> getRoomsByCampus(String campusName, String searchText, Pageable pageable);
-    Page<Room> getRoomsByCampusAndCampusManager(String campusName, String searchText, Pageable pageable);
+    List<Room> getAllRooms();
+    List<DetailRoomDto> getAllRoomDto();
+    PaginationRoom paginationGetAllRooms( RoomFilterDto roomFilterDto, int skip, int take);
+    DetailRoomDto getRoomById(Integer id);
 }

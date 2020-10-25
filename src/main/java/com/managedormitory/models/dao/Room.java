@@ -49,7 +49,7 @@ public class Room {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "room")
     @JsonIgnore
-    private List<DetailRoom> detailRoomList;
+    private List<Student> students;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "room")
     @JsonIgnore

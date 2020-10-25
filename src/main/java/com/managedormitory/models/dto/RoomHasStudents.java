@@ -1,18 +1,11 @@
 package com.managedormitory.models.dto;
 
 import com.managedormitory.models.dao.Student;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class RoomDto {
-
+public class RoomHasStudents {
     private Integer id;
 
     @NotBlank(message = "Name is mandatory")
@@ -30,8 +23,5 @@ public class RoomDto {
     @NotBlank(message = "User Manager is mandatory")
     private String userManager;
 
-    private Boolean isPayRoom;
-    private Boolean isPayWaterBill;
-    private Boolean isPayVehicleBill;
-    private Boolean isPayPowerBill;
+    private List<Student> studentList;
 }

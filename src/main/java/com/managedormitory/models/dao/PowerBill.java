@@ -13,9 +13,39 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @ToString
 public class PowerBill {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "bill_id")
+    private Integer billId;
 
-    @Embeddable
+    @Column
+    private LocalDate startDate;
+
+    @Column
+    private LocalDate endDate;
+
+    @Column
+    private Long numberOfPowerBegin;
+
+    @Column
+    private Long numberOfPowerEnd;
+
+    @Column
+    private Long numberOfPowerUsed;
+
+    @Column
+    private boolean isPay;
+
+    @ManyToOne
+    @MapsId("roomId")
+    @JoinColumn(name = "room_id")
+    @NonNull
+    @NotBlank
+    private Room room;
+
+    /*@Embeddable
     public static class Id implements Serializable {
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
         @Column(name = "bill_id")
         protected Integer billId;
 
@@ -49,24 +79,5 @@ public class PowerBill {
     }
 
     @EmbeddedId
-    protected Id id;
-
-    @Column
-    private Long numberOfPowerBegin;
-
-    @Column
-    private Long numberOfPowerEnd;
-
-    @Column
-    private Long numberOfPowerUsed;
-
-    @Column
-    private boolean isPay;
-
-    @ManyToOne
-    @MapsId("roomId")
-    @JoinColumn(name = "room_id")
-    @NonNull
-    @NotBlank
-    protected Room room;
+    protected Id id;*/
 }

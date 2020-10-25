@@ -1,5 +1,6 @@
 package com.managedormitory.models.dao;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import javax.persistence.*;
@@ -12,9 +13,36 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @ToString
 public class WaterBill {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "bill_id")
+    private Integer billId;
 
-    @Embeddable
+    @Column
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
+
+    @Column
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
+
+    @Column
+    private boolean isPay;
+
+    @ManyToOne
+    @MapsId("studentId")
+    @JoinColumn(name = "student_id")
+    @NonNull
+    private Student student;
+
+    @OneToOne
+    @JoinColumn(name = "price_list_is")
+    @NonNull
+    private PriceList priceList;
+
+    /*@Embeddable
     public static class Id implements Serializable {
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
         @Column(name = "bill_id")
         protected Integer billId;
 
@@ -48,19 +76,5 @@ public class WaterBill {
     }
 
     @EmbeddedId
-    protected Id id;
-
-    @Column
-    private boolean isPay;
-
-    @ManyToOne
-    @MapsId("studentId")
-    @JoinColumn(name = "student_id")
-    @NonNull
-    protected Student student;
-
-    @OneToOne
-    @JoinColumn(name = "price_list_is")
-    @NonNull
-    private PriceList priceList;
+    protected Id id;*/
 }

@@ -14,9 +14,38 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @ToString
 public class VehicleBill {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "bill_id")
+    private Integer billId;
 
-    @Embeddable
+    @Column
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
+
+    @Column
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
+
+    @Column
+    private boolean isPay;
+
+    @ManyToOne
+    @MapsId("vehicleId")
+    @JoinColumn(name = "vehicle_id")
+    @NonNull
+    @NotBlank
+    private Vehicle vehicle;
+
+    @OneToOne
+    @JoinColumn(name = "price_list_id")
+    @NonNull
+    @NotBlank
+    private PriceList priceList;
+
+    /*@Embeddable
     public static class Id implements Serializable {
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
         @Column(name = "bill_id")
         protected Integer billId;
 
@@ -52,21 +81,5 @@ public class VehicleBill {
     }
 
     @EmbeddedId
-    protected Id id;
-
-    @Column
-    private boolean isPay;
-
-    @ManyToOne
-    @MapsId("vehicleId")
-    @JoinColumn(name = "vehicle_id")
-    @NonNull
-    @NotBlank
-    protected Vehicle vehicle;
-
-    @OneToOne
-    @JoinColumn(name = "price_list_id")
-    @NonNull
-    @NotBlank
-    protected PriceList priceList;
+    protected Id id;*/
 }
