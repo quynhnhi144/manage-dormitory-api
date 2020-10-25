@@ -1,5 +1,6 @@
 package com.managedormitory.models.dao;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -8,6 +9,7 @@ import lombok.ToString;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @Entity
 @Data
@@ -30,5 +32,13 @@ public class PriceList {
     @NonNull
     @NotBlank
     private Float price;
+
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "priceList")
+    @JsonIgnore
+    private WaterBill waterBill;
+
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "priceList")
+    @JsonIgnore
+    private VehicleBill vehicleBill;
 
 }

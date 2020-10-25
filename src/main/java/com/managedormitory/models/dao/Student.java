@@ -56,6 +56,12 @@ public class Student {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endingDateOfStay;
 
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "room_id")
+    @NonNull
+    @NotBlank(message = "Room is mandatory")
+    private Room room;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "student")
     @JsonIgnore
     private List<DetailRoom> detailRoomList;

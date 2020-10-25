@@ -9,6 +9,6 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaginationRoom {
-    private Map<String, List<RoomDto>> data;
+    private Map<String, List<DetailRoomDto>> data;
     private long total;
 }

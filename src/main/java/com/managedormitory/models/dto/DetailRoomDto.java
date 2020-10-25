@@ -1,5 +1,6 @@
 package com.managedormitory.models.dto;
 
+import com.managedormitory.models.dao.Student;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,9 +15,15 @@ public class DetailRoomDto {
     private String roomName;
     private Integer quantityStudent;
     private Float priceRoom;
+    private Float priceWater;
+    private Float priceVehicle;
+    private Float pricePower;
     private String campusName;
     private String typeRoom;
     private String userManager;
-    private List<StudentDto> students;
-    private boolean isPay;
+    private List<Student> students;
+    private Boolean isPayRoom;
+    private Boolean isPayWaterBill;
+    private Boolean isPayVehicleBill;
+    private Boolean isPayPowerBill;
 }
