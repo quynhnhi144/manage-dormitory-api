@@ -2,7 +2,7 @@ package com.managedormitory.services;
 import com.managedormitory.models.dao.Room;
 import com.managedormitory.models.dto.DetailRoomDto;
 import com.managedormitory.models.dto.PaginationRoom;
-import com.managedormitory.models.dto.RoomFilterDto;
+import com.managedormitory.models.filter.RoomFilterDto;
 
 import java.util.List;
 

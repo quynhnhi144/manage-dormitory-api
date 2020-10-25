@@ -15,4 +15,6 @@ public class QueryUtil {
     public static final String JOIN_USERS = "join users u on u.user_id = c.user_id\n";
     public static final String JOIN_PRICELIST = "join price_list pl on pl.id = r.price_list_id\n";
     public static final String JOIN_ROOM = "join room r on r.id = s.room_id\n";
+    public static final String JOIN_STUDENT = "join student s on s.id = v.student_id\n";
+    public static final String JOIN_TYPEVEHICLE = "join type_vehicle tv on v.type_vehicle_id = tv.id\n";
 }

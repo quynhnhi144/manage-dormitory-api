@@ -3,7 +3,7 @@ package com.managedormitory.services;
 import com.managedormitory.models.dao.Student;
 import com.managedormitory.models.dto.PaginationStudent;
 import com.managedormitory.models.dto.StudentDto;
-import com.managedormitory.models.dto.StudentFilterDto;
+import com.managedormitory.models.filter.StudentFilterDto;
 
 import java.util.List;
 

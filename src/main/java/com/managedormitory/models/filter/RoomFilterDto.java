@@ -1,4 +1,4 @@
-package com.managedormitory.models.dto;
+package com.managedormitory.models.filter;
 
 import lombok.*;
 
@@ -8,7 +8,7 @@ import lombok.*;
 @ToString
 public class RoomFilterDto {
     private String campusName;
-    private String userManager;
+    private String roomNameOrUserManager;
     private Integer quantityStudent;
     private String typeRoom;
 }

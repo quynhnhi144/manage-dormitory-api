@@ -1,5 +1,4 @@
-package com.managedormitory.models.dto;
-
+package com.managedormitory.models.filter;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +9,8 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class StudentFilterDto {
+public class VehicleFilter {
     private String campusName;
-    private String roomNameOrUserManager;
+    private String typeVehicle;
+    private String licensePlates;
 }
