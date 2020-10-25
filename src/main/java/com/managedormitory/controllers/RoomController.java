@@ -1,6 +1,7 @@
 package com.managedormitory.controllers;
 
 import com.managedormitory.models.dto.*;
+import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.services.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,8 +14,8 @@ public class RoomController {
     private RoomService roomService;
 
     @GetMapping
-    public PaginationRoom filterRoom(@RequestParam(required = false) String campusName, @RequestParam(required = false) String userManager, @RequestParam(required = false) String typeRoom, @RequestParam(required = false) Integer quantityStudent, @RequestParam int skip, @RequestParam int take) {
-        RoomFilterDto roomFilterDto = RoomFilterDto.builder().campusName(campusName).userManager(userManager).typeRoom(typeRoom).quantityStudent(quantityStudent).build();
+    public PaginationRoom filterRoom(@RequestParam(required = false) String campusName, @RequestParam(required = false) String searchText, @RequestParam(required = false) String typeRoom, @RequestParam(required = false) Integer quantityStudent, @RequestParam int skip, @RequestParam int take) {
+        RoomFilterDto roomFilterDto = RoomFilterDto.builder().campusName(campusName).roomNameOrUserManager(searchText).typeRoom(typeRoom).quantityStudent(quantityStudent).build();
         return roomService.paginationGetAllRooms(roomFilterDto, skip, take);
     }
 

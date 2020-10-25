@@ -1,15 +1,15 @@
 package com.managedormitory.services.impl;
 
 import com.managedormitory.exceptions.NotFoundException;
-import com.managedormitory.models.dao.DetailRoom;
 import com.managedormitory.models.dao.Student;
 import com.managedormitory.models.dto.PaginationStudent;
 import com.managedormitory.models.dto.StudentDto;
-import com.managedormitory.models.dto.StudentFilterDto;
+import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.repositories.StudentRepository;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
 import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.DateUtil;
+import com.managedormitory.utils.PaginationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -80,28 +80,22 @@ public class StudentServiceImpl implements StudentService {
         List<StudentDto> studentDtos = getAllStudentDto();
         if (studentFilterDto.getCampusName() != null) {
             studentDtos = studentDtos.stream()
-                    .filter(studentDto -> studentDto.getCampusName().equals(studentFilterDto.getCampusName()))
+                    .filter(studentDto -> studentDto.getCampusName().toLowerCase().equals(studentFilterDto.getCampusName().toLowerCase()))
                     .collect(Collectors.toList());
         }
-        if (studentFilterDto.getRoomNameOrUserManager() != null) {
-            if (!studentFilterDto.getRoomNameOrUserManager().equals("")) {
+        if (studentFilterDto.getStudentNameOrRoomNameOrUserManager() != null) {
+            String searchText = studentFilterDto.getStudentNameOrRoomNameOrUserManager().toLowerCase();
+            if (!searchText.equals("")) {
                 studentDtos = studentDtos.stream()
-                        .filter(studentDto -> studentDto.getRoomName().equals(studentFilterDto.getRoomNameOrUserManager()) || studentDto.getUserManager().equals(studentFilterDto.getRoomNameOrUserManager()))
+                        .filter(studentDto -> studentDto.getRoomName().toLowerCase().equals(searchText)
+                                || studentDto.getUserManager().toLowerCase().equals(searchText)
+                                || studentDto.getName().toLowerCase().equals(searchText))
                         .collect(Collectors.toList());
             }
         }
 
         int total = studentDtos.size();
-        int lastElement;
-        if (take < total) {
-            if (skip + take < total) {
-                lastElement = skip + take;
-            } else {
-                lastElement = total;
-            }
-        } else {
-            lastElement = total;
-        }
+        int lastElement = PaginationUtils.getLastElement(skip, take, total);
         Map<String, List<StudentDto>> studentDtoMap = new HashMap<>();
         studentDtoMap.put("data", studentDtos.subList(skip, lastElement));
         return new PaginationStudent(studentDtoMap, total);
@@ -110,7 +104,9 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentDto getStudentById(Integer id) {
         List<StudentDto> studentDtos = getAllStudentDto();
-        List<StudentDto> studentDtoById = studentDtos.stream().filter(studentDto -> studentDto.getId().equals(id)).collect(Collectors.toList());
+        List<StudentDto> studentDtoById = studentDtos.stream()
+                .filter(studentDto -> studentDto.getId().equals(id))
+                .collect(Collectors.toList());
         if (studentDtoById.size() == 0) {
             throw new NotFoundException("Cannot find Student Id: " + id);
         }

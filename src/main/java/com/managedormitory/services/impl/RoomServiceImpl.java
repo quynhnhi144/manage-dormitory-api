@@ -5,7 +5,7 @@ import com.managedormitory.models.dao.Room;
 import com.managedormitory.models.dto.DetailRoomDto;
 import com.managedormitory.models.dto.PaginationRoom;
 import com.managedormitory.models.dto.RoomDto;
-import com.managedormitory.models.dto.RoomFilterDto;
+import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.repositories.RoomRepository;
 import com.managedormitory.repositories.custom.RoomRepositoryCustom;
 import com.managedormitory.services.RoomService;
@@ -80,13 +80,15 @@ public class RoomServiceImpl implements RoomService {
         List<DetailRoomDto> detailRoomDtos = getAllRoomDto();
         if (roomFilterDto.getCampusName() != null) {
             detailRoomDtos = detailRoomDtos.stream()
-                    .filter(detailRoomDto -> detailRoomDto.getCampusName().equals(roomFilterDto.getCampusName()))
+                    .filter(detailRoomDto -> detailRoomDto.getCampusName().toLowerCase().equals(roomFilterDto.getCampusName().toLowerCase()))
                     .collect(Collectors.toList());
         }
-        if (roomFilterDto.getUserManager() != null) {
-            if(!roomFilterDto.getUserManager().equals("")){
+        if (roomFilterDto.getRoomNameOrUserManager() != null) {
+            String searchText = roomFilterDto.getRoomNameOrUserManager().toLowerCase();
+            if (!searchText.equals("")) {
                 detailRoomDtos = detailRoomDtos.stream()
-                        .filter(detailRoomDto -> detailRoomDto.getUserManager().equals(roomFilterDto.getUserManager()))
+                        .filter(detailRoomDto -> detailRoomDto.getUserManager().toLowerCase().equals(searchText)
+                                || detailRoomDto.getRoomName().toLowerCase().equals(searchText))
                         .collect(Collectors.toList());
             }
         }
@@ -97,7 +99,7 @@ public class RoomServiceImpl implements RoomService {
         }
         if (roomFilterDto.getTypeRoom() != null) {
             detailRoomDtos = detailRoomDtos.stream()
-                    .filter(detailRoomDto -> detailRoomDto.getTypeRoom().equals(roomFilterDto.getTypeRoom()))
+                    .filter(detailRoomDto -> detailRoomDto.getTypeRoom().toLowerCase().equals(roomFilterDto.getTypeRoom().toLowerCase()))
                     .collect(Collectors.toList());
         }
         int total = detailRoomDtos.size();

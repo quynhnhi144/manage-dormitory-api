@@ -10,5 +10,5 @@ import java.util.Map;
 @AllArgsConstructor
 public class PaginationRoom {
     private Map<String, List<DetailRoomDto>> data;
-    private long total;
+    private int total;
 }
