@@ -67,17 +67,13 @@ public class VehicleServiceImpl implements VehicleService {
             vehicleDtos = vehicleDtos.stream().filter(vehicleDto -> vehicleDto.getCampusName().toLowerCase().equals(vehicleFilter.getCampusName().toLowerCase()))
                     .collect(Collectors.toList());
         }
-        if (vehicleFilter.getLicensePlates() != null) {
-            if (!vehicleFilter.getLicensePlates().equals("")) {
+        if (vehicleFilter.getLicensePlates() != null && !vehicleFilter.getLicensePlates().equals("")) {
                 vehicleDtos = vehicleDtos.stream().filter(vehicleDto -> vehicleDto.getLicensePlates().toLowerCase().equals(vehicleFilter.getLicensePlates().toLowerCase()))
                         .collect(Collectors.toList());
-            }
         }
-        if (vehicleFilter.getTypeVehicle() != null) {
-            if (!vehicleFilter.getTypeVehicle().equals("All")) {
+        if (vehicleFilter.getTypeVehicle() != null && !vehicleFilter.getTypeVehicle().equals("All")) {
                 vehicleDtos = vehicleDtos.stream().filter(vehicleDto -> vehicleDto.getTypeVehicle().toLowerCase().equals(vehicleFilter.getTypeVehicle().toLowerCase()))
                         .collect(Collectors.toList());
-            }
         }
 
         int total = vehicleDtos.size();

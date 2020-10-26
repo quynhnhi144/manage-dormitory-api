@@ -1,6 +1,7 @@
 package com.managedormitory.controllers;
 
 import com.managedormitory.models.dao.Campus;
+import com.managedormitory.models.dto.CampusDto;
 import com.managedormitory.services.CampusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -18,7 +19,7 @@ public class CampusController {
     private CampusService campusService;
 
     @GetMapping
-    public List<Campus> getAllCampuses() {
+    public List<CampusDto> getAllCampuses() {
         return campusService.getAllCampuses();
     }
 }

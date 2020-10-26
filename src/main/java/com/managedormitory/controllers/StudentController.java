@@ -1,7 +1,7 @@
 package com.managedormitory.controllers;
 
 import com.managedormitory.models.dto.PaginationStudent;
-import com.managedormitory.models.dto.StudentDto;
+import com.managedormitory.models.dto.StudentDetailDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.services.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
-    public StudentDto getDetailAStudent(@PathVariable Integer id) {
+    public StudentDetailDto getDetailAStudent(@PathVariable Integer id) {
         try {
             return studentService.getStudentById(id);
         } catch (Exception e) {

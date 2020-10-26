@@ -1,5 +1,6 @@
 package com.managedormitory.services.impl;
 
+import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.Room;
 import com.managedormitory.models.dto.DetailRoomDto;
@@ -24,6 +25,8 @@ public class RoomServiceImpl implements RoomService {
 
     @Autowired
     private RoomRepositoryCustom roomRepositoryCustom;
+    @Autowired
+    private StudentConvertToStudentDto studentConvertToStudentDto;
 
     @Override
     public List<Room> getAllRooms() {
@@ -41,7 +44,7 @@ public class RoomServiceImpl implements RoomService {
             DetailRoomDto detailRoomDto = new DetailRoomDto();
             detailRoomDto.setRoomId(room.getId());
             detailRoomDto.setRoomName(room.getName());
-            detailRoomDto.setStudents(room.getStudents());
+            detailRoomDto.setStudents(studentConvertToStudentDto.convert(room.getStudents()));
             detailRoomDto.setQuantityStudent(room.getQuantityStudent());
             if (room.getTypeRoom() == null) {
                 detailRoomDto.setTypeRoom(null);
@@ -83,14 +86,12 @@ public class RoomServiceImpl implements RoomService {
                     .filter(detailRoomDto -> detailRoomDto.getCampusName().toLowerCase().equals(roomFilterDto.getCampusName().toLowerCase()))
                     .collect(Collectors.toList());
         }
-        if (roomFilterDto.getRoomNameOrUserManager() != null) {
+        if (roomFilterDto.getRoomNameOrUserManager() != null && !roomFilterDto.getRoomNameOrUserManager().equals("")) {
             String searchText = roomFilterDto.getRoomNameOrUserManager().toLowerCase();
-            if (!searchText.equals("")) {
-                detailRoomDtos = detailRoomDtos.stream()
-                        .filter(detailRoomDto -> detailRoomDto.getUserManager().toLowerCase().equals(searchText)
-                                || detailRoomDto.getRoomName().toLowerCase().equals(searchText))
-                        .collect(Collectors.toList());
-            }
+            detailRoomDtos = detailRoomDtos.stream()
+                    .filter(detailRoomDto -> detailRoomDto.getUserManager().toLowerCase().equals(searchText)
+                            || detailRoomDto.getRoomName().toLowerCase().equals(searchText))
+                    .collect(Collectors.toList());
         }
         if (roomFilterDto.getQuantityStudent() != null && roomFilterDto.getQuantityStudent() >= 0) {
             detailRoomDtos = detailRoomDtos.stream()

@@ -1,6 +1,6 @@
 package com.managedormitory.repositories.custom.implement;
 
-import com.managedormitory.models.dto.StudentDto;
+import com.managedormitory.models.dto.StudentDetailDto;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
 import com.managedormitory.utils.QueryUtil;
 import org.hibernate.Session;
@@ -24,7 +24,7 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
     private EntityManager entityManager;
 
     @Override
-    public List<StudentDto> getAllStudentByTime() {
+    public List<StudentDetailDto> getAllStudentByTime() {
         LocalDate currentDate = LocalDate.now();
         int month = currentDate.getMonthValue();
         int year = currentDate.getYear();
@@ -81,7 +81,7 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .addScalar("isPayVehicleBill", StandardBasicTypes.BOOLEAN)
                 .addScalar("isPayPowerBill", StandardBasicTypes.BOOLEAN);
 
-        query.setResultTransformer(new AliasToBeanResultTransformer(StudentDto.class));
+        query.setResultTransformer(new AliasToBeanResultTransformer(StudentDetailDto.class));
         return safeList(query);
     }
 
