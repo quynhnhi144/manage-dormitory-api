@@ -10,7 +10,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaginationStudent {
-    private Map<String, List<StudentDetailDto>> data;
+public class PaginationUser {
+    private Map<String, List<UserDto>> data;
     private int total;
 }

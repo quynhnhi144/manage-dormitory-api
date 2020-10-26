@@ -3,7 +3,7 @@ package com.managedormitory.services.impl;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.Student;
 import com.managedormitory.models.dto.PaginationStudent;
-import com.managedormitory.models.dto.StudentDto;
+import com.managedormitory.models.dto.StudentDetailDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.repositories.StudentRepository;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
@@ -34,59 +34,59 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public List<StudentDto> getAllStudentDto() {
+    public List<StudentDetailDto> getAllStudentDto() {
         List<Student> students = getAllStudents();
-        List<StudentDto> studentDtos = studentRepositoryCustom.getAllStudentByTime();
-        List<StudentDto> studentDtosDetail = new ArrayList<>();
-        List<Integer> studentDtosIdList = studentDtos.stream().mapToInt(StudentDto::getId).boxed().collect(Collectors.toList());
+        List<StudentDetailDto> studentDetailDtos = studentRepositoryCustom.getAllStudentByTime();
+        List<StudentDetailDto> studentDetailDtosDetail = new ArrayList<>();
+        List<Integer> studentDtosIdList = studentDetailDtos.stream().mapToInt(StudentDetailDto::getId).boxed().collect(Collectors.toList());
         for (int i = 0; i < students.size(); i++) {
             Student student = students.get(i);
-            StudentDto studentDto = new StudentDto();
-            studentDto.setId(student.getId());
-            studentDto.setName(student.getName());
-            studentDto.setBirthday(student.getBirthday());
-            studentDto.setPhone(student.getPhone());
-            studentDto.setEmail(student.getEmail());
-            studentDto.setAddress(student.getAddress());
-            studentDto.setStartingDateOfStay(DateUtil.getSDateFromLDate(student.getStartingDateOfStay()));
-            studentDto.setEndingDateOfStay(DateUtil.getSDateFromLDate(student.getEndingDateOfStay()));
-            studentDto.setRoomName(student.getRoom().getName());
-            studentDto.setCampusName(student.getRoom().getCampus().getName());
+            StudentDetailDto studentDetailDto = new StudentDetailDto();
+            studentDetailDto.setId(student.getId());
+            studentDetailDto.setName(student.getName());
+            studentDetailDto.setBirthday(student.getBirthday());
+            studentDetailDto.setPhone(student.getPhone());
+            studentDetailDto.setEmail(student.getEmail());
+            studentDetailDto.setAddress(student.getAddress());
+            studentDetailDto.setStartingDateOfStay(DateUtil.getSDateFromLDate(student.getStartingDateOfStay()));
+            studentDetailDto.setEndingDateOfStay(DateUtil.getSDateFromLDate(student.getEndingDateOfStay()));
+            studentDetailDto.setRoomName(student.getRoom().getName());
+            studentDetailDto.setCampusName(student.getRoom().getCampus().getName());
             if (student.getRoom().getTypeRoom() == null) {
-                studentDto.setTypeRoom(null);
+                studentDetailDto.setTypeRoom(null);
             } else {
-                studentDto.setTypeRoom(student.getRoom().getTypeRoom().getName());
+                studentDetailDto.setTypeRoom(student.getRoom().getTypeRoom().getName());
             }
-            studentDto.setUserManager(student.getRoom().getCampus().getUserManager().getFullName());
+            studentDetailDto.setUserManager(student.getRoom().getCampus().getUserManager().getFullName());
 
             if (studentDtosIdList.contains(student.getId())) {
-                studentDto.setIsPayRoom(true);
-                studentDto.setIsPayWaterBill(true);
-                studentDto.setIsPayVehicleBill(true);
-                studentDto.setIsPayPowerBill(true);
+                studentDetailDto.setIsPayRoom(true);
+                studentDetailDto.setIsPayWaterBill(true);
+                studentDetailDto.setIsPayVehicleBill(true);
+                studentDetailDto.setIsPayPowerBill(true);
             } else {
-                studentDto.setIsPayRoom(false);
-                studentDto.setIsPayWaterBill(false);
-                studentDto.setIsPayVehicleBill(false);
-                studentDto.setIsPayPowerBill(false);
+                studentDetailDto.setIsPayRoom(false);
+                studentDetailDto.setIsPayWaterBill(false);
+                studentDetailDto.setIsPayVehicleBill(false);
+                studentDetailDto.setIsPayPowerBill(false);
             }
-            studentDtosDetail.add(studentDto);
+            studentDetailDtosDetail.add(studentDetailDto);
         }
-        return studentDtosDetail;
+        return studentDetailDtosDetail;
     }
 
     @Override
     public PaginationStudent paginationGetAllStudents(StudentFilterDto studentFilterDto, int skip, int take) {
-        List<StudentDto> studentDtos = getAllStudentDto();
+        List<StudentDetailDto> studentDetailDtos = getAllStudentDto();
         if (studentFilterDto.getCampusName() != null) {
-            studentDtos = studentDtos.stream()
+            studentDetailDtos = studentDetailDtos.stream()
                     .filter(studentDto -> studentDto.getCampusName().toLowerCase().equals(studentFilterDto.getCampusName().toLowerCase()))
                     .collect(Collectors.toList());
         }
         if (studentFilterDto.getStudentNameOrRoomNameOrUserManager() != null) {
             String searchText = studentFilterDto.getStudentNameOrRoomNameOrUserManager().toLowerCase();
             if (!searchText.equals("")) {
-                studentDtos = studentDtos.stream()
+                studentDetailDtos = studentDetailDtos.stream()
                         .filter(studentDto -> studentDto.getRoomName().toLowerCase().equals(searchText)
                                 || studentDto.getUserManager().toLowerCase().equals(searchText)
                                 || studentDto.getName().toLowerCase().equals(searchText))
@@ -94,22 +94,22 @@ public class StudentServiceImpl implements StudentService {
             }
         }
 
-        int total = studentDtos.size();
+        int total = studentDetailDtos.size();
         int lastElement = PaginationUtils.getLastElement(skip, take, total);
-        Map<String, List<StudentDto>> studentDtoMap = new HashMap<>();
-        studentDtoMap.put("data", studentDtos.subList(skip, lastElement));
+        Map<String, List<StudentDetailDto>> studentDtoMap = new HashMap<>();
+        studentDtoMap.put("data", studentDetailDtos.subList(skip, lastElement));
         return new PaginationStudent(studentDtoMap, total);
     }
 
     @Override
-    public StudentDto getStudentById(Integer id) {
-        List<StudentDto> studentDtos = getAllStudentDto();
-        List<StudentDto> studentDtoById = studentDtos.stream()
+    public StudentDetailDto getStudentById(Integer id) {
+        List<StudentDetailDto> studentDetailDtos = getAllStudentDto();
+        List<StudentDetailDto> studentDetailDtoById = studentDetailDtos.stream()
                 .filter(studentDto -> studentDto.getId().equals(id))
                 .collect(Collectors.toList());
-        if (studentDtoById.size() == 0) {
+        if (studentDetailDtoById.size() == 0) {
             throw new NotFoundException("Cannot find Student Id: " + id);
         }
-        return studentDtoById.get(0);
+        return studentDetailDtoById.get(0);
     }
 }
