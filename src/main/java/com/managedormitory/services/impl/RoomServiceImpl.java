@@ -1,7 +1,9 @@
 package com.managedormitory.services.impl;
 
+import com.managedormitory.converters.RoomConvertToRoomDto;
 import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.NotFoundException;
+import com.managedormitory.helper.RoomExcelHelper;
 import com.managedormitory.models.dao.Room;
 import com.managedormitory.models.dto.DetailRoomDto;
 import com.managedormitory.models.dto.PaginationRoom;
@@ -14,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,8 +29,12 @@ public class RoomServiceImpl implements RoomService {
 
     @Autowired
     private RoomRepositoryCustom roomRepositoryCustom;
+
     @Autowired
     private StudentConvertToStudentDto studentConvertToStudentDto;
+
+    @Autowired
+    private RoomConvertToRoomDto roomConvertToRoomDto;
 
     @Override
     public List<Room> getAllRooms() {
@@ -34,7 +42,13 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public List<DetailRoomDto> getAllRoomDto() {
+    public List<RoomDto> getAllRoomDto() {
+        List<Room> a = getAllRooms();
+        return roomConvertToRoomDto.convert(a);
+    }
+
+    @Override
+    public List<DetailRoomDto> getAllDetailRoomDto() {
         List<Room> rooms = getAllRooms();
         List<RoomDto> roomDtos = roomRepositoryCustom.getAllRoomByTime();
         List<DetailRoomDto> detailRoomDtos = new ArrayList<>();
@@ -80,7 +94,7 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public PaginationRoom paginationGetAllRooms(RoomFilterDto roomFilterDto, int skip, int take) {
-        List<DetailRoomDto> detailRoomDtos = getAllRoomDto();
+        List<DetailRoomDto> detailRoomDtos = getAllDetailRoomDto();
         if (roomFilterDto.getCampusName() != null) {
             detailRoomDtos = detailRoomDtos.stream()
                     .filter(detailRoomDto -> detailRoomDto.getCampusName().toLowerCase().equals(roomFilterDto.getCampusName().toLowerCase()))
@@ -122,11 +136,23 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public DetailRoomDto getRoomById(Integer id) throws NotFoundException {
-        List<DetailRoomDto> detailRoomDtos = getAllRoomDto();
+        List<DetailRoomDto> detailRoomDtos = getAllDetailRoomDto();
         List<DetailRoomDto> detailRoomDtoById = detailRoomDtos.stream().filter(detailRoomDto -> detailRoomDto.getRoomId().equals(id)).collect(Collectors.toList());
         if (detailRoomDtoById.size() == 0) {
             throw new NotFoundException("Cannot find Room Id: " + id);
         }
         return detailRoomDtoById.get(0);
+    }
+
+    @Override
+    public ByteArrayInputStream exportExcelRooms() throws IOException{
+        List<RoomDto> roomDtos = getAllRoomDto();
+        RoomExcelHelper roomExcelHelper = new RoomExcelHelper(roomDtos);
+        try {
+            ByteArrayInputStream  inputStream = roomExcelHelper.export();
+            return inputStream;
+        } catch (IOException e) {
+            throw new IOException();
+        }
     }
 }
