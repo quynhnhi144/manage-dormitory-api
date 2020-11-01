@@ -1,6 +1,7 @@
 package com.managedormitory.controllers;
 
 import com.managedormitory.exceptions.NotFoundException;
+import com.managedormitory.models.dao.Student;
 import com.managedormitory.models.dto.*;
 import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.services.RoomService;
@@ -48,5 +49,15 @@ public class RoomController {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+
+    @PutMapping("/{id}/student")
+    public boolean deleteStudentInRoom(@PathVariable Integer id, @RequestBody StudentDto student) throws NotFoundException {
+        return roomService.deleteStudentInRoom(id, student);
+    }
+
+    @PutMapping("/{id}")
+    public DetailRoomDto updateTypeRoom(@PathVariable Integer id, @RequestBody DetailRoomDto detailRoomDto) {
+        return roomService.updateTypeRoom(id, detailRoomDto);
     }
 }

@@ -85,6 +85,21 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
         return safeList(query);
     }
 
+    @Override
+    public int updateRoomIdOfStudent(Integer studentId, Integer roomId) {
+        String queryUpdate =
+                "UPDATE student \n" +
+                        "SET room_id = :roomId\n" +
+                        "WHERE id = :studentId";
+
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryUpdate);
+        query.setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, roomId))
+                .setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, studentId));
+        int result = query.executeUpdate();
+
+        return result;
+    }
+
     public static <Entity> List<Entity> safeList(Query query) {
         return query.getResultList();
     }

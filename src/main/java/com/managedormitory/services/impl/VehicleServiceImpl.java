@@ -46,9 +46,16 @@ public class VehicleServiceImpl implements VehicleService {
             vehicleDto.setTypeVehicle(vehicle.getTypeVehicleId().getName());
             vehicleDto.setStudentId(vehicle.getStudentId().getId());
             vehicleDto.setStudentName(vehicle.getStudentId().getName());
-            vehicleDto.setRoomName(vehicle.getStudentId().getRoom().getName());
-            vehicleDto.setCampusName(vehicle.getStudentId().getRoom().getCampus().getName());
-            vehicleDto.setUserManager(vehicle.getStudentId().getRoom().getCampus().getUserManager().getFullName());
+            if (vehicle.getStudentId().getRoom() == null) {
+                vehicleDto.setRoomName(null);
+                vehicleDto.setCampusName(null);
+                vehicleDto.setUserManager(null);
+            } else {
+                vehicleDto.setRoomName(vehicle.getStudentId().getRoom().getName());
+                vehicleDto.setCampusName(vehicle.getStudentId().getRoom().getCampus().getName());
+                vehicleDto.setUserManager(vehicle.getStudentId().getRoom().getCampus().getUserManager().getFullName());
+            }
+
             if (vehicleDtoIdList.contains(vehicle.getId())) {
                 vehicleDto.setIsPayVehicleBill(true);
             } else {
@@ -64,16 +71,17 @@ public class VehicleServiceImpl implements VehicleService {
     public PaginationVehicle paginationGetAllVehicles(VehicleFilter vehicleFilter, int skip, int take) {
         List<VehicleDto> vehicleDtos = getAllVehicleDto();
         if (vehicleFilter.getCampusName() != null) {
-            vehicleDtos = vehicleDtos.stream().filter(vehicleDto -> vehicleDto.getCampusName().toLowerCase().equals(vehicleFilter.getCampusName().toLowerCase()))
+            vehicleDtos = vehicleDtos.stream().filter(vehicleDto ->
+               vehicleDto.getCampusName() != null && vehicleDto.getCampusName().toLowerCase().equals(vehicleFilter.getCampusName().toLowerCase()) )
                     .collect(Collectors.toList());
         }
         if (vehicleFilter.getLicensePlates() != null && !vehicleFilter.getLicensePlates().equals("")) {
-                vehicleDtos = vehicleDtos.stream().filter(vehicleDto -> vehicleDto.getLicensePlates().toLowerCase().equals(vehicleFilter.getLicensePlates().toLowerCase()))
-                        .collect(Collectors.toList());
+            vehicleDtos = vehicleDtos.stream().filter(vehicleDto -> vehicleDto.getLicensePlates().toLowerCase().equals(vehicleFilter.getLicensePlates().toLowerCase()))
+                    .collect(Collectors.toList());
         }
         if (vehicleFilter.getTypeVehicle() != null && !vehicleFilter.getTypeVehicle().equals("All")) {
-                vehicleDtos = vehicleDtos.stream().filter(vehicleDto -> vehicleDto.getTypeVehicle().toLowerCase().equals(vehicleFilter.getTypeVehicle().toLowerCase()))
-                        .collect(Collectors.toList());
+            vehicleDtos = vehicleDtos.stream().filter(vehicleDto -> vehicleDto.getTypeVehicle().toLowerCase().equals(vehicleFilter.getTypeVehicle().toLowerCase()))
+                    .collect(Collectors.toList());
         }
 
         int total = vehicleDtos.size();

@@ -1,5 +1,6 @@
 package com.managedormitory.repositories.custom.implement;
 
+import com.managedormitory.models.dto.DetailRoomDto;
 import com.managedormitory.models.dto.RoomDto;
 import com.managedormitory.repositories.custom.RoomRepositoryCustom;
 import com.managedormitory.utils.QueryUtil;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -75,6 +77,39 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
         query.setResultTransformer(new AliasToBeanResultTransformer(RoomDto.class));
 
         return safeList(query);
+    }
+
+    @Override
+    public int updateQuantityStudent(Integer roomId) {
+        String queryNative =
+                "UPDATE room\n" +
+                        "SET quantity_student = (select count(s.id)\n" +
+                        "                        from student s\n" +
+                        "                                 join room r on r.id = s.room_id\n" +
+                        "                        where r.id = :roomId)\n" +
+                        "WHERE id = :roomId";
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryNative);
+        query.setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, roomId));
+        return query.executeUpdate();
+    }
+
+    @Override
+    public int updateTypeRoom(Integer roomId, DetailRoomDto room) {
+        Integer typeRoomId = room.getTypeRoom().getId();
+        System.out.println("typeRoomId" + typeRoomId);
+        String queryNative =
+                "UPDATE room\n" +
+                        "SET type_room_id = " +
+                        "CASE\n" +
+                        "WHEN (quantity_student = 0) THEN null\n" +
+                        "WHEN (quantity_student > 0) THEN :typeRoomId\n" +
+                        "END\n"+
+                        "WHERE id = :roomId";
+
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryNative);
+        query.setParameter("typeRoomId", new TypedParameterValue(IntegerType.INSTANCE, typeRoomId))
+                .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, roomId));
+        return query.executeUpdate();
     }
 
     public static <Entity> List<Entity> safeList(Query query) {
