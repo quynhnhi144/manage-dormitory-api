@@ -10,6 +10,7 @@ import com.managedormitory.repositories.custom.StudentRepositoryCustom;
 import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.DateUtil;
 import com.managedormitory.utils.PaginationUtils;
+import com.managedormitory.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -50,14 +51,17 @@ public class StudentServiceImpl implements StudentService {
             studentDetailDto.setAddress(student.getAddress());
             studentDetailDto.setStartingDateOfStay(DateUtil.getSDateFromLDate(student.getStartingDateOfStay()));
             studentDetailDto.setEndingDateOfStay(DateUtil.getSDateFromLDate(student.getEndingDateOfStay()));
-            studentDetailDto.setRoomName(student.getRoom().getName());
-            studentDetailDto.setCampusName(student.getRoom().getCampus().getName());
-            if (student.getRoom().getTypeRoom() == null) {
+            if (student.getRoom() == null) {
+                studentDetailDto.setRoomName(null);
+                studentDetailDto.setCampusName(null);
                 studentDetailDto.setTypeRoom(null);
+                studentDetailDto.setUserManager(null);
             } else {
+                studentDetailDto.setRoomName(student.getRoom().getName());
+                studentDetailDto.setCampusName(student.getRoom().getCampus().getName());
                 studentDetailDto.setTypeRoom(student.getRoom().getTypeRoom().getName());
+                studentDetailDto.setUserManager(student.getRoom().getCampus().getUserManager().getFullName());
             }
-            studentDetailDto.setUserManager(student.getRoom().getCampus().getUserManager().getFullName());
 
             if (studentDtosIdList.contains(student.getId())) {
                 studentDetailDto.setIsPayRoom(true);
@@ -80,18 +84,16 @@ public class StudentServiceImpl implements StudentService {
         List<StudentDetailDto> studentDetailDtos = getAllStudentDto();
         if (studentFilterDto.getCampusName() != null) {
             studentDetailDtos = studentDetailDtos.stream()
-                    .filter(studentDto -> studentDto.getCampusName().toLowerCase().equals(studentFilterDto.getCampusName().toLowerCase()))
+                    .filter(studentDto -> studentDto.getCampusName() != null && studentDto.getCampusName().toLowerCase().equals(studentFilterDto.getCampusName().toLowerCase()))
                     .collect(Collectors.toList());
         }
-        if (studentFilterDto.getStudentNameOrRoomNameOrUserManager() != null) {
-            String searchText = studentFilterDto.getStudentNameOrRoomNameOrUserManager().toLowerCase();
-            if (!searchText.equals("")) {
-                studentDetailDtos = studentDetailDtos.stream()
-                        .filter(studentDto -> studentDto.getRoomName().toLowerCase().equals(searchText)
-                                || studentDto.getUserManager().toLowerCase().equals(searchText)
-                                || studentDto.getName().toLowerCase().equals(searchText))
-                        .collect(Collectors.toList());
-            }
+        if (studentFilterDto.getStudentNameOrRoomNameOrUserManager() != null && !studentFilterDto.getStudentNameOrRoomNameOrUserManager().equals("")) {
+            String searchText = studentFilterDto.getStudentNameOrRoomNameOrUserManager().toLowerCase() + StringUtil.DOT_STAR;
+            studentDetailDtos = studentDetailDtos.stream()
+                    .filter(studentDto -> (studentDto.getRoomName() != null && studentDto.getRoomName().toLowerCase().matches(searchText))
+                            || (studentDto.getUserManager() != null && studentDto.getUserManager().toLowerCase().matches(searchText))
+                            || studentDto.getName().toLowerCase().matches(searchText))
+                    .collect(Collectors.toList());
         }
 
         int total = studentDetailDtos.size();
@@ -111,5 +113,10 @@ public class StudentServiceImpl implements StudentService {
             throw new NotFoundException("Cannot find Student Id: " + id);
         }
         return studentDetailDtoById.get(0);
+    }
+
+    @Override
+    public boolean updateRoomIdOfStudent() {
+        return false;
     }
 }

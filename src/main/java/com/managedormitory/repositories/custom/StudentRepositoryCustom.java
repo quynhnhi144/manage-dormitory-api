@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface StudentRepositoryCustom {
     List<StudentDetailDto> getAllStudentByTime();
+    int updateRoomIdOfStudent(Integer studentId, Integer roomId);
 }
