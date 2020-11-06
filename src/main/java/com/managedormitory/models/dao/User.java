@@ -24,18 +24,18 @@ public class User {
     @Column(length = 100, unique = true, nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-    @NotBlank(message = "Username is mandatory")
+    //@NotBlank(message = "Username is mandatory")
     private String username;
 
     @Column(nullable = false)
     @NonNull
-    @NotBlank(message = "Password is mandatory")
+    //@NotBlank(message = "Password is mandatory")
     private String password;
 
     @Column(length = 100, name = "full_name", nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-    @NotBlank(message = "Full Name is mandatory")
+    //@NotBlank(message = "Full Name is mandatory")
     private String fullName;
 
     @Column
@@ -44,7 +44,7 @@ public class User {
 
     @Email
     @NonNull
-    @NotBlank(message = "Email is mandatory")
+    //@NotBlank(message = "Email is mandatory")
     private String email;
 
     @Column(length = 100)

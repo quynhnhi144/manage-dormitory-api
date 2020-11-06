@@ -40,7 +40,7 @@ public class PowerBill {
     @MapsId("roomId")
     @JoinColumn(name = "room_id")
     @NonNull
-    @NotBlank
+    //@NotBlank
     private Room room;
 
     /*@Embeddable

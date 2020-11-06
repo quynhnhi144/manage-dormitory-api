@@ -21,13 +21,13 @@ public class Campus {
     @Column(length = 100, name = "name", nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-    @NotBlank(message = "Name is mandatory")
+    //@NotBlank(message = "Name is mandatory")
     private String name;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id")
     @NonNull
-    @NotBlank(message = "User is mandatory")
+    //@NotBlank(message = "User is mandatory")
     private User userManager;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "campus")

@@ -2,14 +2,18 @@ package com.managedormitory.services.impl;
 
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
-import com.managedormitory.models.dao.Student;
+import com.managedormitory.models.dao.*;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
+import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.room.RoomDto;
 import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentUpdateDto;
 import com.managedormitory.models.filter.StudentFilterDto;
+import com.managedormitory.repositories.DetailRoomRepository;
 import com.managedormitory.repositories.StudentRepository;
+import com.managedormitory.repositories.VehicleRepository;
+import com.managedormitory.repositories.WaterBillRepository;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
 import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.DateUtil;
@@ -33,6 +37,15 @@ public class StudentServiceImpl implements StudentService {
 
     @Autowired
     private StudentRepositoryCustom studentRepositoryCustom;
+
+    @Autowired
+    private VehicleRepository vehicleRepository;
+
+    @Autowired
+    private DetailRoomRepository detailRoomRepository;
+
+    @Autowired
+    private WaterBillRepository waterBillRepository;
 
     @Override
     public List<Student> getAllStudents() {
@@ -90,7 +103,7 @@ public class StudentServiceImpl implements StudentService {
             String searchText = studentFilterDto.getStudentNameOrRoomNameOrUserManager().toLowerCase() + StringUtil.DOT_STAR;
             studentDetailDtos = studentDetailDtos.stream()
                     .filter(studentDto -> (studentDto.getRoomDto() != null && studentDto.getRoomDto().getName().toLowerCase().matches(searchText))
-                            || (studentDto.getRoomDto()!= null && studentDto.getRoomDto().getUserManager().toLowerCase().matches(searchText))
+                            || (studentDto.getRoomDto() != null && studentDto.getRoomDto().getUserManager().toLowerCase().matches(searchText))
                             || studentDto.getName().toLowerCase().matches(searchText))
                     .collect(Collectors.toList());
         }
@@ -121,5 +134,32 @@ public class StudentServiceImpl implements StudentService {
             throw new BadRequestException("Cannot execute");
         }
         return getStudentById(id);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void deleteStudent(Integer id) {
+        Student student = studentRepository.findById(id).get();
+        List<DetailRoom> detailRooms = student.getDetailRoomList();
+        detailRooms.forEach(detailRoom -> {
+            detailRoom.setStudent(null);
+            detailRoomRepository.save(detailRoom);
+        });
+        student.setDetailRoomList(new ArrayList<>());
+
+        List<WaterBill> waterBills = student.getWaterBills();
+        waterBills.forEach(waterBill -> {
+            waterBill.setStudent(null);
+            waterBillRepository.save(waterBill);
+        });
+        student.setWaterBills(new ArrayList<>());
+
+        Vehicle vehicle = student.getVehicle();
+        vehicle.setStudentId(null);
+        student.setVehicle(null);
+        vehicle.setVehicleBills(new ArrayList<>());
+        vehicleRepository.save(vehicle);
+//        vehicleRepository.delete(vehicle);
+        studentRepository.delete(student);
     }
 }

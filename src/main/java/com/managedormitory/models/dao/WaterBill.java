@@ -32,7 +32,6 @@ public class WaterBill {
     @ManyToOne
     @MapsId("studentId")
     @JoinColumn(name = "student_id")
-    @NonNull
     private Student student;
 
     @OneToOne

@@ -36,7 +36,12 @@ public class StudentController {
 
     @PutMapping("/{id}")
     public StudentDetailDto updateStudent(@PathVariable Integer id, @RequestBody StudentUpdateDto studentUpdateDto) throws BadRequestException {
-       return studentService.updateStudent(id, studentUpdateDto);
+        return studentService.updateStudent(id, studentUpdateDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteStudent(@PathVariable Integer id) {
+        studentService.deleteStudent(id);
     }
 
 }

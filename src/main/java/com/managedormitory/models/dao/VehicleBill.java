@@ -33,14 +33,13 @@ public class VehicleBill {
     @ManyToOne
     @MapsId("vehicleId")
     @JoinColumn(name = "vehicle_id")
-    @NonNull
-    @NotBlank
+    ////@NotBlank
     private Vehicle vehicle;
 
     @OneToOne
     @JoinColumn(name = "price_list_id")
     @NonNull
-    @NotBlank
+    ////@NotBlank
     private PriceList priceList;
 
     /*@Embeddable

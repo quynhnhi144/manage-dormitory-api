@@ -28,16 +28,15 @@ public class Vehicle {
     @OneToOne
     @JoinColumn(name = "type_vehicle_id")
     @NonNull
-    @NotBlank
+//    //@NotBlank
     private TypeVehicle typeVehicleId;
 
     @OneToOne
     @JoinColumn(name = "student_id")
-    @NonNull
-    @NotBlank
+//    //@NotBlank
     private Student studentId;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "vehicle")
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "vehicle")
     @JsonIgnore
     private List<VehicleBill> vehicleBills;
 

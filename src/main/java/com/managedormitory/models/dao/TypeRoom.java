@@ -21,11 +21,11 @@ public class TypeRoom {
     @Column(length = 100, name = "name", nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-    @NotBlank(message = "Name is mandatory")
+    //@NotBlank(message = "Name is mandatory")
     private String name;
 
     @Column
     @NonNull
-    @NotBlank
+    //@NotBlank
     private Integer maxQuantity;
 }

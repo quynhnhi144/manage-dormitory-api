@@ -10,7 +10,6 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -30,7 +29,7 @@ public class Student {
     @Column(length = 100, name = "name", nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-    @NotBlank(message = "Full Name is mandatory")
+//    //@NotBlank(message = "Full Name is mandatory")
     private String name;
 
     @Column
@@ -45,7 +44,7 @@ public class Student {
 
     @Email
     @NonNull
-    @NotBlank(message = "Email is mandatory")
+//    //@NotBlank(message = "Email is mandatory")
     private String email;
 
     @Column
@@ -59,14 +58,18 @@ public class Student {
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "room_id")
     @NonNull
-    @NotBlank(message = "Room is mandatory")
+//    //@NotBlank(message = "Room is mandatory")
     private Room room;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "student")
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "student")
     @JsonIgnore
     private List<DetailRoom> detailRoomList;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "student")
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "student")
     @JsonIgnore
     private List<WaterBill> waterBills;
+
+    @OneToOne(cascade = CascadeType.MERGE, mappedBy = "studentId")
+    @JsonIgnore
+    private Vehicle vehicle;
 }
