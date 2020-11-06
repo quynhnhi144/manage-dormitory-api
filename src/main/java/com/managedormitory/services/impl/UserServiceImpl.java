@@ -2,7 +2,7 @@ package com.managedormitory.services.impl;
 
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.User;
-import com.managedormitory.models.dto.PaginationUser;
+import com.managedormitory.models.dto.pagination.PaginationUser;
 import com.managedormitory.models.dto.UserDto;
 import com.managedormitory.repositories.UserRepository;
 import com.managedormitory.services.UserService;

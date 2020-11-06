@@ -1,9 +1,9 @@
 package com.managedormitory.services;
 import com.managedormitory.models.dao.Room;
-import com.managedormitory.models.dto.DetailRoomDto;
-import com.managedormitory.models.dto.PaginationRoom;
-import com.managedormitory.models.dto.RoomDto;
-import com.managedormitory.models.dto.StudentDto;
+import com.managedormitory.models.dto.room.DetailRoomDto;
+import com.managedormitory.models.dto.pagination.PaginationRoom;
+import com.managedormitory.models.dto.room.RoomDto;
+import com.managedormitory.models.dto.student.StudentInRoomDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 
 import java.io.ByteArrayInputStream;
@@ -14,9 +14,9 @@ public interface RoomService {
     List<Room> getAllRooms();
     List<DetailRoomDto> getAllDetailRoomDto();
     List<RoomDto> getAllRoomDto();
-    PaginationRoom paginationGetAllRooms( RoomFilterDto roomFilterDto, int skip, int take);
+    PaginationRoom paginationGetAllRooms(RoomFilterDto roomFilterDto, int skip, int take);
     DetailRoomDto getRoomById(Integer id);
     ByteArrayInputStream exportExcelRooms() throws IOException;
-    boolean deleteStudentInRoom(Integer roomId, StudentDto studentDtoNew);
+    boolean deleteStudentInRoom(Integer roomId, StudentInRoomDto studentInRoomDtoNew);
     DetailRoomDto updateTypeRoom(Integer id,DetailRoomDto room);
 }

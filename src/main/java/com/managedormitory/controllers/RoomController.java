@@ -1,8 +1,9 @@
 package com.managedormitory.controllers;
 
 import com.managedormitory.exceptions.NotFoundException;
-import com.managedormitory.models.dao.Student;
-import com.managedormitory.models.dto.*;
+import com.managedormitory.models.dto.room.DetailRoomDto;
+import com.managedormitory.models.dto.pagination.PaginationRoom;
+import com.managedormitory.models.dto.student.StudentInRoomDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.services.RoomService;
 import com.managedormitory.utils.StringUtil;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @CrossOrigin
@@ -52,7 +54,7 @@ public class RoomController {
     }
 
     @PutMapping("/{id}/student")
-    public boolean deleteStudentInRoom(@PathVariable Integer id, @RequestBody StudentDto student) throws NotFoundException {
+    public boolean deleteStudentInRoom(@PathVariable Integer id, @RequestBody StudentInRoomDto student) throws NotFoundException {
         return roomService.deleteStudentInRoom(id, student);
     }
 

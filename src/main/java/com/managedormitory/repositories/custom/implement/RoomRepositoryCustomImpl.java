@@ -1,7 +1,7 @@
 package com.managedormitory.repositories.custom.implement;
 
-import com.managedormitory.models.dto.DetailRoomDto;
-import com.managedormitory.models.dto.RoomDto;
+import com.managedormitory.models.dto.room.DetailRoomDto;
+import com.managedormitory.models.dto.room.RoomDto;
 import com.managedormitory.repositories.custom.RoomRepositoryCustom;
 import com.managedormitory.utils.QueryUtil;
 import org.hibernate.Session;
@@ -96,7 +96,6 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
     @Override
     public int updateTypeRoom(Integer roomId, DetailRoomDto room) {
         Integer typeRoomId = room.getTypeRoom().getId();
-        System.out.println("typeRoomId" + typeRoomId);
         String queryNative =
                 "UPDATE room\n" +
                         "SET type_room_id = " +

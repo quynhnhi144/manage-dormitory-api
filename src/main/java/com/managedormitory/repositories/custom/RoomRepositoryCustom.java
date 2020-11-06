@@ -1,7 +1,7 @@
 package com.managedormitory.repositories.custom;
 
-import com.managedormitory.models.dto.DetailRoomDto;
-import com.managedormitory.models.dto.RoomDto;
+import com.managedormitory.models.dto.room.DetailRoomDto;
+import com.managedormitory.models.dto.room.RoomDto;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
