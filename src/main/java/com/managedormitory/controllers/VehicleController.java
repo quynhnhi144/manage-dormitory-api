@@ -1,6 +1,6 @@
 package com.managedormitory.controllers;
 
-import com.managedormitory.models.dto.PaginationVehicle;
+import com.managedormitory.models.dto.pagination.PaginationVehicle;
 import com.managedormitory.models.dto.VehicleDto;
 import com.managedormitory.models.filter.VehicleFilter;
 import com.managedormitory.services.VehicleService;

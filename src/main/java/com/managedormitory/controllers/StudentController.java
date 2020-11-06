@@ -1,7 +1,10 @@
 package com.managedormitory.controllers;
 
-import com.managedormitory.models.dto.PaginationStudent;
-import com.managedormitory.models.dto.StudentDetailDto;
+import com.managedormitory.exceptions.BadRequestException;
+import com.managedormitory.models.dto.pagination.PaginationStudent;
+import com.managedormitory.models.dto.student.StudentDetailDto;
+import com.managedormitory.models.dto.student.StudentDto;
+import com.managedormitory.models.dto.student.StudentUpdateDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.services.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,4 +33,10 @@ public class StudentController {
         }
         return null;
     }
+
+    @PutMapping("/{id}")
+    public StudentDetailDto updateStudent(@PathVariable Integer id, @RequestBody StudentUpdateDto studentUpdateDto) throws BadRequestException {
+       return studentService.updateStudent(id, studentUpdateDto);
+    }
+
 }

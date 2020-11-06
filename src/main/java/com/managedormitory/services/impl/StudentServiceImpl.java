@@ -1,9 +1,13 @@
 package com.managedormitory.services.impl;
 
+import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.Student;
-import com.managedormitory.models.dto.PaginationStudent;
-import com.managedormitory.models.dto.StudentDetailDto;
+import com.managedormitory.models.dto.pagination.PaginationStudent;
+import com.managedormitory.models.dto.room.RoomDto;
+import com.managedormitory.models.dto.student.StudentDetailDto;
+import com.managedormitory.models.dto.student.StudentDto;
+import com.managedormitory.models.dto.student.StudentUpdateDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.repositories.StudentRepository;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
@@ -14,6 +18,7 @@ import com.managedormitory.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,9 +42,9 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<StudentDetailDto> getAllStudentDto() {
         List<Student> students = getAllStudents();
-        List<StudentDetailDto> studentDetailDtos = studentRepositoryCustom.getAllStudentByTime();
+        List<StudentDto> studentDtos = studentRepositoryCustom.getAllStudentByTime();
         List<StudentDetailDto> studentDetailDtosDetail = new ArrayList<>();
-        List<Integer> studentDtosIdList = studentDetailDtos.stream().mapToInt(StudentDetailDto::getId).boxed().collect(Collectors.toList());
+        List<Integer> studentDtosIdList = studentDtos.stream().mapToInt(StudentDto::getId).boxed().collect(Collectors.toList());
         for (int i = 0; i < students.size(); i++) {
             Student student = students.get(i);
             StudentDetailDto studentDetailDto = new StudentDetailDto();
@@ -52,15 +57,9 @@ public class StudentServiceImpl implements StudentService {
             studentDetailDto.setStartingDateOfStay(DateUtil.getSDateFromLDate(student.getStartingDateOfStay()));
             studentDetailDto.setEndingDateOfStay(DateUtil.getSDateFromLDate(student.getEndingDateOfStay()));
             if (student.getRoom() == null) {
-                studentDetailDto.setRoomName(null);
-                studentDetailDto.setCampusName(null);
-                studentDetailDto.setTypeRoom(null);
-                studentDetailDto.setUserManager(null);
+                studentDetailDto.setRoomDto(null);
             } else {
-                studentDetailDto.setRoomName(student.getRoom().getName());
-                studentDetailDto.setCampusName(student.getRoom().getCampus().getName());
-                studentDetailDto.setTypeRoom(student.getRoom().getTypeRoom().getName());
-                studentDetailDto.setUserManager(student.getRoom().getCampus().getUserManager().getFullName());
+                studentDetailDto.setRoomDto(new RoomDto(student.getRoom()));
             }
 
             if (studentDtosIdList.contains(student.getId())) {
@@ -84,14 +83,14 @@ public class StudentServiceImpl implements StudentService {
         List<StudentDetailDto> studentDetailDtos = getAllStudentDto();
         if (studentFilterDto.getCampusName() != null) {
             studentDetailDtos = studentDetailDtos.stream()
-                    .filter(studentDto -> studentDto.getCampusName() != null && studentDto.getCampusName().toLowerCase().equals(studentFilterDto.getCampusName().toLowerCase()))
+                    .filter(studentDto -> studentDto.getRoomDto() != null && studentDto.getRoomDto().getCampusName().toLowerCase().equals(studentFilterDto.getCampusName().toLowerCase()))
                     .collect(Collectors.toList());
         }
         if (studentFilterDto.getStudentNameOrRoomNameOrUserManager() != null && !studentFilterDto.getStudentNameOrRoomNameOrUserManager().equals("")) {
             String searchText = studentFilterDto.getStudentNameOrRoomNameOrUserManager().toLowerCase() + StringUtil.DOT_STAR;
             studentDetailDtos = studentDetailDtos.stream()
-                    .filter(studentDto -> (studentDto.getRoomName() != null && studentDto.getRoomName().toLowerCase().matches(searchText))
-                            || (studentDto.getUserManager() != null && studentDto.getUserManager().toLowerCase().matches(searchText))
+                    .filter(studentDto -> (studentDto.getRoomDto() != null && studentDto.getRoomDto().getName().toLowerCase().matches(searchText))
+                            || (studentDto.getRoomDto()!= null && studentDto.getRoomDto().getUserManager().toLowerCase().matches(searchText))
                             || studentDto.getName().toLowerCase().matches(searchText))
                     .collect(Collectors.toList());
         }
@@ -115,8 +114,12 @@ public class StudentServiceImpl implements StudentService {
         return studentDetailDtoById.get(0);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean updateRoomIdOfStudent() {
-        return false;
+    public StudentDetailDto updateStudent(Integer id, StudentUpdateDto studentUpdateDto) throws BadRequestException {
+        if (studentRepositoryCustom.updateStudent(id, studentUpdateDto) <= 0) {
+            throw new BadRequestException("Cannot execute");
+        }
+        return getStudentById(id);
     }
 }

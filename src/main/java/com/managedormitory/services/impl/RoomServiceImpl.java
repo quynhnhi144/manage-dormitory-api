@@ -2,13 +2,14 @@ package com.managedormitory.services.impl;
 
 import com.managedormitory.converters.RoomConvertToRoomDto;
 import com.managedormitory.converters.StudentConvertToStudentDto;
+import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.helper.RoomExcelHelper;
 import com.managedormitory.models.dao.Room;
-import com.managedormitory.models.dto.DetailRoomDto;
-import com.managedormitory.models.dto.PaginationRoom;
-import com.managedormitory.models.dto.RoomDto;
-import com.managedormitory.models.dto.StudentDto;
+import com.managedormitory.models.dto.room.DetailRoomDto;
+import com.managedormitory.models.dto.pagination.PaginationRoom;
+import com.managedormitory.models.dto.room.RoomDto;
+import com.managedormitory.models.dto.student.StudentInRoomDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.repositories.RoomRepository;
 import com.managedormitory.repositories.custom.RoomRepositoryCustom;
@@ -63,11 +64,11 @@ public class RoomServiceImpl implements RoomService {
         for (int i = 0; i < rooms.size(); i++) {
             Room room = rooms.get(i);
             DetailRoomDto detailRoomDto = new DetailRoomDto();
-            detailRoomDto.setRoomId(room.getId());
-            detailRoomDto.setRoomName(room.getName());
-            List<StudentDto> studentDtos = studentConvertToStudentDto.convert(room.getStudents());
-            studentDtos.sort(Comparator.comparing(StudentDto::getId));
-            detailRoomDto.setStudents(studentDtos);
+            detailRoomDto.setId(room.getId());
+            detailRoomDto.setName(room.getName());
+            List<StudentInRoomDto> studentInRoomDtos = studentConvertToStudentDto.convert(room.getStudents());
+            studentInRoomDtos.sort(Comparator.comparing(StudentInRoomDto::getId));
+            detailRoomDto.setStudents(studentInRoomDtos);
             detailRoomDto.setQuantityStudent(room.getQuantityStudent());
             if (room.getTypeRoom() == null) {
                 detailRoomDto.setTypeRoom(null);
@@ -113,7 +114,7 @@ public class RoomServiceImpl implements RoomService {
             String searchText = roomFilterDto.getRoomNameOrUserManager().toLowerCase() + StringUtil.DOT_STAR;
             detailRoomDtos = detailRoomDtos.stream()
                     .filter(detailRoomDto -> detailRoomDto.getUserManager().toLowerCase().matches(searchText)
-                            || detailRoomDto.getRoomName().toLowerCase().matches(searchText))
+                            || detailRoomDto.getName().toLowerCase().matches(searchText))
                     .collect(Collectors.toList());
         }
         if (roomFilterDto.getQuantityStudent() != null && roomFilterDto.getQuantityStudent() >= 0) {
@@ -147,7 +148,7 @@ public class RoomServiceImpl implements RoomService {
     public DetailRoomDto getRoomById(Integer id) throws NotFoundException {
         List<DetailRoomDto> detailRoomDtos = getAllDetailRoomDto();
         return detailRoomDtos.stream()
-                .filter(detailRoomDto -> detailRoomDto.getRoomId() == id)
+                .filter(detailRoomDto -> detailRoomDto.getId() == id)
                 .reduce((a, b) -> {
                     throw new IllegalStateException("Multiple elements: " + a + " " + b);
                 }).get();
@@ -167,15 +168,15 @@ public class RoomServiceImpl implements RoomService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean deleteStudentInRoom(Integer roomId, StudentDto studentDtoNew) throws NotFoundException {
+    public boolean deleteStudentInRoom(Integer roomId, StudentInRoomDto studentInRoomDtoNew) throws NotFoundException {
         DetailRoomDto currentDetailRoomDto = getRoomById(roomId);
-        List<StudentDto> studentDtos = currentDetailRoomDto.getStudents();
+        List<StudentInRoomDto> studentInRoomDtos = currentDetailRoomDto.getStudents();
         int resultStudent = 0;
         int resultQuantity = 0;
         int resultTypeRoom = 0;
-        for (StudentDto studentDto : studentDtos) {
-            if (studentDto.getId() == studentDtoNew.getId()) {
-                resultStudent = studentRepositoryCustom.updateRoomIdOfStudent(studentDtoNew.getId(), null);
+        for (StudentInRoomDto studentInRoomDto : studentInRoomDtos) {
+            if (studentInRoomDto.getId() == studentInRoomDtoNew.getId()) {
+                resultStudent = studentRepositoryCustom.updateRoomIdOfStudent(studentInRoomDtoNew.getId(), null);
                 resultQuantity = roomRepositoryCustom.updateQuantityStudent(roomId);
                 resultTypeRoom = roomRepositoryCustom.updateTypeRoom(roomId, currentDetailRoomDto);
             }
@@ -188,7 +189,7 @@ public class RoomServiceImpl implements RoomService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public DetailRoomDto updateTypeRoom(Integer id, DetailRoomDto room) {
+    public DetailRoomDto updateTypeRoom(Integer id, DetailRoomDto room) throws BadRequestException {
         if (roomRepositoryCustom.updateTypeRoom(id, room) > 0) {
             return getRoomById(id);
         }

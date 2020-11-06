@@ -1,7 +1,7 @@
 package com.managedormitory.services;
 
 import com.managedormitory.models.dao.User;
-import com.managedormitory.models.dto.PaginationUser;
+import com.managedormitory.models.dto.pagination.PaginationUser;
 import com.managedormitory.models.dto.UserDto;
 
 import java.util.List;

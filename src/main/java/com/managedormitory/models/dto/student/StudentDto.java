@@ -1,6 +1,9 @@
-package com.managedormitory.models.dto;
+package com.managedormitory.models.dto.student;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.sql.Date;
 
@@ -8,7 +11,7 @@ import java.sql.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class StudentDetailDto {
+public class StudentDto {
     private Integer id;
     private String name;
     private Date birthday;
@@ -17,10 +20,7 @@ public class StudentDetailDto {
     private String address;
     private Date startingDateOfStay;
     private Date endingDateOfStay;
-    private String roomName;
-    private String campusName;
-    private String typeRoom;
-    private String userManager;
+    private Integer roomId;
     private Boolean isPayRoom;
     private Boolean isPayWaterBill;
     private Boolean isPayVehicleBill;

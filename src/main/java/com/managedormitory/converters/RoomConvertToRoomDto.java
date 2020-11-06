@@ -3,7 +3,7 @@ package com.managedormitory.converters;
 import com.managedormitory.converters.bases.Converter;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.models.dao.Room;
-import com.managedormitory.models.dto.RoomDto;
+import com.managedormitory.models.dto.room.RoomDto;
 import org.springframework.stereotype.Component;
 
 @Component

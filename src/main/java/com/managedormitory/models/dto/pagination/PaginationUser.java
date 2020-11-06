@@ -1,5 +1,6 @@
-package com.managedormitory.models.dto;
+package com.managedormitory.models.dto.pagination;
 
+import com.managedormitory.models.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,6 +1,7 @@
-package com.managedormitory.models.dto;
+package com.managedormitory.models.dto.room;
 
 import com.managedormitory.models.dao.TypeRoom;
+import com.managedormitory.models.dto.student.StudentInRoomDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,8 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DetailRoomDto {
-    private Integer roomId;
-    private String roomName;
+    private Integer id;
+    private String name;
     private Integer quantityStudent;
     private Float priceRoom;
     private Float priceWater;
@@ -21,7 +22,7 @@ public class DetailRoomDto {
     private String campusName;
     private TypeRoom typeRoom;
     private String userManager;
-    private List<StudentDto> students;
+    private List<StudentInRoomDto> students;
     private Boolean isPayRoom;
     private Boolean isPayWaterBill;
     private Boolean isPayVehicleBill;

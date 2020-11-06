@@ -2,7 +2,7 @@ package com.managedormitory.services.impl;
 
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.Vehicle;
-import com.managedormitory.models.dto.PaginationVehicle;
+import com.managedormitory.models.dto.pagination.PaginationVehicle;
 import com.managedormitory.models.dto.VehicleDto;
 import com.managedormitory.models.filter.VehicleFilter;
 import com.managedormitory.repositories.VehicleRepository;

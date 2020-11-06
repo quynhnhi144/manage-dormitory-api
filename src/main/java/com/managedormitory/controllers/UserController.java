@@ -1,6 +1,6 @@
 package com.managedormitory.controllers;
 
-import com.managedormitory.models.dto.PaginationUser;
+import com.managedormitory.models.dto.pagination.PaginationUser;
 import com.managedormitory.models.dto.UserDto;
 import com.managedormitory.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
