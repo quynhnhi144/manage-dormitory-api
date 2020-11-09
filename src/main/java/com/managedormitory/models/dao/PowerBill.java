@@ -40,8 +40,13 @@ public class PowerBill {
     @MapsId("roomId")
     @JoinColumn(name = "room_id")
     @NonNull
-    @NotBlank
+    //@NotBlank
     private Room room;
+
+    @OneToOne
+    @JoinColumn(name = "price_list_id")
+    @NonNull
+    private PriceList priceList;
 
     /*@Embeddable
     public static class Id implements Serializable {

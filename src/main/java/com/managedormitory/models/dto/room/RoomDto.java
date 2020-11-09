@@ -12,14 +12,14 @@ public class RoomDto {
 
     private Integer id;
     private String name;
-    @NotBlank(message = "Quantity Student is mandatory")
+    //@NotBlank(message = "Quantity Student is mandatory")
     private Integer quantityStudent;
-    @NotBlank(message = "Type Room is mandatory")
+    //@NotBlank(message = "Type Room is mandatory")
     private String typeRoomName;
-    @NotBlank(message = "Campus Name is mandatory")
+    //@NotBlank(message = "Campus Name is mandatory")
     private String campusName;
     @NonNull
-    @NotBlank(message = "User Manager is mandatory")
+    //@NotBlank(message = "User Manager is mandatory")
     private String userManager;
 
     private Boolean isPayRoom;
@@ -31,7 +31,11 @@ public class RoomDto {
         this.id = room.getId();
         this.name = room.getName();
         this.quantityStudent = room.getQuantityStudent();
-        this.typeRoomName = room.getTypeRoom().getName();
+        if(room.getTypeRoom() == null){
+            this.typeRoomName = null;
+        }else{
+            this.typeRoomName = room.getTypeRoom().getName();
+        }
         this.campusName = room.getCampus().getName();
         this.userManager = room.getCampus().getUserManager().getFullName();
     }

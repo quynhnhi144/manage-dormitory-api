@@ -32,11 +32,10 @@ public class WaterBill {
     @ManyToOne
     @MapsId("studentId")
     @JoinColumn(name = "student_id")
-    @NonNull
     private Student student;
 
     @OneToOne
-    @JoinColumn(name = "price_list_is")
+    @JoinColumn(name = "price_list_id")
     @NonNull
     private PriceList priceList;
 

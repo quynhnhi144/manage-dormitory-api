@@ -2,14 +2,17 @@ package com.managedormitory.services.impl;
 
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
-import com.managedormitory.models.dao.Student;
+import com.managedormitory.models.dao.*;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.room.RoomDto;
 import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentUpdateDto;
 import com.managedormitory.models.filter.StudentFilterDto;
+import com.managedormitory.repositories.DetailRoomRepository;
 import com.managedormitory.repositories.StudentRepository;
+import com.managedormitory.repositories.VehicleRepository;
+import com.managedormitory.repositories.WaterBillRepository;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
 import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.DateUtil;
@@ -90,7 +93,7 @@ public class StudentServiceImpl implements StudentService {
             String searchText = studentFilterDto.getStudentNameOrRoomNameOrUserManager().toLowerCase() + StringUtil.DOT_STAR;
             studentDetailDtos = studentDetailDtos.stream()
                     .filter(studentDto -> (studentDto.getRoomDto() != null && studentDto.getRoomDto().getName().toLowerCase().matches(searchText))
-                            || (studentDto.getRoomDto()!= null && studentDto.getRoomDto().getUserManager().toLowerCase().matches(searchText))
+                            || (studentDto.getRoomDto() != null && studentDto.getRoomDto().getUserManager().toLowerCase().matches(searchText))
                             || studentDto.getName().toLowerCase().matches(searchText))
                     .collect(Collectors.toList());
         }
@@ -122,4 +125,5 @@ public class StudentServiceImpl implements StudentService {
         }
         return getStudentById(id);
     }
+
 }

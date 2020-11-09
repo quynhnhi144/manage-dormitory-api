@@ -26,15 +26,14 @@ public class DetailRoom {
 
     @Column
     @NonNull
-    @NotBlank(message = "Start Date is mandatory")
+    //@NotBlank(message = "Start Date is mandatory")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
 
     @ManyToOne
     @MapsId("studentId")
     @JoinColumn(name = "student_id")
-    @NonNull
-    @NotBlank
+    //@NotBlank
     protected Student student;
 
     @Column

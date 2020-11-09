@@ -3,7 +3,6 @@ package com.managedormitory.controllers;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.student.StudentDetailDto;
-import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentUpdateDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.services.StudentService;
@@ -36,7 +35,12 @@ public class StudentController {
 
     @PutMapping("/{id}")
     public StudentDetailDto updateStudent(@PathVariable Integer id, @RequestBody StudentUpdateDto studentUpdateDto) throws BadRequestException {
-       return studentService.updateStudent(id, studentUpdateDto);
+        return studentService.updateStudent(id, studentUpdateDto);
     }
+
+//    @DeleteMapping("/{id}")
+//    public void deleteStudent(@PathVariable Integer id) {
+//        studentService.deleteStudent(id);
+//    }
 
 }
