@@ -35,7 +35,7 @@ public class WaterBill {
     private Student student;
 
     @OneToOne
-    @JoinColumn(name = "price_list_is")
+    @JoinColumn(name = "price_list_id")
     @NonNull
     private PriceList priceList;
 

@@ -43,6 +43,11 @@ public class PowerBill {
     //@NotBlank
     private Room room;
 
+    @OneToOne
+    @JoinColumn(name = "price_list_id")
+    @NonNull
+    private PriceList priceList;
+
     /*@Embeddable
     public static class Id implements Serializable {
         @GeneratedValue(strategy = GenerationType.IDENTITY)

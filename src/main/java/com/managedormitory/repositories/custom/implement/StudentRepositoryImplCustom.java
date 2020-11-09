@@ -1,6 +1,5 @@
 package com.managedormitory.repositories.custom.implement;
 
-import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentUpdateDto;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;

@@ -31,7 +31,11 @@ public class RoomDto {
         this.id = room.getId();
         this.name = room.getName();
         this.quantityStudent = room.getQuantityStudent();
-        this.typeRoomName = room.getTypeRoom().getName();
+        if(room.getTypeRoom() == null){
+            this.typeRoomName = null;
+        }else{
+            this.typeRoomName = room.getTypeRoom().getName();
+        }
         this.campusName = room.getCampus().getName();
         this.userManager = room.getCampus().getUserManager().getFullName();
     }

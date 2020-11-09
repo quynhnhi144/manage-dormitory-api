@@ -14,6 +14,6 @@ public interface StudentService {
     PaginationStudent paginationGetAllStudents(StudentFilterDto studentFilterDto, int skip, int take);
     StudentDetailDto getStudentById(Integer id);
     StudentDetailDto updateStudent(Integer id, StudentUpdateDto studentUpdateDto);
-    void deleteStudent(Integer id);
+//    void deleteStudent(Integer id);
 //    float the amountOfMoneyStudentMustPayWhenChangeRoom();
 }

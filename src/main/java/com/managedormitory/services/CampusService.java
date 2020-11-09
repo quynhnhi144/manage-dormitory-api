@@ -1,6 +1,5 @@
 package com.managedormitory.services;
 
-import com.managedormitory.models.dao.Campus;
 import com.managedormitory.models.dto.CampusDto;
 
 import java.util.List;
