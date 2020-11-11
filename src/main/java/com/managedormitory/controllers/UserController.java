@@ -6,6 +6,8 @@ import com.managedormitory.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @CrossOrigin
 @RequestMapping("api/users")
@@ -26,5 +28,10 @@ public class UserController {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+
+    @GetMapping("/all")
+    public List<UserDto> getAllusers(){
+        return userService.getAllUserDto();
     }
 }

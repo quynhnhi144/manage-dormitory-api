@@ -3,11 +3,13 @@ package com.managedormitory.controllers;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.student.StudentDetailDto;
-import com.managedormitory.models.dto.student.StudentUpdateDto;
+import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.services.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @CrossOrigin
@@ -23,6 +25,11 @@ public class StudentController {
         return studentService.paginationGetAllStudents(studentFilterDto, skip, take);
     }
 
+    @GetMapping("/all")
+    public List<StudentDetailDto> getAllStudents() {
+        return studentService.getAllStudentDto();
+    }
+
     @GetMapping("/{id}")
     public StudentDetailDto getDetailAStudent(@PathVariable Integer id) {
         try {
@@ -34,8 +41,8 @@ public class StudentController {
     }
 
     @PutMapping("/{id}")
-    public StudentDetailDto updateStudent(@PathVariable Integer id, @RequestBody StudentUpdateDto studentUpdateDto) throws BadRequestException {
-        return studentService.updateStudent(id, studentUpdateDto);
+    public StudentDetailDto updateStudent(@PathVariable Integer id, @RequestBody StudentDto studentDto) throws BadRequestException {
+        return studentService.updateStudent(id, studentDto);
     }
 
 //    @DeleteMapping("/{id}")

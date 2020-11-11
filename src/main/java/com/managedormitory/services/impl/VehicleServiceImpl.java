@@ -2,6 +2,7 @@ package com.managedormitory.services.impl;
 
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.Vehicle;
+import com.managedormitory.models.dto.VehicleDetailDto;
 import com.managedormitory.models.dto.pagination.PaginationVehicle;
 import com.managedormitory.models.dto.VehicleDto;
 import com.managedormitory.models.filter.VehicleFilter;
@@ -33,68 +34,68 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     @Override
-    public List<VehicleDto> getAllVehicleDto() {
+    public List<VehicleDetailDto> getAllVehicleDto() {
         List<Vehicle> vehicles = getAllVehicles();
         List<VehicleDto> vehicleDtos = vehicleRepositoryCustom.getAllVehicleByTime();
-        List<VehicleDto> vehicleDtosDetail = new ArrayList<>();
+        List<VehicleDetailDto> vehicleDtosDetail = new ArrayList<>();
         List<Integer> vehicleDtoIdList = vehicleDtos.stream().mapToInt(VehicleDto::getId).boxed().collect(Collectors.toList());
         for (int i = 0; i < vehicles.size(); i++) {
             Vehicle vehicle = vehicles.get(i);
-            VehicleDto vehicleDto = new VehicleDto();
-            vehicleDto.setId(vehicle.getId());
-            vehicleDto.setLicensePlates(vehicle.getLicensePlates());
-            vehicleDto.setTypeVehicle(vehicle.getTypeVehicleId().getName());
-            vehicleDto.setStudentId(vehicle.getStudentId().getId());
-            vehicleDto.setStudentName(vehicle.getStudentId().getName());
+            VehicleDetailDto vehicleDetailDto = new VehicleDetailDto();
+            vehicleDetailDto.setId(vehicle.getId());
+            vehicleDetailDto.setLicensePlates(vehicle.getLicensePlates());
+            vehicleDetailDto.setTypeVehicle(vehicle.getTypeVehicleId().getName());
+            vehicleDetailDto.setStudentId(vehicle.getStudentId().getId());
+            vehicleDetailDto.setStudentName(vehicle.getStudentId().getName());
             if (vehicle.getStudentId().getRoom() == null) {
-                vehicleDto.setRoomName(null);
-                vehicleDto.setCampusName(null);
-                vehicleDto.setUserManager(null);
+                vehicleDetailDto.setRoomName(null);
+                vehicleDetailDto.setCampusName(null);
+                vehicleDetailDto.setUserManager(null);
             } else {
-                vehicleDto.setRoomName(vehicle.getStudentId().getRoom().getName());
-                vehicleDto.setCampusName(vehicle.getStudentId().getRoom().getCampus().getName());
-                vehicleDto.setUserManager(vehicle.getStudentId().getRoom().getCampus().getUserManager().getFullName());
+                vehicleDetailDto.setRoomName(vehicle.getStudentId().getRoom().getName());
+                vehicleDetailDto.setCampusName(vehicle.getStudentId().getRoom().getCampus().getName());
+                vehicleDetailDto.setUserManager(vehicle.getStudentId().getRoom().getCampus().getUserManager().getFullName());
             }
 
             if (vehicleDtoIdList.contains(vehicle.getId())) {
-                vehicleDto.setIsPayVehicleBill(true);
+                vehicleDetailDto.setPayVehicleBill(true);
             } else {
-                vehicleDto.setIsPayVehicleBill(false);
+                vehicleDetailDto.setPayVehicleBill(false);
             }
 
-            vehicleDtosDetail.add(vehicleDto);
+            vehicleDtosDetail.add(vehicleDetailDto);
         }
         return vehicleDtosDetail;
     }
 
     @Override
     public PaginationVehicle paginationGetAllVehicles(VehicleFilter vehicleFilter, int skip, int take) {
-        List<VehicleDto> vehicleDtos = getAllVehicleDto();
+        List<VehicleDetailDto> vehicleDetailDtos = getAllVehicleDto();
         if (vehicleFilter.getCampusName() != null) {
-            vehicleDtos = vehicleDtos.stream().filter(vehicleDto ->
-               vehicleDto.getCampusName() != null && vehicleDto.getCampusName().toLowerCase().equals(vehicleFilter.getCampusName().toLowerCase()) )
+            vehicleDetailDtos = vehicleDetailDtos.stream().filter(vehicleDto ->
+                    vehicleDto.getCampusName() != null && vehicleDto.getCampusName().toLowerCase().equals(vehicleFilter.getCampusName().toLowerCase()))
                     .collect(Collectors.toList());
         }
         if (vehicleFilter.getLicensePlates() != null && !vehicleFilter.getLicensePlates().equals("")) {
-            vehicleDtos = vehicleDtos.stream().filter(vehicleDto -> vehicleDto.getLicensePlates().toLowerCase().equals(vehicleFilter.getLicensePlates().toLowerCase()))
+            vehicleDetailDtos = vehicleDetailDtos.stream().filter(vehicleDto -> vehicleDto.getLicensePlates().toLowerCase().equals(vehicleFilter.getLicensePlates().toLowerCase()))
                     .collect(Collectors.toList());
         }
         if (vehicleFilter.getTypeVehicle() != null && !vehicleFilter.getTypeVehicle().equals("All")) {
-            vehicleDtos = vehicleDtos.stream().filter(vehicleDto -> vehicleDto.getTypeVehicle().toLowerCase().equals(vehicleFilter.getTypeVehicle().toLowerCase()))
+            vehicleDetailDtos = vehicleDetailDtos.stream().filter(vehicleDto -> vehicleDto.getTypeVehicle().toLowerCase().equals(vehicleFilter.getTypeVehicle().toLowerCase()))
                     .collect(Collectors.toList());
         }
 
-        int total = vehicleDtos.size();
+        int total = vehicleDetailDtos.size();
         int lastElement = PaginationUtils.getLastElement(skip, take, total);
-        Map<String, List<VehicleDto>> vehicleDtoMap = new HashMap<>();
-        vehicleDtoMap.put("data", vehicleDtos.subList(skip, lastElement));
+        Map<String, List<VehicleDetailDto>> vehicleDtoMap = new HashMap<>();
+        vehicleDtoMap.put("data", vehicleDetailDtos.subList(skip, lastElement));
         return new PaginationVehicle(vehicleDtoMap, total);
     }
 
     @Override
-    public VehicleDto getVehicleById(Integer id) {
-        List<VehicleDto> vehicleDtos = getAllVehicleDto();
-        List<VehicleDto> vehicleById = vehicleDtos.stream()
+    public VehicleDetailDto getVehicleById(Integer id) {
+        List<VehicleDetailDto> vehicleDetailDtos = getAllVehicleDto();
+        List<VehicleDetailDto> vehicleById = vehicleDetailDtos.stream()
                 .filter(vehicleDto -> vehicleDto.getId().equals(id))
                 .collect(Collectors.toList());
 
@@ -102,5 +103,10 @@ public class VehicleServiceImpl implements VehicleService {
             throw new NotFoundException("Cannot find Student Id: " + id);
         }
         return vehicleById.get(0);
+    }
+
+    @Override
+    public int countVehicle() {
+        return getAllVehicleDto().size();
     }
 }

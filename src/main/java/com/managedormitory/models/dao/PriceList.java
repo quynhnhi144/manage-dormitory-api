@@ -35,14 +35,6 @@ public class PriceList {
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "priceList")
     @JsonIgnore
-    private WaterBill waterBill;
-
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "priceList")
-    @JsonIgnore
-    private VehicleBill vehicleBill;
-
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "priceList")
-    @JsonIgnore
     private PowerBill powerBill;
 
 }

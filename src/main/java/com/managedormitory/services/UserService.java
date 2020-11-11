@@ -11,4 +11,5 @@ public interface UserService {
     List<UserDto> getAllUserDto();
     PaginationUser paginationGetAllUsers(String userName, int skip, int take);
     UserDto getUserById(Integer id);
+    int countUser();
 }

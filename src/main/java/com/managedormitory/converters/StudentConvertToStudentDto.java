@@ -2,19 +2,25 @@ package com.managedormitory.converters;
 
 import com.managedormitory.converters.bases.Converter;
 import com.managedormitory.models.dao.Student;
-import com.managedormitory.models.dto.student.StudentInRoomDto;
+import com.managedormitory.models.dto.student.StudentDto;
+import com.managedormitory.utils.DateUtil;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StudentConvertToStudentDto extends Converter<Student, StudentInRoomDto> {
+public class StudentConvertToStudentDto extends Converter<Student, StudentDto> {
 
     @Override
-    public StudentInRoomDto convert(Student source) {
-        StudentInRoomDto studentInRoomDto = new StudentInRoomDto();
-        studentInRoomDto.setId(source.getId());
-        studentInRoomDto.setName(source.getName());
-        studentInRoomDto.setPhone(source.getPhone());
-        studentInRoomDto.setEmail(source.getEmail());
-        return studentInRoomDto;
+    public StudentDto convert(Student source) {
+        StudentDto studentDto = new StudentDto();
+        studentDto.setId(source.getId());
+        studentDto.setName(source.getName());
+        studentDto.setBirthday(source.getBirthday());
+        studentDto.setPhone(source.getPhone());
+        studentDto.setEmail(source.getEmail());
+        studentDto.setAddress(source.getAddress());
+        studentDto.setStartingDateOfStay(DateUtil.getSDateFromLDate(source.getStartingDateOfStay()));
+        studentDto.setEndingDateOfStay(DateUtil.getSDateFromLDate(source.getEndingDateOfStay()));
+        studentDto.setRoomId(source.getRoom().getId());
+        return studentDto;
     }
 }

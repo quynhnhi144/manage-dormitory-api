@@ -1,6 +1,6 @@
 package com.managedormitory.models.dto.pagination;
 
-import com.managedormitory.models.dto.VehicleDto;
+import com.managedormitory.models.dto.VehicleDetailDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +12,6 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaginationVehicle {
-    private Map<String, List<VehicleDto>> data;
+    private Map<String, List<VehicleDetailDto>> data;
     private int total;
 }

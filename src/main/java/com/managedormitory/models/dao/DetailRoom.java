@@ -35,7 +35,4 @@ public class DetailRoom {
     @JoinColumn(name = "student_id")
     //@NotBlank
     protected Student student;
-
-    @Column
-    private boolean isPay;
 }

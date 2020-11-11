@@ -9,8 +9,9 @@ import com.managedormitory.models.dao.Room;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
 import com.managedormitory.models.dto.room.RoomDto;
-import com.managedormitory.models.dto.student.StudentInRoomDto;
+import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.filter.RoomFilterDto;
+import com.managedormitory.repositories.PriceListRepository;
 import com.managedormitory.repositories.RoomRepository;
 import com.managedormitory.repositories.custom.RoomRepositoryCustom;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
@@ -44,15 +45,12 @@ public class RoomServiceImpl implements RoomService {
     @Autowired
     private StudentRepositoryCustom studentRepositoryCustom;
 
+    @Autowired
+    private PriceListRepository priceListRepository;
+
     @Override
     public List<Room> getAllRooms() {
         return roomRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
-    }
-
-    @Override
-    public List<RoomDto> getAllRoomDto() {
-        List<Room> a = getAllRooms();
-        return roomConvertToRoomDto.convert(a);
     }
 
     @Override
@@ -66,10 +64,12 @@ public class RoomServiceImpl implements RoomService {
             DetailRoomDto detailRoomDto = new DetailRoomDto();
             detailRoomDto.setId(room.getId());
             detailRoomDto.setName(room.getName());
-            List<StudentInRoomDto> studentInRoomDtos = studentConvertToStudentDto.convert(room.getStudents());
-            studentInRoomDtos.sort(Comparator.comparing(StudentInRoomDto::getId));
-            detailRoomDto.setStudents(studentInRoomDtos);
+            List<StudentDto> studentDtos = studentConvertToStudentDto.convert(room.getStudents());
+            studentDtos.sort(Comparator.comparing(StudentDto::getId));
+            detailRoomDto.setStudents(studentDtos);
             detailRoomDto.setQuantityStudent(room.getQuantityStudent());
+            detailRoomDto.setPriceWater(priceListRepository.findById(2).orElse(null).getPrice());
+            detailRoomDto.setPriceVehicle(priceListRepository.findById(3).orElse(null).getPrice());
             if (room.getTypeRoom() == null) {
                 detailRoomDto.setTypeRoom(null);
             } else {
@@ -78,22 +78,12 @@ public class RoomServiceImpl implements RoomService {
             detailRoomDto.setCampusName(room.getCampus().getName());
             detailRoomDto.setUserManager(room.getCampus().getUserManager().getFullName());
             detailRoomDto.setPriceRoom(room.getPriceList().getPrice());
-//            if (room.getQuantityStudent() == 0) {
-//                detailRoomDto.setPriceWater(null);
-//                detailRoomDto.setPriceVehicle(null);
-//            } else {
-//                System.out.println("room:" +room);
-//                detailRoomDto.setPriceWater(room.getPriceList().getWaterBill().getPriceList().getPrice());
-//                detailRoomDto.setPriceVehicle(room.getPriceList().getVehicleBill().getPriceList().getPrice());
-//            }
             if (roomDtosDdList.contains(room.getId())) {
                 detailRoomDto.setIsPayRoom(true);
-                detailRoomDto.setIsPayPowerBill(true);
                 detailRoomDto.setIsPayWaterBill(true);
                 detailRoomDto.setIsPayVehicleBill(true);
             } else {
                 detailRoomDto.setIsPayRoom(false);
-                detailRoomDto.setIsPayPowerBill(false);
                 detailRoomDto.setIsPayWaterBill(false);
                 detailRoomDto.setIsPayVehicleBill(false);
             }
@@ -156,8 +146,8 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public ByteArrayInputStream exportExcelRooms() throws IOException {
-        List<RoomDto> roomDtos = getAllRoomDto();
-        RoomExcelHelper roomExcelHelper = new RoomExcelHelper(roomDtos);
+        List<DetailRoomDto> detailRoomDtos = getAllDetailRoomDto();
+        RoomExcelHelper roomExcelHelper = new RoomExcelHelper(detailRoomDtos);
         try {
             ByteArrayInputStream inputStream = roomExcelHelper.export();
             return inputStream;
@@ -168,15 +158,15 @@ public class RoomServiceImpl implements RoomService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean deleteStudentInRoom(Integer roomId, StudentInRoomDto studentInRoomDtoNew) throws NotFoundException {
+    public boolean deleteStudentInRoom(Integer roomId, StudentDto studentDtoNew) throws NotFoundException {
         DetailRoomDto currentDetailRoomDto = getRoomById(roomId);
-        List<StudentInRoomDto> studentInRoomDtos = currentDetailRoomDto.getStudents();
+        List<StudentDto> studentDtos = currentDetailRoomDto.getStudents();
         int resultStudent = 0;
         int resultQuantity = 0;
         int resultTypeRoom = 0;
-        for (StudentInRoomDto studentInRoomDto : studentInRoomDtos) {
-            if (studentInRoomDto.getId() == studentInRoomDtoNew.getId()) {
-                resultStudent = studentRepositoryCustom.updateRoomIdOfStudent(studentInRoomDtoNew.getId(), null);
+        for (StudentDto studentDto : studentDtos) {
+            if (studentDto.getId() == studentDtoNew.getId()) {
+                resultStudent = studentRepositoryCustom.updateRoomIdOfStudent(studentDtoNew.getId(), null);
                 resultQuantity = roomRepositoryCustom.updateQuantityStudent(roomId);
                 resultTypeRoom = roomRepositoryCustom.updateTypeRoom(roomId, currentDetailRoomDto);
             }
@@ -194,5 +184,24 @@ public class RoomServiceImpl implements RoomService {
             return getRoomById(id);
         }
         return null;
+    }
+
+    @Override
+    public List<DetailRoomDto> getAllRemainingRoomDto() {
+        List<DetailRoomDto> detailRoomDtos = getAllDetailRoomDto();
+        return detailRoomDtos.stream()
+                .filter(detailRoomDto -> detailRoomDto.getTypeRoom() != null && detailRoomDto.getTypeRoom().getMaxQuantity() - detailRoomDto.getQuantityStudent() > 0
+                        || (detailRoomDto.getQuantityStudent() == 0 && detailRoomDto.getStudents().size() == 0))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public int countRoom() {
+        return getAllDetailRoomDto().size();
+    }
+
+    @Override
+    public int countRemainingRoom() {
+        return getAllRemainingRoomDto().size();
     }
 }

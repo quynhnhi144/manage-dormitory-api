@@ -55,6 +55,10 @@ public class Student {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endingDateOfStay;
 
+    @OneToOne
+    @JoinColumn(name="water_price_id")
+    private PriceList priceList;
+
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "room_id")
     @NonNull

@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
@@ -71,5 +72,10 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException("Cannot find Student Id: " + id);
         }
         return userDtoIdList.get(0);
+    }
+
+    @Override
+    public int countUser() {
+        return getAllUserDto().size();
     }
 }

@@ -22,10 +22,8 @@ public class RoomDto {
     //@NotBlank(message = "User Manager is mandatory")
     private String userManager;
 
-    private Boolean isPayRoom;
-    private Boolean isPayWaterBill;
-    private Boolean isPayVehicleBill;
-    private Boolean isPayPowerBill;
+    private Integer waterPriceId;
+    private Integer vehiclePriceId;
 
     public RoomDto(Room room) {
         this.id = room.getId();

@@ -24,4 +24,9 @@ public class CampusServiceImpl implements CampusService {
 
         return campusCovertToCampusDto.convert(campusRepository.findAll(Sort.by(Sort.Direction.ASC, "name")));
     }
+
+    @Override
+    public int countCampus() {
+        return getAllCampuses().size();
+    }
 }

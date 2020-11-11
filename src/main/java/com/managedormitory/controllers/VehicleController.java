@@ -1,11 +1,14 @@
 package com.managedormitory.controllers;
 
+import com.managedormitory.models.dto.VehicleDetailDto;
 import com.managedormitory.models.dto.pagination.PaginationVehicle;
 import com.managedormitory.models.dto.VehicleDto;
 import com.managedormitory.models.filter.VehicleFilter;
 import com.managedormitory.services.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @CrossOrigin
@@ -20,8 +23,13 @@ public class VehicleController {
         return vehicleService.paginationGetAllVehicles(vehicleFilter, skip, take);
     }
 
+    @GetMapping("/all")
+    public List<VehicleDetailDto> getAllVehicles() {
+        return vehicleService.getAllVehicleDto();
+    }
+
     @GetMapping("/{id}")
-    public VehicleDto getDetailAVehicle(@PathVariable Integer id) {
+    public VehicleDetailDto getDetailAVehicle(@PathVariable Integer id) {
         try {
             return vehicleService.getVehicleById(id);
         } catch (Exception e) {

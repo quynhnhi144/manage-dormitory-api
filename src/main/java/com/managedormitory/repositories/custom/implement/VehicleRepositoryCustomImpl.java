@@ -28,21 +28,26 @@ public class VehicleRepositoryCustomImpl implements VehicleRepositoryCustom {
         String queryVehicle =
                 "SELECT v.id AS id,\n" +
                         "v.license_plates AS licensePlates,\n" +
-                        "tv.name AS typeVehicle,\n" +
                         "s.id AS studentId,\n" +
-                        "s.name AS studentName,\n" +
                         "r.name AS roomName,\n" +
                         "c.name AS campusName,\n" +
+                        "vb.start_date AS startDate,\n" +
+                        "vb.end_date AS endDate,\n" +
                         "u.full_name AS userManager,\n" +
-                        "vb.is_pay AS isPayVehicleBill\n" +
+                        "tv.name AS typeVehicle\n" +
                         "FROM vehicle v\n" +
-                        QueryUtil.JOIN_STUDENT +
-                        QueryUtil.LEFTJOIN_VEHICLEBILL +
-                        QueryUtil.JOIN_ROOM +
-                        QueryUtil.JOIN_CAMPUS +
-                        QueryUtil.JOIN_USERS +
-                        QueryUtil.JOIN_TYPEVEHICLE +
+                        "         JOIN student s on s.id = v.student_id\n" +
+                        "         JOIN type_vehicle tv on tv.id = v.type_vehicle_id\n" +
+                        "         LEFT JOIN vehicle_bill vb on v.id = vb.vehicle_id\n" +
+                        "         LEFT JOIN room r on r.id = s.room_id\n" +
+                        "         LEFT JOIN campus c on c.id = r.campus_id\n" +
+                        "         LEFT JOIN users u on u.user_id = c.user_id\n" +
                         "WHERE vb.end_date >= :currentDate\n" +
+                        "GROUP BY v.id,\n" +
+                        "         v.license_plates,\n" +
+                        "         s.id,\n" +
+                        "         r.name, c.name, vb.start_date,\n" +
+                        "         vb.end_date, u.full_name, tv.name\n" +
                         "ORDER BY v.id ASC";
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryVehicle);
         query.setParameter("currentDate", new TypedParameterValue(LocalDateType.INSTANCE, currentDate))
@@ -54,7 +59,8 @@ public class VehicleRepositoryCustomImpl implements VehicleRepositoryCustom {
                 .addScalar("roomName", StandardBasicTypes.STRING)
                 .addScalar("campusName", StandardBasicTypes.STRING)
                 .addScalar("userManager", StandardBasicTypes.STRING)
-                .addScalar("isPayVehicleBill", StandardBasicTypes.BOOLEAN);
+                .addScalar("startDate", StandardBasicTypes.DATE)
+                .addScalar("endDate", StandardBasicTypes.DATE);
         query.setResultTransformer(new AliasToBeanResultTransformer(VehicleDto.class));
 
         return safeList(query);
