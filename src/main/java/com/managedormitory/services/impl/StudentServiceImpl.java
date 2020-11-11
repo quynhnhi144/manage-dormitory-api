@@ -7,12 +7,8 @@ import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.room.RoomDto;
 import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
-import com.managedormitory.models.dto.student.StudentUpdateDto;
 import com.managedormitory.models.filter.StudentFilterDto;
-import com.managedormitory.repositories.DetailRoomRepository;
 import com.managedormitory.repositories.StudentRepository;
-import com.managedormitory.repositories.VehicleRepository;
-import com.managedormitory.repositories.WaterBillRepository;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
 import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.DateUtil;
@@ -30,6 +26,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+
 public class StudentServiceImpl implements StudentService {
     @Autowired
     private StudentRepository studentRepository;
@@ -119,11 +116,16 @@ public class StudentServiceImpl implements StudentService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StudentDetailDto updateStudent(Integer id, StudentUpdateDto studentUpdateDto) throws BadRequestException {
-        if (studentRepositoryCustom.updateStudent(id, studentUpdateDto) <= 0) {
+    public StudentDetailDto updateStudent(Integer id, StudentDto studentDto) throws BadRequestException {
+        if (studentRepositoryCustom.updateStudent(id, studentDto) <= 0) {
             throw new BadRequestException("Cannot execute");
         }
         return getStudentById(id);
+    }
+
+    @Override
+    public int countStudent() {
+        return getAllStudentDto().size();
     }
 
 }

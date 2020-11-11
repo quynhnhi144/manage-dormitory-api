@@ -1,13 +1,16 @@
 package com.managedormitory.services.impl;
 
+import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.models.dao.PowerBill;
 import com.managedormitory.models.dao.Room;
 import com.managedormitory.models.dto.pagination.PaginationPowerBill;
 import com.managedormitory.models.dto.powerbill.PowerBillDetail;
 import com.managedormitory.models.dto.powerbill.PowerBillDto;
+import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.room.RoomDto;
 import com.managedormitory.models.filter.PowerBillFilter;
 import com.managedormitory.repositories.PowerBillRepository;
+import com.managedormitory.repositories.PriceListRepository;
 import com.managedormitory.repositories.custom.PowerBillRepositoryCustom;
 import com.managedormitory.services.PowerBillService;
 import com.managedormitory.services.RoomService;
@@ -33,10 +36,8 @@ public class PowerBillServiceImpl implements PowerBillService {
     @Autowired
     private RoomService roomService;
 
-    @Override
-    public List<PowerBill> getAllPowerBills() {
-        return powerBillRepository.findAll();
-    }
+    @Autowired
+    private StudentConvertToStudentDto studentConvertToStudentDto;
 
     @Override
     public List<PowerBillDetail> getAllDetailPowerBills() {
@@ -63,7 +64,7 @@ public class PowerBillServiceImpl implements PowerBillService {
             } else {
                 powerBillDetail = new PowerBillDetail();
             }
-            powerBillDetail.setRoomDto(new RoomDto(room));
+            powerBillDetail.setDetailRoomDto(new DetailRoomDto(room, studentConvertToStudentDto));
             powerBillDetails.add(powerBillDetail);
         }
         return powerBillDetails;
@@ -74,13 +75,13 @@ public class PowerBillServiceImpl implements PowerBillService {
         List<PowerBillDetail> powerBillDetails = getAllDetailPowerBills();
         if (powerBillFilter.getCampusName() != null) {
             powerBillDetails = powerBillDetails.stream()
-                    .filter(powerBillDetail -> powerBillDetail.getRoomDto() != null && powerBillDetail.getRoomDto().getCampusName().toLowerCase().equals(powerBillFilter.getCampusName().toLowerCase()))
+                    .filter(powerBillDetail -> powerBillDetail.getDetailRoomDto() != null && powerBillDetail.getDetailRoomDto().getCampusName().toLowerCase().equals(powerBillFilter.getCampusName().toLowerCase()))
                     .collect(Collectors.toList());
         }
 
-        if (powerBillFilter.getRoomName() != null) {
+        if (powerBillFilter.getRoomName() != null && !powerBillFilter.getRoomName().equals("")) {
             powerBillDetails = powerBillDetails.stream()
-                    .filter(powerBillDetail -> powerBillDetail.getRoomDto() != null && powerBillDetail.getRoomDto().getName().toLowerCase().equals(powerBillFilter.getRoomName().toLowerCase()))
+                    .filter(powerBillDetail -> powerBillDetail.getDetailRoomDto() != null && powerBillDetail.getDetailRoomDto().getName().toLowerCase().equals(powerBillFilter.getRoomName().toLowerCase()))
                     .collect(Collectors.toList());
         }
 
@@ -97,13 +98,13 @@ public class PowerBillServiceImpl implements PowerBillService {
         long numberOfPowerUsed = powerBillDto.getNumberOfPowerEnd() - powerBillDto.getNumberOfPowerBegin();
         float money = 0;
         if (numberOfPowerUsed <= LimitedPower.LOW_POWER) {
-            money = pricePowerAKWH * LimitedPower.LOW_POWER;
+            money = pricePowerAKWH * numberOfPowerUsed;
         } else if (LimitedPower.LOW_POWER < numberOfPowerUsed && numberOfPowerUsed <= LimitedPower.MIDDLE_POWER) {
-            money = pricePowerAKWH * LimitedPower.MIDDLE_POWER_FINES;
+            money = pricePowerAKWH * numberOfPowerUsed * LimitedPower.MIDDLE_POWER_FINES;
         } else if (LimitedPower.MIDDLE_POWER < numberOfPowerUsed && numberOfPowerUsed <= LimitedPower.HIGH_POWER) {
-            money = pricePowerAKWH * LimitedPower.HIGH_POWER_FINES;
+            money = pricePowerAKWH * numberOfPowerUsed * LimitedPower.HIGH_POWER_FINES;
         } else if (numberOfPowerUsed > LimitedPower.HIGH_POWER) {
-            money = pricePowerAKWH * LimitedPower.HIGHER_POWER_FINES;
+            money = pricePowerAKWH * numberOfPowerUsed * LimitedPower.HIGHER_POWER_FINES;
         }
         return money;
     }
@@ -111,7 +112,7 @@ public class PowerBillServiceImpl implements PowerBillService {
     @Override
     public PowerBillDetail getAPowerBill(Integer roomId) {
         List<PowerBillDetail> powerBillDtos = getAllDetailPowerBills();
-        return powerBillDtos.stream().filter(powerBillDto -> powerBillDto.getRoomDto().getId() == roomId)
+        return powerBillDtos.stream().filter(powerBillDto -> powerBillDto.getDetailRoomDto().getId() == roomId)
                 .findFirst().orElse(null);
     }
 }

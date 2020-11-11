@@ -1,12 +1,13 @@
 package com.managedormitory.helper;
 
-import com.managedormitory.models.dto.room.RoomDto;
+import com.managedormitory.models.dto.room.DetailRoomDto;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,10 +17,10 @@ import java.util.List;
 public class RoomExcelHelper {
     private XSSFWorkbook workbook;
     private XSSFSheet sheet;
-    private List<RoomDto> roomDtos;
+    private List<DetailRoomDto> detailRoomDtos;
 
-    public RoomExcelHelper(List<RoomDto> roomDtos) {
-        this.roomDtos = roomDtos;
+    public RoomExcelHelper(List<DetailRoomDto> detailRoomDtos) {
+        this.detailRoomDtos = detailRoomDtos;
         workbook = new XSSFWorkbook();
     }
 
@@ -45,8 +46,7 @@ public class RoomExcelHelper {
         createCell(row, 6, "Room Payment", style);
         createCell(row, 7, "Water Bill Payment", style);
         createCell(row, 8, "Vehicle Bill Payment", style);
-        createCell(row, 9, "Power Bill Payment", style);
-        createCell(row, 11, "Date: " + currentDate, style);
+        createCell(row, 10, "Date: " + currentDate, style);
     }
 
     private void createCell(Row row, int columnCount, Object value, CellStyle style) {
@@ -72,20 +72,19 @@ public class RoomExcelHelper {
         font.setFontHeight(14);
         style.setFont(font);
 
-        for (RoomDto roomDto : roomDtos) {
+        for (DetailRoomDto detailRoomDto : detailRoomDtos) {
             Row row = sheet.createRow(rowCount++);
             int columnCount = 0;
 
-            createCell(row, columnCount++, roomDto.getId(), style);
-            createCell(row, columnCount++, roomDto.getName(), style);
-            createCell(row, columnCount++, roomDto.getQuantityStudent(), style);
-            createCell(row, columnCount++, roomDto.getTypeRoomName(), style);
-            createCell(row, columnCount++, roomDto.getCampusName(), style);
-            createCell(row, columnCount++, roomDto.getUserManager(), style);
-            createCell(row, columnCount++, roomDto.getIsPayRoom(), style);
-            createCell(row, columnCount++, roomDto.getIsPayWaterBill(), style);
-            createCell(row, columnCount++, roomDto.getIsPayVehicleBill(), style);
-            createCell(row, columnCount++, roomDto.getIsPayPowerBill(), style);
+            createCell(row, columnCount++, detailRoomDto.getId(), style);
+            createCell(row, columnCount++, detailRoomDto.getName(), style);
+            createCell(row, columnCount++, detailRoomDto.getQuantityStudent(), style);
+            createCell(row, columnCount++, detailRoomDto.getTypeRoom() != null ? detailRoomDto.getTypeRoom().getName() : null, style);
+            createCell(row, columnCount++, detailRoomDto.getCampusName(), style);
+            createCell(row, columnCount++, detailRoomDto.getUserManager(), style);
+            createCell(row, columnCount++, detailRoomDto.getIsPayRoom() ? "x" : "--", style);
+            createCell(row, columnCount++, detailRoomDto.getIsPayWaterBill() ? "x" : "--", style);
+            createCell(row, columnCount++, detailRoomDto.getIsPayVehicleBill() ? "x" : "--", style);
         }
     }
 

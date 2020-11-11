@@ -1,6 +1,6 @@
 package com.managedormitory.models.dto.powerbill;
 
-import com.managedormitory.models.dto.room.RoomDto;
+import com.managedormitory.models.dto.room.DetailRoomDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +11,7 @@ import java.sql.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PowerBillDetail {
-    private RoomDto roomDto;
+    private DetailRoomDto detailRoomDto;
     private Integer billId;
     private Date startDate;
     private Date endDate;

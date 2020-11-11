@@ -18,17 +18,9 @@ public class RoomConvertToRoomDto extends Converter<Room, RoomDto> {
         roomDto.setUserManager(source.getCampus().getUserManager().getFullName());
         if (source.getQuantityStudent() == 0) {
             roomDto.setTypeRoomName(null);
-            roomDto.setIsPayRoom(false);
-            roomDto.setIsPayWaterBill(false);
-            roomDto.setIsPayVehicleBill(false);
-            roomDto.setIsPayPowerBill(false);
 
         } else {
             roomDto.setTypeRoomName(source.getTypeRoom().getName());
-            roomDto.setIsPayRoom(source.getStudents().get(0).getDetailRoomList().get(0).isPay());
-            roomDto.setIsPayWaterBill(source.getStudents().get(0).getDetailRoomList().get(0).isPay());
-            roomDto.setIsPayVehicleBill(source.getStudents().get(0).getDetailRoomList().get(0).isPay());
-            roomDto.setIsPayPowerBill(source.getStudents().get(0).getDetailRoomList().get(0).isPay());
         }
         return roomDto;
     }

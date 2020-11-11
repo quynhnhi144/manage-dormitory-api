@@ -3,7 +3,7 @@ import com.managedormitory.models.dao.Room;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
 import com.managedormitory.models.dto.room.RoomDto;
-import com.managedormitory.models.dto.student.StudentInRoomDto;
+import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 
 import java.io.ByteArrayInputStream;
@@ -13,10 +13,13 @@ import java.util.List;
 public interface RoomService {
     List<Room> getAllRooms();
     List<DetailRoomDto> getAllDetailRoomDto();
-    List<RoomDto> getAllRoomDto();
     PaginationRoom paginationGetAllRooms(RoomFilterDto roomFilterDto, int skip, int take);
     DetailRoomDto getRoomById(Integer id);
     ByteArrayInputStream exportExcelRooms() throws IOException;
-    boolean deleteStudentInRoom(Integer roomId, StudentInRoomDto studentInRoomDtoNew);
+    boolean deleteStudentInRoom(Integer roomId, StudentDto studentDto);
     DetailRoomDto updateTypeRoom(Integer id,DetailRoomDto room);
+
+    List<DetailRoomDto> getAllRemainingRoomDto();
+    int countRoom();
+    int countRemainingRoom();
 }

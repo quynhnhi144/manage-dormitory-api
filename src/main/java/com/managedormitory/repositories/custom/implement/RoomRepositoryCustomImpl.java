@@ -38,26 +38,24 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
                         "c.name AS campusName,\n" +
                         "tr.name AS typeRoomName,\n" +
                         "u.full_name AS userManager,\n" +
-                        "dr.is_pay AS isPayRoom,\n" +
+                        "s.water_price_id AS waterPriceId,\n" +
+                        "v.vehicle_price_id AS vehiclePriceId,\n" +
                         "dr.month AS month,\n" +
-                        "wb.is_pay AS isPayWaterBill,\n" +
-                        "vb.is_pay AS isPayVehicleBill,\n" +
-                        "pb.is_pay AS isPayPowerBill\n" +
+                        "dr.year AS year\n" +
                         "FROM room r\n" +
-                        QueryUtil.JOIN_CAMPUS +
-                        QueryUtil.JOIN_USERS +
-                        QueryUtil.JOIN_PRICELIST +
-                        QueryUtil.LEFTJOIN_STUDENT +
-                        QueryUtil.LEFTJOIN_DETAILROOM +
-                        QueryUtil.LEFTJOIN_TYPEROOM +
-                        QueryUtil.LEFTJOIN_VEHICLE +
-                        QueryUtil.LEFTJOIN_VEHICLEBILL +
-                        QueryUtil.LEFTJOIN_WATERBILL +
-                        QueryUtil.LEFTJOIN_POWERBILL +
-
-                        "WHERE dr.month = :month and dr.year = :year and wb.end_date >= :currentDate and vb.end_date >= :currentDate\n" +
-
-                        "group by r.id, r.name, r.quantity_student,u.full_name, tr.name, dr.month, c.name, dr.is_pay, wb.is_pay, vb.is_pay, pb.is_pay\n" +
+                        "join campus c on c.id = r.campus_id\n" +
+                        "join users u on u.user_id = c.user_id\n" +
+                        "left join type_room tr on tr.id = r.type_room_id\n" +
+                        "left join student s on r.id = s.room_id\n" +
+                        "left join water_bill wb on s.id = wb.student_id\n" +
+                        "left join vehicle v on s.id = v.student_id\n" +
+                        "left join vehicle_bill vb on v.id = vb.vehicle_id\n" +
+                        "left join detail_room dr on s.id = dr.student_id\n" +
+                        "where month = :month and year = :year\n" +
+                        "  and wb.end_date >= :currentDate\n" +
+                        "  and vb.end_date >= :currentDate\n" +
+                        "\n" +
+                        "group by r.id, r.name, r.quantity_student, c.name, tr.name, u.full_name, s.water_price_id, v.vehicle_price_id, dr.month, dr.year\n" +
                         "order by r.id asc";
 
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryRoom);
@@ -70,10 +68,8 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
                 .addScalar("typeRoomName", StandardBasicTypes.STRING)
                 .addScalar("campusName", StandardBasicTypes.STRING)
                 .addScalar("userManager", StandardBasicTypes.STRING)
-                .addScalar("isPayRoom", StandardBasicTypes.BOOLEAN)
-                .addScalar("isPayWaterBill", StandardBasicTypes.BOOLEAN)
-                .addScalar("isPayVehicleBill", StandardBasicTypes.BOOLEAN)
-                .addScalar("isPayPowerBill", StandardBasicTypes.BOOLEAN);
+                .addScalar("waterPriceId", StandardBasicTypes.INTEGER)
+                .addScalar("vehiclePriceId", StandardBasicTypes.INTEGER);
         query.setResultTransformer(new AliasToBeanResultTransformer(RoomDto.class));
 
         return safeList(query);
@@ -102,7 +98,7 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
                         "CASE\n" +
                         "WHEN (quantity_student = 0) THEN null\n" +
                         "WHEN (quantity_student > 0) THEN :typeRoomId\n" +
-                        "END\n"+
+                        "END\n" +
                         "WHERE id = :roomId";
 
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryNative);

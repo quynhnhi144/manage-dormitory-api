@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface CampusService {
     List<CampusDto> getAllCampuses();
+    int countCampus();
 }

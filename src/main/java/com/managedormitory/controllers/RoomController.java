@@ -3,7 +3,7 @@ package com.managedormitory.controllers;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
-import com.managedormitory.models.dto.student.StudentInRoomDto;
+import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.services.RoomService;
 import com.managedormitory.utils.StringUtil;
@@ -31,6 +31,16 @@ public class RoomController {
         return roomService.paginationGetAllRooms(roomFilterDto, skip, take);
     }
 
+    @GetMapping("/all")
+    public List<DetailRoomDto> getAllRooms() {
+        return roomService.getAllDetailRoomDto();
+    }
+
+    @GetMapping("/remaining-room")
+    public List<DetailRoomDto> getAllRemainingRooms() {
+        return roomService.getAllRemainingRoomDto();
+    }
+
     @GetMapping("/{id}")
     public DetailRoomDto getDetailARoom(@PathVariable Integer id) {
         try {
@@ -54,7 +64,7 @@ public class RoomController {
     }
 
     @PutMapping("/{id}/student")
-    public boolean deleteStudentInRoom(@PathVariable Integer id, @RequestBody StudentInRoomDto student) throws NotFoundException {
+    public boolean deleteStudentInRoom(@PathVariable Integer id, @RequestBody StudentDto student) throws NotFoundException {
         return roomService.deleteStudentInRoom(id, student);
     }
 

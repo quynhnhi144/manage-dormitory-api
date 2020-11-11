@@ -21,8 +21,4 @@ public class StudentDto {
     private Date startingDateOfStay;
     private Date endingDateOfStay;
     private Integer roomId;
-    private Boolean isPayRoom;
-    private Boolean isPayWaterBill;
-    private Boolean isPayVehicleBill;
-    private Boolean isPayPowerBill;
 }

@@ -27,20 +27,11 @@ public class VehicleBill {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 
-    @Column
-    private boolean isPay;
-
     @ManyToOne
     @MapsId("vehicleId")
     @JoinColumn(name = "vehicle_id")
     ////@NotBlank
     private Vehicle vehicle;
-
-    @OneToOne
-    @JoinColumn(name = "price_list_id")
-    @NonNull
-    ////@NotBlank
-    private PriceList priceList;
 
     /*@Embeddable
     public static class Id implements Serializable {

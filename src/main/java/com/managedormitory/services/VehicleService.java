@@ -9,7 +9,8 @@ import java.util.List;
 
 public interface VehicleService {
     List<Vehicle> getAllVehicles();
-    List<VehicleDto> getAllVehicleDto();
+    List<VehicleDetailDto> getAllVehicleDto();
     PaginationVehicle paginationGetAllVehicles(VehicleFilter vehicleFilter, int skip, int take);
-    VehicleDto getVehicleById(Integer id);
+    VehicleDetailDto getVehicleById(Integer id);
+    int countVehicle();
 }

@@ -26,18 +26,10 @@ public class WaterBill {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 
-    @Column
-    private boolean isPay;
-
     @ManyToOne
     @MapsId("studentId")
     @JoinColumn(name = "student_id")
     private Student student;
-
-    @OneToOne
-    @JoinColumn(name = "price_list_id")
-    @NonNull
-    private PriceList priceList;
 
     /*@Embeddable
     public static class Id implements Serializable {

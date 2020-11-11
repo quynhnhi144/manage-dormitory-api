@@ -1,5 +1,6 @@
 package com.managedormitory.repositories.custom.implement;
 
+import com.managedormitory.models.dto.powerbill.PowerBillDetail;
 import com.managedormitory.models.dto.powerbill.PowerBillDto;
 import com.managedormitory.repositories.custom.PowerBillRepositoryCustom;
 import org.hibernate.Session;
@@ -58,6 +59,12 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
         query.setResultTransformer(new AliasToBeanResultTransformer(PowerBillDto.class));
         return safeList(query);
     }
+
+    @Override
+    public int updatePowerBill(Integer roomId, PowerBillDetail powerBillDetail) {
+        return 0;
+    }
+
 
     public static <Entity> List<Entity> safeList(Query query) {
         return query.getResultList();

@@ -4,14 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
 import java.sql.Date;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class VehicleDto {
+public class VehicleDetailDto {
     private Integer id;
     private String licensePlates;
     private String typeVehicle;
@@ -22,4 +21,5 @@ public class VehicleDto {
     private String userManager;
     private Date startDate;
     private Date endDate;
+    private boolean isPayVehicleBill;
 }

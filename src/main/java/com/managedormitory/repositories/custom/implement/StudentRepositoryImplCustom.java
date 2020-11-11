@@ -1,9 +1,7 @@
 package com.managedormitory.repositories.custom.implement;
 
 import com.managedormitory.models.dto.student.StudentDto;
-import com.managedormitory.models.dto.student.StudentUpdateDto;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
-import com.managedormitory.utils.QueryUtil;
 import org.hibernate.Session;
 import org.hibernate.jpa.TypedParameterValue;
 import org.hibernate.query.NativeQuery;
@@ -36,25 +34,39 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                         "s.address AS address,\n" +
                         "s.starting_date_of_stay AS startingDateOfStay,\n" +
                         "s.ending_date_of_stay AS endingDateOfStay,\n" +
+                        "r.name AS roomName,\n" +
+                        "c.name AS campusName,\n" +
                         "r.id AS roomId,\n" +
-                        "dr.is_pay AS isPayRoom,\n" +
-                        "wb.is_pay AS isPayWaterBill,\n" +
-                        "vb.is_pay AS isPayVehicleBill,\n" +
-                        "pb.is_pay AS isPayPowerBill\n" +
+                        "u.full_name AS userManager\n" +
                         "from student s\n" +
-                        QueryUtil.JOIN_ROOM +
-                        QueryUtil.LEFTJOIN_TYPEROOM +
-                        QueryUtil.LEFTJOIN_DETAILROOM +
-                        QueryUtil.LEFTJOIN_WATERBILL +
-                        QueryUtil.LEFTJOIN_VEHICLE +
-                        QueryUtil.LEFTJOIN_VEHICLEBILL +
-                        QueryUtil.LEFTJOIN_POWERBILL +
+                        "         join room r on r.id = s.room_id\n" +
+                        "         join campus c on r.campus_id = c.id\n" +
+                        "         left join type_room tr on r.type_room_id = tr.id\n" +
+                        "         join users u on u.user_id = c.user_id\n" +
+                        "         join detail_room dr on s.id = dr.student_id\n" +
+                        "         join water_bill wb on s.id = wb.student_id\n" +
+                        "         join vehicle v on s.id = v.student_id\n" +
+                        "         join vehicle_bill vb on v.id = vb.vehicle_id\n" +
+                        "\n" +
                         "where dr.month = :month\n" +
-                        "and dr.year = :year\n" +
-                        "and wb.end_date >= :currentDate\n" +
-                        "and vb.end_date >= :currentDate\n" +
-                        "group by s.id, s.name, r.id, s.birthday, s.phone, s.email, s.address, s.starting_date_of_stay, s.ending_date_of_stay, dr.is_pay, wb.is_pay, vb.is_pay, pb.is_pay\n" +
+                        "  and dr.year = :year\n" +
+                        "  and wb.end_date >= :currentDate\n" +
+                        "  and vb.end_date >= :currentDate\n" +
+                        "\n" +
+                        "group by s.id,\n" +
+                        "         s.name,\n" +
+                        "         r.id,\n" +
+                        "         s.birthday,\n" +
+                        "         s.phone,\n" +
+                        "         s.email,\n" +
+                        "         s.address,\n" +
+                        "         s.starting_date_of_stay,\n" +
+                        "         s.ending_date_of_stay,\n" +
+                        "         r.name,\n" +
+                        "         c.name,\n" +
+                        "         u.full_name\n" +
                         "order by s.id asc";
+
 
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryStudent);
         query.setParameter("month", new TypedParameterValue(IntegerType.INSTANCE, month))
@@ -68,33 +80,29 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .addScalar("address", StandardBasicTypes.STRING)
                 .addScalar("startingDateOfStay", StandardBasicTypes.DATE)
                 .addScalar("endingDateOfStay", StandardBasicTypes.DATE)
-                .addScalar("roomId", StandardBasicTypes.INTEGER)
-                .addScalar("isPayRoom", StandardBasicTypes.BOOLEAN)
-                .addScalar("isPayWaterBill", StandardBasicTypes.BOOLEAN)
-                .addScalar("isPayVehicleBill", StandardBasicTypes.BOOLEAN)
-                .addScalar("isPayPowerBill", StandardBasicTypes.BOOLEAN);
+                .addScalar("roomId", StandardBasicTypes.INTEGER);
 
         query.setResultTransformer(new AliasToBeanResultTransformer(StudentDto.class));
         return safeList(query);
     }
 
     @Override
-    public int updateStudent(Integer studentId, StudentUpdateDto studentUpdateDto) {
-        System.out.println("studentUpdate: " + studentUpdateDto);
+    public int updateStudent(Integer studentId, StudentDto studentDto) {
+        System.out.println("studentUpdate: " + studentDto);
         String queryUpdateStudent = "UPDATE student\n" +
                 "SET name = :name, birthday = :birthday, address = :address, phone = :phone, email = :email, starting_date_of_stay = :startingDateOfStay, ending_date_of_stay = :endingDateOfStay, room_id = :roomId\n" +
                 "WHERE id = :studentId";
 
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryUpdateStudent);
-        query.setParameter("name", new TypedParameterValue(StringType.INSTANCE, studentUpdateDto.getName()))
-                .setParameter("birthday", new TypedParameterValue(DateType.INSTANCE, studentUpdateDto.getBirthday()))
-                .setParameter("address", new TypedParameterValue(StringType.INSTANCE, studentUpdateDto.getAddress()))
-                .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, studentUpdateDto.getPhone()))
-                .setParameter("email", new TypedParameterValue(StringType.INSTANCE, studentUpdateDto.getEmail()))
-                .setParameter("startingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentUpdateDto.getStartingDateOfStay()))
-                .setParameter("endingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentUpdateDto.getEndingDateOfStay()))
-                .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, studentUpdateDto.getRoomId()))
-                .setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, studentUpdateDto.getId()));
+        query.setParameter("name", new TypedParameterValue(StringType.INSTANCE, studentDto.getName()))
+                .setParameter("birthday", new TypedParameterValue(DateType.INSTANCE, studentDto.getBirthday()))
+                .setParameter("address", new TypedParameterValue(StringType.INSTANCE, studentDto.getAddress()))
+                .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, studentDto.getPhone()))
+                .setParameter("email", new TypedParameterValue(StringType.INSTANCE, studentDto.getEmail()))
+                .setParameter("startingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentDto.getStartingDateOfStay()))
+                .setParameter("endingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentDto.getEndingDateOfStay()))
+                .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, studentDto.getRoomId()))
+                .setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, studentDto.getId()));
 
         return query.executeUpdate();
     }

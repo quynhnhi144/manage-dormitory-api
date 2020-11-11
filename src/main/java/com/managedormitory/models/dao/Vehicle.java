@@ -26,6 +26,10 @@ public class Vehicle {
     private String licensePlates;
 
     @OneToOne
+    @JoinColumn(name="vehicle_price_id")
+    private PriceList priceList;
+
+    @OneToOne
     @JoinColumn(name = "type_vehicle_id")
     @NonNull
 //    //@NotBlank
