@@ -1,6 +1,7 @@
 package com.managedormitory.services.impl;
 
 import com.managedormitory.converters.StudentConvertToStudentDto;
+import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.models.dao.PowerBill;
 import com.managedormitory.models.dao.Room;
 import com.managedormitory.models.dto.pagination.PaginationPowerBill;
@@ -18,7 +19,10 @@ import com.managedormitory.utils.LimitedPower;
 import com.managedormitory.utils.PaginationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +44,9 @@ public class PowerBillServiceImpl implements PowerBillService {
     private StudentConvertToStudentDto studentConvertToStudentDto;
 
     @Override
-    public List<PowerBillDetail> getAllDetailPowerBills() {
+    public List<PowerBillDetail> getAllDetailPowerBills(LocalDate date) {
         List<Room> rooms = roomService.getAllRooms();
-        List<PowerBillDto> powerBillDtos = powerBillRepositoryCustom.getAllPowerBillByTime();
+        List<PowerBillDto> powerBillDtos = powerBillRepositoryCustom.getAllPowerBillByTime(date);
         List<PowerBillDetail> powerBillDetails = new ArrayList<>();
         List<Integer> powerBillDetailIdList = powerBillDtos.stream().mapToInt(PowerBillDto::getRoomId).boxed().collect(Collectors.toList());
         for (int i = 0; i < rooms.size(); i++) {
@@ -71,8 +75,8 @@ public class PowerBillServiceImpl implements PowerBillService {
     }
 
     @Override
-    public PaginationPowerBill paginationGetAllPowerBills(PowerBillFilter powerBillFilter, int skip, int take) {
-        List<PowerBillDetail> powerBillDetails = getAllDetailPowerBills();
+    public PaginationPowerBill paginationGetAllPowerBills(PowerBillFilter powerBillFilter, LocalDate date, int skip, int take) {
+        List<PowerBillDetail> powerBillDetails = getAllDetailPowerBills(date);
         if (powerBillFilter.getCampusName() != null) {
             powerBillDetails = powerBillDetails.stream()
                     .filter(powerBillDetail -> powerBillDetail.getDetailRoomDto() != null && powerBillDetail.getDetailRoomDto().getCampusName().toLowerCase().equals(powerBillFilter.getCampusName().toLowerCase()))
@@ -110,9 +114,18 @@ public class PowerBillServiceImpl implements PowerBillService {
     }
 
     @Override
-    public PowerBillDetail getAPowerBill(Integer roomId) {
-        List<PowerBillDetail> powerBillDtos = getAllDetailPowerBills();
+    public PowerBillDetail getAPowerBill(LocalDate date, Integer roomId) {
+        List<PowerBillDetail> powerBillDtos = getAllDetailPowerBills(date);
         return powerBillDtos.stream().filter(powerBillDto -> powerBillDto.getDetailRoomDto().getId() == roomId)
                 .findFirst().orElse(null);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public PowerBillDetail updatePowerBill(Integer roomId, PowerBillDetail powerBillDetail) throws BadRequestException{
+        if (powerBillRepositoryCustom.updatePowerBill(roomId, powerBillDetail) <= 0) {
+            throw new BadRequestException("Cannot implement update");
+        }
+        return powerBillDetail;
     }
 }

@@ -7,13 +7,13 @@ import org.hibernate.Session;
 import org.hibernate.jpa.TypedParameterValue;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToBeanResultTransformer;
-import org.hibernate.type.LocalDateType;
-import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -23,8 +23,8 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
     private EntityManager entityManager;
 
     @Override
-    public List<PowerBillDto> getAllPowerBillByTime() {
-        LocalDate currentDate = LocalDate.now();
+    public List<PowerBillDto> getAllPowerBillByTime(LocalDate currentDate) {
+        int month = currentDate.getMonthValue();
         String queryPowerBill =
                 "SELECT r.id AS roomId,\n" +
                         "r.name AS roomName,\n" +
@@ -39,12 +39,13 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
                         "FROM room r\n" +
                         "         LEFT JOIN power_bill pb ON r.id = pb.room_id\n" +
                         "         JOIN price_list pl ON pl.id = pb.price_list_id\n" +
-                        "WHERE pb.start_date <= :currentDate and pb.end_date > :currentDate \n" +
+                        "WHERE pb.end_date <= :currentDate and extract(month from pb.end_date) = :month \n" +
                         "GROUP BY roomId, roomName, pb.bill_id, startDate, endDate, numberOfPowerBegin, numberOfPowerEnd, numberOfPowerUsed, isPay,\n" +
                         "         priceAKWH\n" +
                         "ORDER BY roomId ASC";
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryPowerBill);
         query.setParameter("currentDate", new TypedParameterValue(LocalDateType.INSTANCE, currentDate))
+                .setParameter("month", new TypedParameterValue(IntegerType.INSTANCE, month))
                 .addScalar("roomId", StandardBasicTypes.INTEGER)
                 .addScalar("roomName", StandardBasicTypes.STRING)
                 .addScalar("billId", StandardBasicTypes.INTEGER)
@@ -62,9 +63,29 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
 
     @Override
     public int updatePowerBill(Integer roomId, PowerBillDetail powerBillDetail) {
-        return 0;
-    }
+        String queryUpdate =
+                "UPDATE power_bill\n" +
+                        "SET start_date = :startDate,\n" +
+                        "    end_date = :endDate,\n" +
+                        "    number_of_power_begin = :numberOfPowerBegin,\n" +
+                        "    number_of_power_end = :numberOfPowerEnd,\n" +
+                        "    number_of_power_used = :numberOfPowerUsed,\n" +
+                        "    is_pay = :pay\n" +
+                        "\n" +
+                        "WHERE bill_id = :billId and room_id = :roomId";
 
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryUpdate);
+        query.setParameter("startDate", new TypedParameterValue(DateType.INSTANCE, powerBillDetail.getStartDate()))
+                .setParameter("endDate", new TypedParameterValue(DateType.INSTANCE, powerBillDetail.getEndDate()))
+                .setParameter("numberOfPowerBegin", new TypedParameterValue(LongType.INSTANCE, powerBillDetail.getNumberOfPowerBegin()))
+                .setParameter("numberOfPowerEnd", new TypedParameterValue(LongType.INSTANCE, powerBillDetail.getNumberOfPowerEnd()))
+                .setParameter("numberOfPowerUsed", new TypedParameterValue(LongType.INSTANCE, powerBillDetail.getNumberOfPowerUsed()))
+                .setParameter("pay", new TypedParameterValue(BooleanType.INSTANCE, powerBillDetail.isPay()))
+                .setParameter("billId", new TypedParameterValue(IntegerType.INSTANCE, powerBillDetail.getBillId()))
+                .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, roomId));
+
+        return query.executeUpdate();
+    }
 
     public static <Entity> List<Entity> safeList(Query query) {
         return query.getResultList();

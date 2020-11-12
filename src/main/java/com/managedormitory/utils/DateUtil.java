@@ -2,6 +2,8 @@ package com.managedormitory.utils;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class DateUtil {
     //convert SQLDate -> LocalDate
@@ -18,5 +20,12 @@ public class DateUtil {
             return null;
         }
         return java.sql.Date.valueOf(ldate);
+    }
+
+    //convert String -> LocalDate
+    public static LocalDate getLDateFromString(String dateString) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        LocalDateTime localDateTime = LocalDateTime.parse(dateString, formatter);
+        return localDateTime.toLocalDate();
     }
 }

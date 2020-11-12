@@ -180,10 +180,10 @@ public class RoomServiceImpl implements RoomService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public DetailRoomDto updateTypeRoom(Integer id, DetailRoomDto room) throws BadRequestException {
-        if (roomRepositoryCustom.updateTypeRoom(id, room) > 0) {
-            return getRoomById(id);
+        if (roomRepositoryCustom.updateTypeRoom(id, room) <= 0) {
+            throw new BadRequestException("Cannot implement update");
         }
-        return null;
+        return getRoomById(id);
     }
 
     @Override
