@@ -3,12 +3,14 @@ package com.managedormitory.controllers;
 import com.managedormitory.models.dto.MessageResponse;
 import com.managedormitory.models.dto.pagination.PaginationPowerBill;
 import com.managedormitory.models.dto.powerbill.PowerBillDetail;
+import com.managedormitory.models.dto.powerbill.PowerBillDto;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.filter.PowerBillFilter;
 import com.managedormitory.services.PowerBillService;
 import com.managedormitory.utils.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -20,8 +22,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.File;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @CrossOrigin
@@ -35,14 +39,24 @@ public class PowerBillController {
     private JavaMailSender javaMailSender;
 
     @GetMapping
-    public PaginationPowerBill filterPowerBill(@RequestParam(required = false) String campusName, @RequestParam(required = false) String searchText, @RequestParam int skip, @RequestParam int take) {
+    public PaginationPowerBill filterPowerBill(@RequestParam(required = false) String campusName, @RequestParam(required = false) String searchText, @RequestParam String date, @RequestParam int skip, @RequestParam int take) {
         PowerBillFilter powerBillFilter = PowerBillFilter.builder().campusName(campusName).roomName(searchText).build();
-        return powerBillService.paginationGetAllPowerBills(powerBillFilter, skip, take);
+        return powerBillService.paginationGetAllPowerBills(powerBillFilter, DateUtil.getLDateFromString(date), skip, take);
     }
 
     @GetMapping("/{roomId}")
-    public PowerBillDetail getADetailPowerBill(@PathVariable Integer roomId) {
-        return powerBillService.getAPowerBill(roomId);
+    public PowerBillDetail getADetailPowerBill(@RequestParam String date, @PathVariable Integer roomId) {
+        return powerBillService.getAPowerBill(DateUtil.getLDateFromString(date), roomId);
+    }
+
+    @PutMapping("/{roomId}")
+    public PowerBillDetail updatePowerBill(@PathVariable Integer roomId, @RequestBody PowerBillDetail powerBillDetail) {
+        return powerBillService.updatePowerBill(roomId, powerBillDetail);
+    }
+
+    @PostMapping("calculate-powerBill")
+    public float calculatePowerBill(@RequestBody PowerBillDto powerBillDto) {
+        return powerBillService.calculatePowerBill(powerBillDto);
     }
 
     @PostMapping("/send-notification")
