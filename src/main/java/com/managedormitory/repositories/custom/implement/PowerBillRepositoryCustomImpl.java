@@ -25,6 +25,7 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
     @Override
     public List<PowerBillDto> getAllPowerBillByTime(LocalDate currentDate) {
         int month = currentDate.getMonthValue();
+        int year = currentDate.getYear();
         String queryPowerBill =
                 "SELECT r.id AS roomId,\n" +
                         "r.name AS roomName,\n" +
@@ -39,13 +40,13 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
                         "FROM room r\n" +
                         "         LEFT JOIN power_bill pb ON r.id = pb.room_id\n" +
                         "         JOIN price_list pl ON pl.id = pb.price_list_id\n" +
-                        "WHERE pb.end_date <= :currentDate and extract(month from pb.end_date) = :month \n" +
+                        "WHERE extract(month from pb.end_date) = :month and extract(year from pb.end_date) = :year \n" +
                         "GROUP BY roomId, roomName, pb.bill_id, startDate, endDate, numberOfPowerBegin, numberOfPowerEnd, numberOfPowerUsed, isPay,\n" +
                         "         priceAKWH\n" +
                         "ORDER BY roomId ASC";
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryPowerBill);
-        query.setParameter("currentDate", new TypedParameterValue(LocalDateType.INSTANCE, currentDate))
-                .setParameter("month", new TypedParameterValue(IntegerType.INSTANCE, month))
+        query.setParameter("month", new TypedParameterValue(IntegerType.INSTANCE, month))
+                .setParameter("year", new TypedParameterValue(IntegerType.INSTANCE, year))
                 .addScalar("roomId", StandardBasicTypes.INTEGER)
                 .addScalar("roomName", StandardBasicTypes.STRING)
                 .addScalar("billId", StandardBasicTypes.INTEGER)

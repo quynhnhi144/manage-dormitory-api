@@ -26,6 +26,8 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin
@@ -44,6 +46,32 @@ public class PowerBillController {
         return powerBillService.paginationGetAllPowerBills(powerBillFilter, DateUtil.getLDateFromString(date), skip, take);
     }
 
+    @GetMapping("/send-notification-for-powerBills")
+    public ResponseEntity<MessageResponse> sendMailForPowerBills(@RequestParam String date) throws MessagingException {
+        LocalDate localDate = DateUtil.getLDateFromString(date);
+        List<PowerBillDetail> list = powerBillService.getAllDetailPowerBills(localDate);
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        String subject = "Notification about power bill monthly";
+        list.stream()
+                .filter(powerBillDetail -> powerBillDetail.getBillId() != null)
+                .collect(Collectors.toList())
+                .forEach(powerBillDetail -> {
+                    String contentMessageForPowerBills =
+                            "Hi " + powerBillDetail.getDetailRoomDto().getName() + "\n"
+                                    + "Please pay power bill for month: " + DateUtil.getLDateFromSDate(powerBillDetail.getEndDate()).getMonth() + "\n"
+                                    + "Total money need to pay: " + powerBillDetail.getNumberOfMoneyMustPay();
+                    powerBillDetail.getDetailRoomDto().getStudents().forEach(studentDto -> {
+                        powerBillService.sendMail(contentMessageForPowerBills, subject, studentDto, javaMailSender, message, helper);
+                    });
+                });
+        MessageResponse msg = new MessageResponse(
+                HttpStatus.OK.value(),
+                "SUCCESS",
+                LocalDateTime.now());
+        return new ResponseEntity<>(msg, HttpStatus.OK);
+    }
+
     @GetMapping("/{roomId}")
     public PowerBillDetail getADetailPowerBill(@RequestParam String date, @PathVariable Integer roomId) {
         return powerBillService.getAPowerBill(DateUtil.getLDateFromString(date), roomId);
@@ -54,7 +82,7 @@ public class PowerBillController {
         return powerBillService.updatePowerBill(roomId, powerBillDetail);
     }
 
-    @PostMapping("calculate-powerBill")
+    @PostMapping("/calculate-powerBill")
     public float calculatePowerBill(@RequestBody PowerBillDto powerBillDto) {
         return powerBillService.calculatePowerBill(powerBillDto);
     }
@@ -62,37 +90,13 @@ public class PowerBillController {
     @PostMapping("/send-notification")
     public ResponseEntity<MessageResponse> sendAttachmentEmail(@RequestBody PowerBillDetail powerBillDetail) throws MessagingException {
         MimeMessage message = javaMailSender.createMimeMessage();
-        boolean multipart = true;
-        MimeMessageHelper helper = new MimeMessageHelper(message, multipart);
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
         String contentMessage = "Please pay power bill for month: " + DateUtil.getLDateFromSDate(powerBillDetail.getEndDate()).getMonth() + "\n"
                 + "Total money need to pay: " + powerBillDetail.getNumberOfMoneyMustPay();
+        String subject = "Notification about power bill monthly";
         powerBillDetail.getDetailRoomDto().getStudents().forEach(studentDto -> {
-            try {
-                helper.setTo(studentDto.getEmail());
-                helper.setSubject("Notification about power bill monthly");
-                helper.setText(contentMessage);
-                String path = "/home/nhile/Downloads/link.txt";
-
-                // Attachment
-                FileSystemResource file = new FileSystemResource(new File(path));
-                helper.addAttachment("link", file);
-                javaMailSender.send(message);
-            } catch (MessagingException e) {
-                e.printStackTrace();
-            }
+            powerBillService.sendMail(contentMessage, subject, studentDto, javaMailSender, message, helper);
         });
-
-//        String contentMessage = "Please pay power bill for month: " + "\n"
-//                + "Total money need to pay: " + powerBillDetail.getNumberOfMoneyMustPay();
-//        SimpleMailMessage message = new SimpleMailMessage();
-
-//        powerBillDetail.getDetailRoomDto().getStudents().forEach(studentDto -> {
-//            message.setTo(studentDto.getEmail());
-//            message.setSubject("Notification about power bill monthly");
-//            message.setText(contentMessage);
-//
-//            javaMailSender.send(message);
-//        });
         MessageResponse msg = new MessageResponse(
                 HttpStatus.OK.value(),
                 "SUCCESS",
