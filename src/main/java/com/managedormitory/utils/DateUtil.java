@@ -24,8 +24,7 @@ public class DateUtil {
 
     //convert String -> LocalDate
     public static LocalDate getLDateFromString(String dateString) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-        LocalDateTime localDateTime = LocalDateTime.parse(dateString, formatter);
-        return localDateTime.toLocalDate();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-d");
+        return LocalDate.parse(dateString, formatter);
     }
 }

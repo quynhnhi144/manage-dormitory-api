@@ -4,25 +4,37 @@ import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.models.dao.PowerBill;
 import com.managedormitory.models.dao.Room;
+import com.managedormitory.models.dto.MessageResponse;
 import com.managedormitory.models.dto.pagination.PaginationPowerBill;
 import com.managedormitory.models.dto.powerbill.PowerBillDetail;
 import com.managedormitory.models.dto.powerbill.PowerBillDto;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.room.RoomDto;
+import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.filter.PowerBillFilter;
 import com.managedormitory.repositories.PowerBillRepository;
 import com.managedormitory.repositories.PriceListRepository;
 import com.managedormitory.repositories.custom.PowerBillRepositoryCustom;
 import com.managedormitory.services.PowerBillService;
 import com.managedormitory.services.RoomService;
+import com.managedormitory.utils.DateUtil;
 import com.managedormitory.utils.LimitedPower;
 import com.managedormitory.utils.PaginationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.io.File;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +54,9 @@ public class PowerBillServiceImpl implements PowerBillService {
 
     @Autowired
     private StudentConvertToStudentDto studentConvertToStudentDto;
+
+    @Autowired
+    private JavaMailSender javaMailSender;
 
     @Override
     public List<PowerBillDetail> getAllDetailPowerBills(LocalDate date) {
@@ -127,5 +142,22 @@ public class PowerBillServiceImpl implements PowerBillService {
             throw new BadRequestException("Cannot implement update");
         }
         return powerBillDetail;
+    }
+
+    @Override
+    public void sendMail(String text, String subject, StudentDto studentDto, JavaMailSender javaMailSender,MimeMessage message, MimeMessageHelper helper) {
+        try {
+            helper.setTo(studentDto.getEmail());
+            helper.setSubject(subject);
+            helper.setText(text);
+            String path = "/home/nhile/Downloads/link.txt";
+
+            // Attachment
+            FileSystemResource file = new FileSystemResource(new File(path));
+            helper.addAttachment("link", file);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
     }
 }
