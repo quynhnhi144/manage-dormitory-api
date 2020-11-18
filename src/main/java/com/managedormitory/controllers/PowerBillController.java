@@ -120,6 +120,11 @@ public class PowerBillController {
         return new ResponseEntity<>(msg, HttpStatus.OK);
     }
 
+    @PostMapping("/{roomId}")
+    public PowerBillDetail addPowerBill(@PathVariable Integer roomId, @RequestBody PowerBillDetail powerBillDetail) {
+        return powerBillService.addPowerBill(roomId, powerBillDetail);
+    }
+
     @PostMapping("/uploadFile")
     public int uploadFile(@RequestBody MultipartFile file, @RequestParam String date) {
         // Get file name

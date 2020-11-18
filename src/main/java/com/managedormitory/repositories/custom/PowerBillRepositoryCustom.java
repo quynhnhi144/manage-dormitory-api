@@ -17,5 +17,7 @@ public interface PowerBillRepositoryCustom {
 
     int updatePowerBill(Integer roomId, PowerBillDetail powerBillDetail);
 
-    int insertPowerBill(List<PowerBillDetail> powerBillDetails, List<PowerBillImport> powerBillImports);
+    int insertPowerBills(List<PowerBillDetail> powerBillDetails, List<PowerBillImport> powerBillImports);
+
+    int insertPowerBill(Integer roomId, PowerBillDetail powerBillDetail);
 }
