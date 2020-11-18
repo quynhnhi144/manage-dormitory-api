@@ -18,6 +18,9 @@ public class PowerBillDto {
     private long numberOfPowerBegin;
     private long numberOfPowerEnd;
     private long numberOfPowerUsed;
+    private float numberOfMoneyMustPay;
     private boolean isPay;
+    private Integer idPriceList;
+    private String namePriceList;
     private float priceAKWH;
 }

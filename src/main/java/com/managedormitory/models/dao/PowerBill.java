@@ -34,6 +34,9 @@ public class PowerBill {
     private Long numberOfPowerUsed;
 
     @Column
+    private Float numberOfMoneyMustPay;
+
+    @Column
     private boolean isPay;
 
     @ManyToOne

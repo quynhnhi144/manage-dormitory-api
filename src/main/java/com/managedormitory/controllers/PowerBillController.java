@@ -1,31 +1,33 @@
 package com.managedormitory.controllers;
 
 import com.managedormitory.models.dto.MessageResponse;
+import com.managedormitory.models.dto.PowerBillImport;
 import com.managedormitory.models.dto.pagination.PaginationPowerBill;
 import com.managedormitory.models.dto.powerbill.PowerBillDetail;
 import com.managedormitory.models.dto.powerbill.PowerBillDto;
-import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.filter.PowerBillFilter;
 import com.managedormitory.services.PowerBillService;
+import com.managedormitory.utils.CalculateMoney;
 import com.managedormitory.utils.DateUtil;
+import com.managedormitory.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.io.File;
-import java.sql.Date;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,14 +79,28 @@ public class PowerBillController {
         return powerBillService.getAPowerBill(DateUtil.getLDateFromString(date), roomId);
     }
 
+    @GetMapping("/export")
+    public ResponseEntity<Resource> exportExcelFile(@RequestParam String date) {
+        LocalDate currentDate = DateUtil.getLDateFromString(date);
+        try {
+            InputStreamResource file = new InputStreamResource(powerBillService.exportExcelFile(currentDate));
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + StringUtil.FILE_NAME_EXCEL_POWER_BILL)
+                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .body(file);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
     @PutMapping("/{roomId}")
     public PowerBillDetail updatePowerBill(@PathVariable Integer roomId, @RequestBody PowerBillDetail powerBillDetail) {
         return powerBillService.updatePowerBill(roomId, powerBillDetail);
     }
 
     @PostMapping("/calculate-powerBill")
-    public float calculatePowerBill(@RequestBody PowerBillDto powerBillDto) {
-        return powerBillService.calculatePowerBill(powerBillDto);
+    public float calculatePowerBill(@RequestBody PowerBillDetail powerBillDetail) {
+        return CalculateMoney.calculatePowerBill(powerBillDetail);
     }
 
     @PostMapping("/send-notification")
@@ -103,5 +119,13 @@ public class PowerBillController {
                 LocalDateTime.now());
         return new ResponseEntity<>(msg, HttpStatus.OK);
     }
+
+    @PostMapping("/uploadFile")
+    public int uploadFile(@RequestBody MultipartFile file, @RequestParam String date) {
+        // Get file name
+        LocalDate localDate = DateUtil.getLDateFromString(date);
+        return powerBillService.importExcelFile(file, localDate);
+    }
+
 
 }
