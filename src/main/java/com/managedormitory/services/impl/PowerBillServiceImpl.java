@@ -2,39 +2,40 @@ package com.managedormitory.services.impl;
 
 import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.BadRequestException;
-import com.managedormitory.models.dao.PowerBill;
+import com.managedormitory.helper.PowerBillExcelHelper;
+import com.managedormitory.helper.PowerBillReadExcelHelper;
+import com.managedormitory.models.dao.PriceList;
 import com.managedormitory.models.dao.Room;
-import com.managedormitory.models.dto.MessageResponse;
+import com.managedormitory.models.dto.PowerBillImport;
 import com.managedormitory.models.dto.pagination.PaginationPowerBill;
 import com.managedormitory.models.dto.powerbill.PowerBillDetail;
 import com.managedormitory.models.dto.powerbill.PowerBillDto;
 import com.managedormitory.models.dto.room.DetailRoomDto;
-import com.managedormitory.models.dto.room.RoomDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.filter.PowerBillFilter;
 import com.managedormitory.repositories.PowerBillRepository;
-import com.managedormitory.repositories.PriceListRepository;
 import com.managedormitory.repositories.custom.PowerBillRepositoryCustom;
 import com.managedormitory.services.PowerBillService;
 import com.managedormitory.services.RoomService;
-import com.managedormitory.utils.DateUtil;
-import com.managedormitory.utils.LimitedPower;
-import com.managedormitory.utils.PaginationUtils;
+import com.managedormitory.utils.*;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.sql.Date;
+import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,9 +56,6 @@ public class PowerBillServiceImpl implements PowerBillService {
     @Autowired
     private StudentConvertToStudentDto studentConvertToStudentDto;
 
-    @Autowired
-    private JavaMailSender javaMailSender;
-
     @Override
     public List<PowerBillDetail> getAllDetailPowerBills(LocalDate date) {
         List<Room> rooms = roomService.getAllRooms();
@@ -77,8 +75,8 @@ public class PowerBillServiceImpl implements PowerBillService {
                 powerBillDetail.setNumberOfPowerBegin(powerBillDto.getNumberOfPowerBegin());
                 powerBillDetail.setNumberOfPowerEnd(powerBillDto.getNumberOfPowerEnd());
                 powerBillDetail.setNumberOfPowerUsed(powerBillDto.getNumberOfPowerUsed());
-                powerBillDetail.setNumberOfMoneyMustPay(calculatePowerBill(powerBillDto));
-                powerBillDetail.setPriceAKWH(powerBillDto.getPriceAKWH());
+                powerBillDetail.setNumberOfMoneyMustPay(powerBillDto.getNumberOfMoneyMustPay());
+                powerBillDetail.setPriceList(new PriceList(powerBillDto));
                 powerBillDetail.setPay(powerBillDto.isPay());
             } else {
                 powerBillDetail = new PowerBillDetail();
@@ -87,6 +85,38 @@ public class PowerBillServiceImpl implements PowerBillService {
             powerBillDetails.add(powerBillDetail);
         }
         return powerBillDetails;
+    }
+
+    @Override
+    public List<PowerBillDetail> getAllPowerBillByMaxEndDate() {
+        List<Room> rooms = roomService.getAllRooms();
+        List<PowerBillDto> powerBillDtos = powerBillRepositoryCustom.getAllPowerBillByMaxEndDate();
+        List<PowerBillDetail> powerBillDetails = new ArrayList<>();
+        List<Integer> powerBillDetailIdList = powerBillDtos.stream().mapToInt(PowerBillDto::getRoomId).boxed().collect(Collectors.toList());
+        for (int i = 0; i < rooms.size(); i++) {
+            Room room = rooms.get(i);
+            PowerBillDetail powerBillDetail = new PowerBillDetail();
+            if (powerBillDetailIdList.contains(room.getId())) {
+                PowerBillDto powerBillDto = powerBillDtos.stream()
+                        .filter(pb -> pb.getRoomId() == room.getId())
+                        .findFirst().get();
+                powerBillDetail.setBillId(powerBillDto.getBillId());
+                powerBillDetail.setStartDate(powerBillDto.getStartDate());
+                powerBillDetail.setEndDate(powerBillDto.getEndDate());
+                powerBillDetail.setNumberOfPowerBegin(powerBillDto.getNumberOfPowerBegin());
+                powerBillDetail.setNumberOfPowerEnd(powerBillDto.getNumberOfPowerEnd());
+                powerBillDetail.setNumberOfPowerUsed(powerBillDto.getNumberOfPowerUsed());
+                powerBillDetail.setNumberOfMoneyMustPay(powerBillDto.getNumberOfMoneyMustPay());
+                powerBillDetail.setPriceList(new PriceList(powerBillDto));
+                powerBillDetail.setPay(powerBillDto.isPay());
+            } else {
+                powerBillDetail = new PowerBillDetail();
+            }
+            powerBillDetail.setDetailRoomDto(new DetailRoomDto(room, studentConvertToStudentDto));
+            powerBillDetails.add(powerBillDetail);
+        }
+        return powerBillDetails;
+
     }
 
     @Override
@@ -112,23 +142,6 @@ public class PowerBillServiceImpl implements PowerBillService {
     }
 
     @Override
-    public float calculatePowerBill(PowerBillDto powerBillDto) {
-        float pricePowerAKWH = powerBillDto.getPriceAKWH();
-        long numberOfPowerUsed = powerBillDto.getNumberOfPowerEnd() - powerBillDto.getNumberOfPowerBegin();
-        float money = 0;
-        if (numberOfPowerUsed <= LimitedPower.LOW_POWER) {
-            money = pricePowerAKWH * numberOfPowerUsed;
-        } else if (LimitedPower.LOW_POWER < numberOfPowerUsed && numberOfPowerUsed <= LimitedPower.MIDDLE_POWER) {
-            money = pricePowerAKWH * numberOfPowerUsed * LimitedPower.MIDDLE_POWER_FINES;
-        } else if (LimitedPower.MIDDLE_POWER < numberOfPowerUsed && numberOfPowerUsed <= LimitedPower.HIGH_POWER) {
-            money = pricePowerAKWH * numberOfPowerUsed * LimitedPower.HIGH_POWER_FINES;
-        } else if (numberOfPowerUsed > LimitedPower.HIGH_POWER) {
-            money = pricePowerAKWH * numberOfPowerUsed * LimitedPower.HIGHER_POWER_FINES;
-        }
-        return money;
-    }
-
-    @Override
     public PowerBillDetail getAPowerBill(LocalDate date, Integer roomId) {
         List<PowerBillDetail> powerBillDtos = getAllDetailPowerBills(date);
         return powerBillDtos.stream().filter(powerBillDto -> powerBillDto.getDetailRoomDto().getId() == roomId)
@@ -137,7 +150,7 @@ public class PowerBillServiceImpl implements PowerBillService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public PowerBillDetail updatePowerBill(Integer roomId, PowerBillDetail powerBillDetail) throws BadRequestException{
+    public PowerBillDetail updatePowerBill(Integer roomId, PowerBillDetail powerBillDetail) throws BadRequestException {
         if (powerBillRepositoryCustom.updatePowerBill(roomId, powerBillDetail) <= 0) {
             throw new BadRequestException("Cannot implement update");
         }
@@ -145,7 +158,41 @@ public class PowerBillServiceImpl implements PowerBillService {
     }
 
     @Override
-    public void sendMail(String text, String subject, StudentDto studentDto, JavaMailSender javaMailSender,MimeMessage message, MimeMessageHelper helper) {
+    public ByteArrayInputStream exportExcelFile(LocalDate currentDate) throws IOException {
+        List<PowerBillDetail> powerBillDetails = getAllDetailPowerBills(currentDate) ;
+        PowerBillExcelHelper<PowerBillDetail> powerBillExcelHelper = new PowerBillExcelHelper(powerBillDetails);
+        powerBillExcelHelper.writeHeaderLine(StringUtil.HEADER_POWER_BILLS);
+        powerBillExcelHelper.writeDataLines(powerBillDetail -> {
+            int rowCount = 1;
+
+            CellStyle style = powerBillExcelHelper.getWorkbook().createCellStyle();
+            XSSFFont font = powerBillExcelHelper.getWorkbook().createFont();
+            font.setFontHeight(14);
+            style.setFont(font);
+            for(PowerBillDetail powerBillDetaiCurrent : powerBillDetails){
+                Row row = powerBillExcelHelper.getSheet().createRow(rowCount++);
+                int columnCount = 0;
+                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getDetailRoomDto().getId(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getDetailRoomDto().getName(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, DateUtil.getLDateFromSDate(powerBillDetaiCurrent.getStartDate()).toString(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, DateUtil.getLDateFromSDate(powerBillDetaiCurrent.getEndDate()).toString(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfPowerBegin(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfPowerEnd(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfPowerUsed(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfMoneyMustPay() + "đ", style);
+                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.isPay() ? "x" : "--", style);
+            }
+        });
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        powerBillExcelHelper.getWorkbook().write(outputStream);
+        powerBillExcelHelper.getWorkbook().close();
+        outputStream.close();
+        return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    @Override
+    public void sendMail(String text, String subject, StudentDto studentDto, JavaMailSender javaMailSender, MimeMessage message, MimeMessageHelper helper) {
         try {
             helper.setTo(studentDto.getEmail());
             helper.setSubject(subject);
@@ -158,6 +205,18 @@ public class PowerBillServiceImpl implements PowerBillService {
             javaMailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public int importExcelFile(MultipartFile multipartFile, LocalDate localDate) {
+        try {
+            List<PowerBillImport> powerBillImports = PowerBillReadExcelHelper.parseExcelFile(multipartFile.getInputStream());
+            List<PowerBillDetail> powerBillDetails = getAllPowerBillByMaxEndDate();
+         return powerBillRepositoryCustom.insertPowerBill(powerBillDetails,powerBillImports);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot implement this action!!!");
         }
     }
 }

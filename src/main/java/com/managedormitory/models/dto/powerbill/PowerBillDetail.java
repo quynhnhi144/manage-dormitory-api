@@ -1,5 +1,6 @@
 package com.managedormitory.models.dto.powerbill;
 
+import com.managedormitory.models.dao.PriceList;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class PowerBillDetail {
     private long numberOfPowerEnd;
     private long numberOfPowerUsed;
     private boolean isPay;
-    private float priceAKWH;
+    private PriceList priceList;
+//    private float priceAKWH;
     private float numberOfMoneyMustPay;
 }

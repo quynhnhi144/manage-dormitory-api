@@ -2,12 +2,12 @@ package com.managedormitory.utils;
 
 import java.sql.Date;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class DateUtil {
     //convert SQLDate -> LocalDate
-    public static java.time.LocalDate getLDateFromSDate(final java.sql.Date sDate) {
+    public static java.time.LocalDate getLDateFromSDate(final Date sDate) {
         if (sDate == null) {
             return null;
         }
@@ -27,4 +27,11 @@ public class DateUtil {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-d");
         return LocalDate.parse(dateString, formatter);
     }
+
+    //convert java.util.Date -> java.time.LocalDate
+    public static LocalDate getLDateFromUtilDate(java.util.Date date) {
+        return date.toInstant().atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
 }

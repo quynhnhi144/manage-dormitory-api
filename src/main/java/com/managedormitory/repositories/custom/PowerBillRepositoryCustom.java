@@ -1,5 +1,6 @@
 package com.managedormitory.repositories.custom;
 
+import com.managedormitory.models.dto.PowerBillImport;
 import com.managedormitory.models.dto.powerbill.PowerBillDetail;
 import com.managedormitory.models.dto.powerbill.PowerBillDto;
 import org.springframework.stereotype.Repository;
@@ -12,5 +13,9 @@ import java.util.List;
 public interface PowerBillRepositoryCustom {
     List<PowerBillDto> getAllPowerBillByTime(LocalDate date);
 
+    List<PowerBillDto> getAllPowerBillByMaxEndDate();
+
     int updatePowerBill(Integer roomId, PowerBillDetail powerBillDetail);
+
+    int insertPowerBill(List<PowerBillDetail> powerBillDetails, List<PowerBillImport> powerBillImports);
 }
