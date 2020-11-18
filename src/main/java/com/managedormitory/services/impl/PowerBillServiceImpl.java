@@ -159,7 +159,7 @@ public class PowerBillServiceImpl implements PowerBillService {
 
     @Override
     public ByteArrayInputStream exportExcelFile(LocalDate currentDate) throws IOException {
-        List<PowerBillDetail> powerBillDetails = getAllDetailPowerBills(currentDate) ;
+        List<PowerBillDetail> powerBillDetails = getAllDetailPowerBills(currentDate);
         PowerBillExcelHelper<PowerBillDetail> powerBillExcelHelper = new PowerBillExcelHelper(powerBillDetails);
         powerBillExcelHelper.writeHeaderLine(StringUtil.HEADER_POWER_BILLS);
         powerBillExcelHelper.writeDataLines(powerBillDetail -> {
@@ -169,7 +169,7 @@ public class PowerBillServiceImpl implements PowerBillService {
             XSSFFont font = powerBillExcelHelper.getWorkbook().createFont();
             font.setFontHeight(14);
             style.setFont(font);
-            for(PowerBillDetail powerBillDetaiCurrent : powerBillDetails){
+            for (PowerBillDetail powerBillDetaiCurrent : powerBillDetails) {
                 Row row = powerBillExcelHelper.getSheet().createRow(rowCount++);
                 int columnCount = 0;
                 powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getDetailRoomDto().getId(), style);
@@ -208,15 +208,25 @@ public class PowerBillServiceImpl implements PowerBillService {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public int importExcelFile(MultipartFile multipartFile, LocalDate localDate) {
         try {
             List<PowerBillImport> powerBillImports = PowerBillReadExcelHelper.parseExcelFile(multipartFile.getInputStream());
             List<PowerBillDetail> powerBillDetails = getAllPowerBillByMaxEndDate();
-         return powerBillRepositoryCustom.insertPowerBill(powerBillDetails,powerBillImports);
+            return powerBillRepositoryCustom.insertPowerBills(powerBillDetails, powerBillImports);
 
         } catch (IOException e) {
             throw new RuntimeException("Cannot implement this action!!!");
         }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public PowerBillDetail addPowerBill(Integer roomId, PowerBillDetail powerBillDetail) {
+        if (powerBillRepositoryCustom.insertPowerBill(roomId, powerBillDetail) > 0) {
+            return powerBillDetail;
+        }
+        throw new BadRequestException("Cannot implement the add power bill method!!!");
     }
 }

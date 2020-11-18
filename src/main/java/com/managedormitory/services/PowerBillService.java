@@ -37,4 +37,6 @@ public interface PowerBillService {
     void sendMail(String text, String subject, StudentDto studentDto, JavaMailSender javaMailSender, MimeMessage message, MimeMessageHelper mimeMessageHelper);
 
     int importExcelFile(MultipartFile multipartFile, LocalDate localDate);
+
+    PowerBillDetail addPowerBill(Integer roomId, PowerBillDetail powerBillDetail);
 }

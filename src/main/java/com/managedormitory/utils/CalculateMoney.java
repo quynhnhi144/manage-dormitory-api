@@ -6,6 +6,7 @@ public class CalculateMoney {
     private CalculateMoney(){}
 
     public static float calculatePowerBill(PowerBillDetail powerBillDetail) {
+        System.out.println("cal:" + powerBillDetail);
         float pricePowerAKWH = powerBillDetail.getPriceList().getPrice();
         long numberOfPowerUsed = powerBillDetail.getNumberOfPowerEnd() - powerBillDetail.getNumberOfPowerBegin();
         float money = 0;

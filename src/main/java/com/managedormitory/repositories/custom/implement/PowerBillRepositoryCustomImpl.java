@@ -149,7 +149,7 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
     }
 
     @Override
-    public int insertPowerBill(List<PowerBillDetail> powerBillDetails, List<PowerBillImport> powerBillImports) {
+    public int insertPowerBills(List<PowerBillDetail> powerBillDetails, List<PowerBillImport> powerBillImports) {
         List<PowerBillDetail> powerBillDetailsInsert = new ArrayList<>();
         for (int i = 0; i < powerBillDetails.size(); i++) {
             PowerBillDetail powerBillDetail = powerBillDetails.get(i);
@@ -202,6 +202,24 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
                     rowCount += s.executeBatch().length;
                     return rowCount;
                 });
+    }
+
+    @Override
+    public int insertPowerBill(Integer roomId, PowerBillDetail powerBillDetail) {
+        String queryInsert = "INSERT INTO power_bill(start_date, end_date, number_of_power_begin, number_of_power_end, number_of_power_used, number_of_money_must_pay, is_pay, room_id, price_list_id)" +
+                "VALUES(:startDate, :endDate, :numberOfPowerBegin, :numberOfPowerEnd, :numberOfPowerUsed, :numberOfMoneyMustPay, :isPay, :roomId, :idPriceList)";
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryInsert);
+        query.setParameter("startDate", new TypedParameterValue(DateType.INSTANCE, powerBillDetail.getStartDate()))
+                .setParameter("endDate", new TypedParameterValue(DateType.INSTANCE, powerBillDetail.getEndDate()))
+                .setParameter("numberOfPowerBegin", new TypedParameterValue(LongType.INSTANCE, powerBillDetail.getNumberOfPowerBegin()))
+                .setParameter("numberOfPowerEnd", new TypedParameterValue(LongType.INSTANCE, powerBillDetail.getNumberOfPowerEnd()))
+                .setParameter("numberOfPowerUsed", new TypedParameterValue(LongType.INSTANCE, powerBillDetail.getNumberOfPowerUsed()))
+                .setParameter("numberOfMoneyMustPay", new TypedParameterValue(FloatType.INSTANCE, powerBillDetail.getNumberOfMoneyMustPay()))
+                .setParameter("isPay", new TypedParameterValue(BooleanType.INSTANCE, powerBillDetail.isPay()))
+                .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, roomId))
+                .setParameter("idPriceList", new TypedParameterValue(IntegerType.INSTANCE, powerBillDetail.getPriceList().getId()));
+
+        return query.executeUpdate();
     }
 
     public static <Entity> List<Entity> safeList(Query query) {
