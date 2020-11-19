@@ -19,16 +19,15 @@ public class DetailRoom {
     private Integer id;
 
     @Column
-    private Integer month;
-
-    @Column
-    private Integer year;
-
-    @Column
     @NonNull
     //@NotBlank(message = "Start Date is mandatory")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
+
+    @Column
+    @NonNull
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
 
     @ManyToOne
     @MapsId("studentId")

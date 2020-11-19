@@ -2,8 +2,16 @@ package com.managedormitory.utils;
 
 import com.managedormitory.models.dto.powerbill.PowerBillDetail;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.Date;
+
 public class CalculateMoney {
-    private CalculateMoney(){}
+
+    private CalculateMoney() {
+    }
 
     public static float calculatePowerBill(PowerBillDetail powerBillDetail) {
         System.out.println("cal:" + powerBillDetail);
@@ -36,5 +44,20 @@ public class CalculateMoney {
             money = pricePowerAKWH * numberOfPowerUsed * LimitedPower.HIGHER_POWER_FINES;
         }
         return money;
+    }
+
+    public static float calculateRemainingMoney(LocalDate currentDate, LocalDate endDate, float price) {
+        Date dCurrentDate = DateUtil.getDateFromLDate(currentDate);
+        Date dEndDate = DateUtil.getDateFromLDate(endDate);
+
+        Calendar cCurrentDate = Calendar.getInstance();
+        cCurrentDate.setTime(dCurrentDate);
+
+        Calendar cEndDate = Calendar.getInstance();
+        cEndDate.setTime(dEndDate);
+
+        long daysDuration = ChronoUnit.DAYS.between(cEndDate.toInstant(), cCurrentDate.toInstant());
+
+        return price / LimitedPower.NUMBER_OF_DATE * daysDuration;
     }
 }

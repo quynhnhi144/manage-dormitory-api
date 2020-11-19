@@ -1,6 +1,7 @@
 package com.managedormitory.controllers;
 
 import com.managedormitory.exceptions.NotFoundException;
+import com.managedormitory.models.dao.TypeRoom;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
 import com.managedormitory.models.dto.student.StudentDto;
@@ -26,8 +27,8 @@ public class RoomController {
     private RoomService roomService;
 
     @GetMapping
-    public PaginationRoom filterRoom(@RequestParam(required = false) String campusName, @RequestParam(required = false) String searchText, @RequestParam(required = false) String typeRoom, @RequestParam(required = false) Integer quantityStudent, @RequestParam int skip, @RequestParam int take) {
-        RoomFilterDto roomFilterDto = RoomFilterDto.builder().campusName(campusName).roomNameOrUserManager(searchText).typeRoom(typeRoom).quantityStudent(quantityStudent).build();
+    public PaginationRoom filterRoom(@RequestParam(required = false) String campusName, @RequestParam(required = false) String searchText, @RequestParam(required = false) Integer typeRoomId, @RequestParam(required = false) Integer quantityStudent, @RequestParam int skip, @RequestParam int take) {
+        RoomFilterDto roomFilterDto = RoomFilterDto.builder().campusName(campusName).roomNameOrUserManager(searchText).typeRoomId(typeRoomId).quantityStudent(quantityStudent).build();
         return roomService.paginationGetAllRooms(roomFilterDto, skip, take);
     }
 
