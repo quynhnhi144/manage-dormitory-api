@@ -1,9 +1,12 @@
 package com.managedormitory.controllers;
 
 import com.managedormitory.exceptions.BadRequestException;
+import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
+import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
+import com.managedormitory.models.dto.student.StudentMoveDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.services.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +43,22 @@ public class StudentController {
         return null;
     }
 
+    @GetMapping("/{id}/studentLeft")
+    public StudentMoveDto getRoomBillDto(@PathVariable Integer id) {
+        try {
+            return studentService.getInfoMovingStudent(id);
+        } catch (Exception e) {
+            throw new NotFoundException("Cannot find this " + id);
+        }
+    }
+
+    @PostMapping("/studentLeft")
+    public int addStudentLeft(@RequestBody StudentMoveDto studentMoveDto) {
+        return studentService.addStudentLeft(studentMoveDto);
+    }
+
     @PutMapping("/{id}")
     public StudentDetailDto updateStudent(@PathVariable Integer id, @RequestBody StudentDto studentDto) throws BadRequestException {
         return studentService.updateStudent(id, studentDto);
     }
-
-//    @DeleteMapping("/{id}")
-//    public void deleteStudent(@PathVariable Integer id) {
-//        studentService.deleteStudent(id);
-//    }
-
 }

@@ -3,14 +3,21 @@ package com.managedormitory.services.impl;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.*;
+import com.managedormitory.models.dto.VehicleBillDto;
+import com.managedormitory.models.dto.WaterBillDto;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
+import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomDto;
 import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
+import com.managedormitory.models.dto.student.StudentMoveDto;
 import com.managedormitory.models.filter.StudentFilterDto;
+import com.managedormitory.repositories.StudentLeftRepository;
 import com.managedormitory.repositories.StudentRepository;
+import com.managedormitory.repositories.custom.RoomRepositoryCustom;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
 import com.managedormitory.services.StudentService;
+import com.managedormitory.utils.CalculateMoney;
 import com.managedormitory.utils.DateUtil;
 import com.managedormitory.utils.PaginationUtils;
 import com.managedormitory.utils.StringUtil;
@@ -19,6 +26,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +42,12 @@ public class StudentServiceImpl implements StudentService {
     @Autowired
     private StudentRepositoryCustom studentRepositoryCustom;
 
+    @Autowired
+    private StudentLeftRepository studentLeftRepository;
+
+    @Autowired
+    private RoomRepositoryCustom roomRepositoryCustom;
+
     @Override
     public List<Student> getAllStudents() {
         return studentRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
@@ -42,6 +56,8 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<StudentDetailDto> getAllStudentDto() {
         List<Student> students = getAllStudents();
+        List<StudentLeft> studentLefts = getAllStudentLeft();
+        List<Integer> studentLeftIds = studentLefts.stream().mapToInt(StudentLeft::getId).boxed().collect(Collectors.toList());
         List<StudentDto> studentDtos = studentRepositoryCustom.getAllStudentByTime();
         List<StudentDetailDto> studentDetailDtosDetail = new ArrayList<>();
         List<Integer> studentDtosIdList = studentDtos.stream().mapToInt(StudentDto::getId).boxed().collect(Collectors.toList());
@@ -72,6 +88,12 @@ public class StudentServiceImpl implements StudentService {
                 studentDetailDto.setIsPayWaterBill(false);
                 studentDetailDto.setIsPayVehicleBill(false);
                 studentDetailDto.setIsPayPowerBill(false);
+            }
+
+            if (studentLeftIds.contains(student.getId())) {
+                studentDetailDto.setActive(false);
+            } else {
+                studentDetailDto.setActive(true);
             }
             studentDetailDtosDetail.add(studentDetailDto);
         }
@@ -126,6 +148,42 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public int countStudent() {
         return getAllStudentDto().size();
+    }
+
+    @Override
+    public List<StudentLeft> getAllStudentLeft() {
+        return studentLeftRepository.findAll();
+    }
+
+    @Override
+    public RoomBillDto getDetailRoomRecently(Integer id) {
+        return studentRepositoryCustom.getDetailRoomRecently(id);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public StudentMoveDto getInfoMovingStudent(Integer id) {
+        RoomBillDto roomBillDto = studentRepositoryCustom.getDetailRoomRecently(id);
+        WaterBillDto waterBillDto = studentRepositoryCustom.getWaterBillRecently(id);
+        VehicleBillDto vehicleBillDto = studentRepositoryCustom.getVehicleBillRecently(id);
+        LocalDate currentDate = LocalDate.now();
+
+        float remainingMoneyOfRoom = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(roomBillDto.getEndDate()), roomBillDto.getPrice() / roomBillDto.getMaxQuantity());
+        float remainingMoneyOfWater = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(waterBillDto.getEndDate()), waterBillDto.getPrice());
+        float remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(vehicleBillDto.getEndDate()), vehicleBillDto.getPrice());
+
+        return new StudentMoveDto(id, currentDate, remainingMoneyOfRoom, remainingMoneyOfWater, remainingMoneyOfVehicle, roomBillDto.getRoomId());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int addStudentLeft(StudentMoveDto studentMoveDto) {
+        int resultStudentLeft = studentRepositoryCustom.addStudentLeft(studentMoveDto);
+        int resultRoom = roomRepositoryCustom.updateQuantityStudent(studentMoveDto.getRoomId());
+        if (resultStudentLeft > 0 && resultRoom > 0) {
+            return 1;
+        }
+        throw new BadRequestException("Cannot implement method!!!");
     }
 
 }

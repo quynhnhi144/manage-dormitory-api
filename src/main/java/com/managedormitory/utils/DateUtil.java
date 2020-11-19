@@ -34,4 +34,9 @@ public class DateUtil {
                 .toLocalDate();
     }
 
+    // convert LocalDate -> Date
+    public static java.util.Date getDateFromLDate(LocalDate localDate){
+        return java.util.Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.managedormitory.repositories.custom.implement;
 
 import com.managedormitory.models.dto.room.DetailRoomDto;
+import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomDto;
 import com.managedormitory.repositories.custom.RoomRepositoryCustom;
 import com.managedormitory.utils.QueryUtil;
@@ -19,6 +20,7 @@ import javax.persistence.Query;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.Function;
 
 @Component
 public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
@@ -39,9 +41,7 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
                         "tr.name AS typeRoomName,\n" +
                         "u.full_name AS userManager,\n" +
                         "s.water_price_id AS waterPriceId,\n" +
-                        "v.vehicle_price_id AS vehiclePriceId,\n" +
-                        "dr.month AS month,\n" +
-                        "dr.year AS year\n" +
+                        "v.vehicle_price_id AS vehiclePriceId\n" +
                         "FROM room r\n" +
                         "join campus c on c.id = r.campus_id\n" +
                         "join users u on u.user_id = c.user_id\n" +
@@ -51,11 +51,10 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
                         "left join vehicle v on s.id = v.student_id\n" +
                         "left join vehicle_bill vb on v.id = vb.vehicle_id\n" +
                         "left join detail_room dr on s.id = dr.student_id\n" +
-                        "where month = :month and year = :year\n" +
+                        "where extract(month from dr.end_date) = :month and extract(year from dr.end_date) = :year and dr.end_date <= :currentDate\n" +
                         "  and wb.end_date >= :currentDate\n" +
                         "  and vb.end_date >= :currentDate\n" +
-                        "\n" +
-                        "group by r.id, r.name, r.quantity_student, c.name, tr.name, u.full_name, s.water_price_id, v.vehicle_price_id, dr.month, dr.year\n" +
+                        "group by r.id, r.name, r.quantity_student, c.name, tr.name, u.full_name, s.water_price_id, v.vehicle_price_id\n" +
                         "order by r.id asc";
 
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryRoom);
@@ -78,12 +77,14 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
     @Override
     public int updateQuantityStudent(Integer roomId) {
         String queryNative =
-                "UPDATE room\n" +
+                "UPDATE room r\n" +
                         "SET quantity_student = (select count(s.id)\n" +
-                        "                        from student s\n" +
-                        "                                 join room r on r.id = s.room_id\n" +
-                        "                        where r.id = :roomId)\n" +
-                        "WHERE id = :roomId";
+                        "from room r\n" +
+                        "         join student s on r.id = s.room_id\n" +
+                        "         left join student_left sl on s.id = sl.id\n" +
+                        "where r.id = :roomId\n" +
+                        "  and s.id not in (select sl.id from student_left sl))\n" +
+                        "where r.id = :roomId";
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryNative);
         query.setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, roomId));
         return query.executeUpdate();

@@ -22,6 +22,15 @@ public class StudentLeft {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate leavingDate;
 
+    @Column
+    private float numberOfGiveOfTakeRoomMoney;
+
+    @Column
+    private float numberOfGiveOfTakeWaterMoney;
+
+    @Column
+    private float numberOfGiveOfTakeVehicleMoney;
+
     @OneToOne
     @PrimaryKeyJoinColumn(name = "id", referencedColumnName = "id")
     private Student student;
