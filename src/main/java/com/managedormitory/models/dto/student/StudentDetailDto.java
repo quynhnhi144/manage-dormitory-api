@@ -21,7 +21,6 @@ public class StudentDetailDto {
     private RoomDto roomDto;
     private Boolean isPayRoom;
     private Boolean isPayWaterBill;
-    private Boolean isPayVehicleBill;
-    private Boolean isPayPowerBill;
     private boolean isActive;
+    private Integer waterPriceId;
 }

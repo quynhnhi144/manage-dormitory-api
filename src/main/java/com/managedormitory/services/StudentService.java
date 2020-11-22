@@ -4,9 +4,12 @@ import com.managedormitory.models.dao.Student;
 import com.managedormitory.models.dao.StudentLeft;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.room.RoomBillDto;
+import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
+import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
 import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentMoveDto;
+import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 
 import java.util.List;
@@ -31,4 +34,9 @@ public interface StudentService {
     StudentMoveDto getInfoMovingStudent(Integer id);
 
     int addStudentLeft(StudentMoveDto studentMoveDto);
+
+    RoomPriceAndWaterPriceDto getRoomPriceAndWaterPrice(Integer roomId);
+
+    StudentDto addStudent(StudentNewDto studentNewDto);
+
 }

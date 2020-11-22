@@ -29,6 +29,7 @@ public class VehicleRepositoryCustomImpl implements VehicleRepositoryCustom {
                 "SELECT v.id AS id,\n" +
                         "v.license_plates AS licensePlates,\n" +
                         "s.id AS studentId,\n" +
+                        "s.name AS studentName,\n" +
                         "r.name AS roomName,\n" +
                         "c.name AS campusName,\n" +
                         "vb.start_date AS startDate,\n" +

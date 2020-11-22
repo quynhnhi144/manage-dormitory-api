@@ -11,6 +11,7 @@ import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
 import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomDto;
+import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.repositories.PriceListRepository;
@@ -211,6 +212,5 @@ public class RoomServiceImpl implements RoomService {
     public int countRemainingRoom() {
         return getAllRemainingRoomDto().size();
     }
-
 
 }

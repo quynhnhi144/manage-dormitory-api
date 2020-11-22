@@ -4,6 +4,7 @@ import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.TypeRoom;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
+import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.services.RoomService;

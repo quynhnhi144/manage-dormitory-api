@@ -4,9 +4,11 @@ import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.room.RoomBillDto;
+import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
 import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentMoveDto;
+import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.services.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,16 @@ public class StudentController {
         } catch (Exception e) {
             throw new NotFoundException("Cannot find this " + id);
         }
+    }
+
+    @GetMapping("/{roomId}/money-room-and-money-water")
+    public RoomPriceAndWaterPriceDto getRoomPriceAndWaterPrice(@PathVariable Integer roomId) {
+        return studentService.getRoomPriceAndWaterPrice(roomId);
+    }
+
+    @PostMapping("/addStudent")
+    public StudentDto addStudent(@RequestBody StudentNewDto studentNewDto) {
+        return studentService.addStudent(studentNewDto);
     }
 
     @PostMapping("/studentLeft")

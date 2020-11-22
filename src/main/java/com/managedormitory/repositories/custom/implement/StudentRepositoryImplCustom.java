@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Component
+
 public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
     @Autowired
     private EntityManager entityManager;
@@ -44,40 +45,21 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                         "r.name AS roomName,\n" +
                         "c.name AS campusName,\n" +
                         "r.id AS roomId,\n" +
-                        "u.full_name AS userManager\n" +
+                        "u.full_name AS userManager,\n" +
+                        "s.water_price_id AS waterPriceId\n"+
                         "from student s\n" +
-                        "         join room r on r.id = s.room_id\n" +
+                        "         left join room r on r.id = s.room_id\n" +
                         "         join campus c on r.campus_id = c.id\n" +
                         "         left join type_room tr on r.type_room_id = tr.id\n" +
                         "         join users u on u.user_id = c.user_id\n" +
                         "         join detail_room dr on s.id = dr.student_id\n" +
                         "         join water_bill wb on s.id = wb.student_id\n" +
-                        "         join vehicle v on s.id = v.student_id\n" +
-                        "         join vehicle_bill vb on v.id = vb.vehicle_id\n" +
-                        "\n" +
-                        "where extract(month from dr.end_date) = :month and extract(year from dr.end_date) = :year and dr.end_date <= :currentDate\n" +
+                        "where dr.end_date >= :currentDate\n" +
                         "  and wb.end_date >= :currentDate\n" +
-                        "  and vb.end_date >= :currentDate\n" +
-                        "\n" +
-                        "group by s.id,\n" +
-                        "         s.name,\n" +
-                        "         r.id,\n" +
-                        "         s.birthday,\n" +
-                        "         s.phone,\n" +
-                        "         s.email,\n" +
-                        "         s.address,\n" +
-                        "         s.starting_date_of_stay,\n" +
-                        "         s.ending_date_of_stay,\n" +
-                        "         r.name,\n" +
-                        "         c.name,\n" +
-                        "         u.full_name\n" +
                         "order by s.id asc";
 
-
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryStudent);
-        query.setParameter("month", new TypedParameterValue(IntegerType.INSTANCE, month))
-                .setParameter("year", new TypedParameterValue(IntegerType.INSTANCE, year))
-                .setParameter("currentDate", new TypedParameterValue(LocalDateType.INSTANCE, currentDate))
+        query.setParameter("currentDate", new TypedParameterValue(LocalDateType.INSTANCE, currentDate))
                 .addScalar("id", StandardBasicTypes.INTEGER)
                 .addScalar("name", StandardBasicTypes.STRING)
                 .addScalar("birthday", StandardBasicTypes.DATE)
@@ -86,7 +68,8 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .addScalar("address", StandardBasicTypes.STRING)
                 .addScalar("startingDateOfStay", StandardBasicTypes.DATE)
                 .addScalar("endingDateOfStay", StandardBasicTypes.DATE)
-                .addScalar("roomId", StandardBasicTypes.INTEGER);
+                .addScalar("roomId", StandardBasicTypes.INTEGER)
+                .addScalar("waterPriceId", StandardBasicTypes.INTEGER);
 
         query.setResultTransformer(new AliasToBeanResultTransformer(StudentDto.class));
         return safeList(query);
@@ -245,6 +228,24 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .setParameter("numberOfGiveOfTakeRoomMoney", new TypedParameterValue(FloatType.INSTANCE, studentMoveDto.getNumberOfRoomMoney()))
                 .setParameter("numberOfGiveOfTakeWaterMoney", new TypedParameterValue(FloatType.INSTANCE, studentMoveDto.getNumberOfWaterMoney()))
                 .setParameter("numberOfGiveOfTakeVehicleMoney", new TypedParameterValue(FloatType.INSTANCE, studentMoveDto.getNumberOfVehicleMoney()));
+        return query.executeUpdate();
+    }
+
+    @Override
+    public int addStudent(StudentDto studentDto) {
+        System.out.println("newStudent: " + studentDto);
+        String queryAdd = "INSERT INTO student(name, birthday, address, phone, email, starting_date_of_stay,ending_date_of_stay, room_id, water_price_id)" +
+                "VALUES(:name, :birthday, :address, :phone, :email, :startingDateOfStay, :endingDateOfStay, :roomId, :waterPriceId)";
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAdd);
+        query.setParameter("name", new TypedParameterValue(StringType.INSTANCE, studentDto.getName()))
+                .setParameter("birthday", new TypedParameterValue(DateType.INSTANCE, studentDto.getBirthday()))
+                .setParameter("address", new TypedParameterValue(StringType.INSTANCE, studentDto.getAddress()))
+                .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, studentDto.getPhone()))
+                .setParameter("email", new TypedParameterValue(StringType.INSTANCE, studentDto.getEmail()))
+                .setParameter("startingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentDto.getStartingDateOfStay()))
+                .setParameter("endingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentDto.getEndingDateOfStay()))
+                .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, studentDto.getRoomId()))
+                .setParameter("waterPriceId", new TypedParameterValue(IntegerType.INSTANCE, studentDto.getWaterPriceId()));
         return query.executeUpdate();
     }
 

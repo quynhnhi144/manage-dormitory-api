@@ -24,4 +24,6 @@ public interface StudentRepositoryCustom {
     VehicleBillDto getVehicleBillRecently(Integer id);
 
     int addStudentLeft(StudentMoveDto studentMoveDto);
+
+    int addStudent(StudentDto studentDto);
 }

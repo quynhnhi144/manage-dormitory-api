@@ -27,6 +27,10 @@ public class VehicleBill {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 
+    @Column
+    @NonNull
+    private float payedMoney;
+
     @ManyToOne
     @MapsId("vehicleId")
     @JoinColumn(name = "vehicle_id")
