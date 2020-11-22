@@ -3,6 +3,7 @@ package com.managedormitory.repositories.custom;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomDto;
+import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,4 +15,6 @@ public interface RoomRepositoryCustom {
     int updateQuantityStudent(Integer roomId);
 
     int updateTypeRoom(Integer id, DetailRoomDto room);
+
+    RoomPriceAndWaterPrice getRoomPriceAndWaterPrice(Integer roomId);
 }

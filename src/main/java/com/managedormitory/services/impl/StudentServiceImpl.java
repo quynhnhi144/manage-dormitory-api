@@ -1,5 +1,6 @@
 package com.managedormitory.services.impl;
 
+import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.*;
@@ -8,14 +9,19 @@ import com.managedormitory.models.dto.WaterBillDto;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomDto;
+import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
+import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
 import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentMoveDto;
+import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.repositories.StudentLeftRepository;
 import com.managedormitory.repositories.StudentRepository;
+import com.managedormitory.repositories.custom.DetailRoomRepositoryCustom;
 import com.managedormitory.repositories.custom.RoomRepositoryCustom;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
+import com.managedormitory.repositories.custom.WaterBillRepositoryCustom;
 import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.CalculateMoney;
 import com.managedormitory.utils.DateUtil;
@@ -27,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +54,15 @@ public class StudentServiceImpl implements StudentService {
 
     @Autowired
     private RoomRepositoryCustom roomRepositoryCustom;
+
+    @Autowired
+    private StudentConvertToStudentDto studentConvertToStudentDto;
+
+    @Autowired
+    private WaterBillRepositoryCustom waterBillRepositoryCustom;
+
+    @Autowired
+    private DetailRoomRepositoryCustom detailRoomRepositoryCustom;
 
     @Override
     public List<Student> getAllStudents() {
@@ -72,6 +88,7 @@ public class StudentServiceImpl implements StudentService {
             studentDetailDto.setAddress(student.getAddress());
             studentDetailDto.setStartingDateOfStay(DateUtil.getSDateFromLDate(student.getStartingDateOfStay()));
             studentDetailDto.setEndingDateOfStay(DateUtil.getSDateFromLDate(student.getEndingDateOfStay()));
+            studentDetailDto.setWaterPriceId(student.getPriceList().getId());
             if (student.getRoom() == null) {
                 studentDetailDto.setRoomDto(null);
             } else {
@@ -81,13 +98,9 @@ public class StudentServiceImpl implements StudentService {
             if (studentDtosIdList.contains(student.getId())) {
                 studentDetailDto.setIsPayRoom(true);
                 studentDetailDto.setIsPayWaterBill(true);
-                studentDetailDto.setIsPayVehicleBill(true);
-                studentDetailDto.setIsPayPowerBill(true);
             } else {
                 studentDetailDto.setIsPayRoom(false);
                 studentDetailDto.setIsPayWaterBill(false);
-                studentDetailDto.setIsPayVehicleBill(false);
-                studentDetailDto.setIsPayPowerBill(false);
             }
 
             if (studentLeftIds.contains(student.getId())) {
@@ -184,6 +197,67 @@ public class StudentServiceImpl implements StudentService {
             return 1;
         }
         throw new BadRequestException("Cannot implement method!!!");
+    }
+
+    @Override
+    public RoomPriceAndWaterPriceDto getRoomPriceAndWaterPrice(Integer roomId) {
+        LocalDate currentDate = LocalDate.now();
+        RoomPriceAndWaterPrice roomPriceAndWaterPrice = roomRepositoryCustom.getRoomPriceAndWaterPrice(roomId);
+        LocalDate currentDateRoom = currentDate;
+        LocalDate endDateRoom = LocalDate.now();
+
+        LocalDate currentDateWater = currentDate;
+        LocalDate endDateWater = LocalDate.now();
+        float remainingMoneyOfRoom = 0;
+        float remainingMoneyOfWater = 0;
+        if (roomPriceAndWaterPrice == null) {
+            endDateRoom = currentDate.plus(30, ChronoUnit.DAYS);
+            endDateWater = currentDate.plus(30, ChronoUnit.DAYS);
+        } else {
+            if (DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill()).isBefore(currentDate)) {
+                endDateRoom = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill()).plus(30, ChronoUnit.DAYS);
+                endDateWater = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateWaterBill()).plus(30, ChronoUnit.DAYS);
+            } else {
+                currentDateRoom = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill());
+                currentDateWater = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateWaterBill());
+                endDateRoom = currentDate;
+                endDateWater = currentDate;
+            }
+        }
+        remainingMoneyOfRoom = CalculateMoney.calculateRemainingMoney(endDateRoom, currentDateRoom, roomPriceAndWaterPrice.getRoomPrice() / roomPriceAndWaterPrice.getMaxQuantityStudent());
+        remainingMoneyOfWater = CalculateMoney.calculateRemainingMoney(endDateWater, currentDateWater, roomPriceAndWaterPrice.getWaterPrice());
+
+
+        return new RoomPriceAndWaterPriceDto(roomId, currentDateRoom, endDateRoom, remainingMoneyOfRoom, roomPriceAndWaterPrice.getWaterPriceId(), currentDateWater, endDateWater, remainingMoneyOfWater);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public StudentDto addStudent(StudentNewDto studentNewDto) {
+        int resultAddStudent = studentRepositoryCustom.addStudent(studentNewDto.getStudentDto());
+
+        if (resultAddStudent > 0) {
+            StudentDto studentDto = studentConvertToStudentDto.convert(getAllStudents().get(getAllStudents().size() - 1));
+            RoomBillDto roomBillDto = studentNewDto.getRoomBillDto();
+            roomBillDto.setStudentId(studentDto.getId());
+            roomBillDto.setStudentName(studentDto.getName());
+            roomBillDto.setRoomId(studentDto.getRoomId());
+
+            WaterBillDto waterBillDto = studentNewDto.getWaterBillDto();
+            waterBillDto.setStudentId(studentDto.getId());
+            waterBillDto.setStudentName(studentDto.getName());
+            waterBillDto.setRoomId(studentDto.getRoomId());
+            int resultUpdateQuantityStudent = roomRepositoryCustom.updateQuantityStudent(studentDto.getRoomId());
+            int resultDetailRoom = detailRoomRepositoryCustom.addDetailRoom(roomBillDto);
+            int resultWaterBill = waterBillRepositoryCustom.addWaterBill(waterBillDto);
+
+            if (resultUpdateQuantityStudent > 0 && resultDetailRoom > 0 && resultWaterBill > 0) {
+                return studentDto;
+            } else {
+                throw new BadRequestException("Không thể thực hiện hành động này!!!");
+            }
+        }
+        return null;
     }
 
 }

@@ -26,6 +26,10 @@ public class WaterBill {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 
+    @Column
+    @NonNull
+    private float payedMoney;
+
     @ManyToOne
     @MapsId("studentId")
     @JoinColumn(name = "student_id")
