@@ -1,4 +1,4 @@
-package com.managedormitory.models.dto.room;
+package com.managedormitory.models.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,21 +9,22 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoomPriceAndWaterPriceDto {
-    private Integer roomId;
-    private String roomName;
+public class DurationBetweenTwoRoom {
+    private Integer oldRoomId;
+    private Integer newRoomId;
+
+    private String oldRoomName;
+    private String newRoomName;
+
     private LocalDate roomStartDate;
     private LocalDate roomEndDate;
-    private float moneyOfRoomMustPay;
+    private float durationRoomMoney;
 
-    private Integer waterPriceId;
     private LocalDate waterStartDate;
     private LocalDate waterEndDate;
-    private float moneyOfWaterMustPay;
+    private float durationWaterMoney;
 
-    private Integer vehiclePriceId;
     private LocalDate vehicleStartDate;
     private LocalDate vehicleEndDate;
-    private float moneyOfVehicleMustPay;
-    private Integer maxQuantityStudent;
+    private float durationVehicleMoney;
 }

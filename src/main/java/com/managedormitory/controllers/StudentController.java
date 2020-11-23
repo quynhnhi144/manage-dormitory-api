@@ -2,6 +2,8 @@ package com.managedormitory.controllers;
 
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
+import com.managedormitory.models.dto.DurationBetweenTwoRoom;
+import com.managedormitory.models.dto.InfoSwitchRoom;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
@@ -59,6 +61,11 @@ public class StudentController {
         return studentService.getRoomPriceAndWaterPrice(roomId);
     }
 
+    @GetMapping("/duration_money_between_two_room")
+    public DurationBetweenTwoRoom durationMoneyBetweenTwoRoom(@RequestParam Integer oldRoomId, @RequestParam Integer newRoomId) {
+        return studentService.durationMoneyBetweenTwoRoom(oldRoomId, newRoomId);
+    }
+
     @PostMapping("/addStudent")
     public StudentDto addStudent(@RequestBody StudentNewDto studentNewDto) {
         return studentService.addStudent(studentNewDto);
@@ -72,5 +79,10 @@ public class StudentController {
     @PutMapping("/{id}")
     public StudentDetailDto updateStudent(@PathVariable Integer id, @RequestBody StudentDto studentDto) throws BadRequestException {
         return studentService.updateStudent(id, studentDto);
+    }
+
+    @PutMapping("/{id}/switch-room")
+    public int switchRoomForStudent(@PathVariable Integer id, @RequestBody InfoSwitchRoom infoSwitchRoom) {
+        return studentService.switchRoomForStudent(infoSwitchRoom, id);
     }
 }

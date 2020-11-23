@@ -4,8 +4,7 @@ import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.*;
-import com.managedormitory.models.dto.VehicleBillDto;
-import com.managedormitory.models.dto.WaterBillDto;
+import com.managedormitory.models.dto.*;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomDto;
@@ -18,10 +17,7 @@ import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.repositories.StudentLeftRepository;
 import com.managedormitory.repositories.StudentRepository;
-import com.managedormitory.repositories.custom.DetailRoomRepositoryCustom;
-import com.managedormitory.repositories.custom.RoomRepositoryCustom;
-import com.managedormitory.repositories.custom.StudentRepositoryCustom;
-import com.managedormitory.repositories.custom.WaterBillRepositoryCustom;
+import com.managedormitory.repositories.custom.*;
 import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.CalculateMoney;
 import com.managedormitory.utils.DateUtil;
@@ -43,26 +39,35 @@ import java.util.stream.Collectors;
 @Service
 
 public class StudentServiceImpl implements StudentService {
-    @Autowired
-    private StudentRepository studentRepository;
+    private final StudentRepository studentRepository;
 
-    @Autowired
-    private StudentRepositoryCustom studentRepositoryCustom;
+    private final StudentRepositoryCustom studentRepositoryCustom;
 
-    @Autowired
-    private StudentLeftRepository studentLeftRepository;
+    private final StudentLeftRepository studentLeftRepository;
 
-    @Autowired
-    private RoomRepositoryCustom roomRepositoryCustom;
+    private final RoomRepositoryCustom roomRepositoryCustom;
 
-    @Autowired
-    private StudentConvertToStudentDto studentConvertToStudentDto;
+    private final StudentConvertToStudentDto studentConvertToStudentDto;
 
-    @Autowired
-    private WaterBillRepositoryCustom waterBillRepositoryCustom;
+    private final WaterBillRepositoryCustom waterBillRepositoryCustom;
 
-    @Autowired
-    private DetailRoomRepositoryCustom detailRoomRepositoryCustom;
+    private final DetailRoomRepositoryCustom detailRoomRepositoryCustom;
+
+    private final SwitchRoomRepositoryCustom switchRoomRepositoryCustom;
+
+    private final VehicleBillRepositoryCustom vehicleBillRepositoryCustom;
+
+    public StudentServiceImpl(StudentRepository studentRepository, StudentRepositoryCustom studentRepositoryCustom, StudentLeftRepository studentLeftRepository, RoomRepositoryCustom roomRepositoryCustom, StudentConvertToStudentDto studentConvertToStudentDto, WaterBillRepositoryCustom waterBillRepositoryCustom, DetailRoomRepositoryCustom detailRoomRepositoryCustom, SwitchRoomRepositoryCustom switchRoomRepositoryCustom, VehicleBillRepositoryCustom vehicleBillRepositoryCustom) {
+        this.studentRepository = studentRepository;
+        this.studentRepositoryCustom = studentRepositoryCustom;
+        this.studentLeftRepository = studentLeftRepository;
+        this.roomRepositoryCustom = roomRepositoryCustom;
+        this.studentConvertToStudentDto = studentConvertToStudentDto;
+        this.waterBillRepositoryCustom = waterBillRepositoryCustom;
+        this.detailRoomRepositoryCustom = detailRoomRepositoryCustom;
+        this.switchRoomRepositoryCustom = switchRoomRepositoryCustom;
+        this.vehicleBillRepositoryCustom = vehicleBillRepositoryCustom;
+    }
 
     @Override
     public List<Student> getAllStudents() {
@@ -77,8 +82,7 @@ public class StudentServiceImpl implements StudentService {
         List<StudentDto> studentDtos = studentRepositoryCustom.getAllStudentByTime();
         List<StudentDetailDto> studentDetailDtosDetail = new ArrayList<>();
         List<Integer> studentDtosIdList = studentDtos.stream().mapToInt(StudentDto::getId).boxed().collect(Collectors.toList());
-        for (int i = 0; i < students.size(); i++) {
-            Student student = students.get(i);
+        for (Student student : students) {
             StudentDetailDto studentDetailDto = new StudentDetailDto();
             studentDetailDto.setId(student.getId());
             studentDetailDto.setName(student.getName());
@@ -89,6 +93,11 @@ public class StudentServiceImpl implements StudentService {
             studentDetailDto.setStartingDateOfStay(DateUtil.getSDateFromLDate(student.getStartingDateOfStay()));
             studentDetailDto.setEndingDateOfStay(DateUtil.getSDateFromLDate(student.getEndingDateOfStay()));
             studentDetailDto.setWaterPriceId(student.getPriceList().getId());
+            if (student.getVehicle() == null) {
+                studentDetailDto.setVehicleId(null);
+            } else {
+                studentDetailDto.setVehicleId(student.getVehicle().getId());
+            }
             if (student.getRoom() == null) {
                 studentDetailDto.setRoomDto(null);
             } else {
@@ -105,7 +114,8 @@ public class StudentServiceImpl implements StudentService {
 
             if (studentLeftIds.contains(student.getId())) {
                 studentDetailDto.setActive(false);
-            } else {
+            }
+            else {
                 studentDetailDto.setActive(true);
             }
             studentDetailDtosDetail.add(studentDetailDto);
@@ -203,13 +213,20 @@ public class StudentServiceImpl implements StudentService {
     public RoomPriceAndWaterPriceDto getRoomPriceAndWaterPrice(Integer roomId) {
         LocalDate currentDate = LocalDate.now();
         RoomPriceAndWaterPrice roomPriceAndWaterPrice = roomRepositoryCustom.getRoomPriceAndWaterPrice(roomId);
+
         LocalDate currentDateRoom = currentDate;
-        LocalDate endDateRoom = LocalDate.now();
+        LocalDate endDateRoom;
 
         LocalDate currentDateWater = currentDate;
-        LocalDate endDateWater = LocalDate.now();
-        float remainingMoneyOfRoom = 0;
-        float remainingMoneyOfWater = 0;
+        LocalDate endDateWater;
+
+        LocalDate currentDateVehicle = currentDate;
+        LocalDate endDateVehicle = LocalDate.now();
+        float remainingMoneyOfRoom;
+        float remainingMoneyOfWater;
+        float remainingMoneyOfVehicle;
+        System.out.println("maxdateRoom: " + DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill()));
+        System.out.println("waterRoom: " + DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateWaterBill()));
         if (roomPriceAndWaterPrice == null) {
             endDateRoom = currentDate.plus(30, ChronoUnit.DAYS);
             endDateWater = currentDate.plus(30, ChronoUnit.DAYS);
@@ -223,12 +240,50 @@ public class StudentServiceImpl implements StudentService {
                 endDateRoom = currentDate;
                 endDateWater = currentDate;
             }
+
+            if (roomPriceAndWaterPrice.getVehicleId() == null) {
+                currentDateVehicle = null;
+                endDateVehicle = null;
+            } else {
+                if (DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateVehicleBill()).isBefore(currentDate)) {
+                    endDateVehicle = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateVehicleBill()).plus(30, ChronoUnit.DAYS);
+                } else {
+                    currentDateVehicle = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateVehicleBill());
+                    endDateVehicle = currentDate;
+                }
+            }
         }
         remainingMoneyOfRoom = CalculateMoney.calculateRemainingMoney(endDateRoom, currentDateRoom, roomPriceAndWaterPrice.getRoomPrice() / roomPriceAndWaterPrice.getMaxQuantityStudent());
         remainingMoneyOfWater = CalculateMoney.calculateRemainingMoney(endDateWater, currentDateWater, roomPriceAndWaterPrice.getWaterPrice());
+        remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(endDateVehicle, currentDateVehicle, roomPriceAndWaterPrice.getVehiclePrice());
+
+        return new RoomPriceAndWaterPriceDto(roomId, roomPriceAndWaterPrice.getRoomName(), endDateRoom, currentDateRoom, remainingMoneyOfRoom, roomPriceAndWaterPrice.getWaterPriceId(), endDateWater, currentDateWater, remainingMoneyOfWater, roomPriceAndWaterPrice.getVehicleId(), endDateVehicle, currentDateVehicle, remainingMoneyOfVehicle, roomPriceAndWaterPrice.getMaxQuantityStudent());
+    }
+
+    @Override
+    public DurationBetweenTwoRoom durationMoneyBetweenTwoRoom(Integer oldRoomId, Integer newRoomId) {
+        LocalDate currentDate = LocalDate.now();
+        if (oldRoomId != null && newRoomId != null) {
+            RoomPriceAndWaterPriceDto oldRoom = getRoomPriceAndWaterPrice(oldRoomId);
+            System.out.println("tien phong cu: " + oldRoom.getMoneyOfRoomMustPay());
+            System.out.println("tien nuoc cu: " + oldRoom.getMoneyOfWaterMustPay());
+            System.out.println("tien xe cu: " + oldRoom.getMoneyOfVehicleMustPay());
+            System.out.println("oldRoom: " + oldRoom);
+            RoomPriceAndWaterPriceDto newRoom = getRoomPriceAndWaterPrice(newRoomId);
+            System.out.println("========================");
+            System.out.println("tien phong moi: " + newRoom.getMoneyOfRoomMustPay());
+            System.out.println("tien nuoc moi: " + newRoom.getMoneyOfWaterMustPay());
+            System.out.println("tien xe moi: " + newRoom.getMoneyOfVehicleMustPay());
+            System.out.println("oldRoom: " + newRoom);
 
 
-        return new RoomPriceAndWaterPriceDto(roomId, currentDateRoom, endDateRoom, remainingMoneyOfRoom, roomPriceAndWaterPrice.getWaterPriceId(), currentDateWater, endDateWater, remainingMoneyOfWater);
+            float durationRoomMoney = newRoom.getMoneyOfRoomMustPay() - oldRoom.getMoneyOfRoomMustPay();
+            float durationWaterMoney = newRoom.getMoneyOfWaterMustPay() - oldRoom.getMoneyOfWaterMustPay();
+            float durationVehicleMoney = newRoom.getMoneyOfVehicleMustPay() - oldRoom.getMoneyOfVehicleMustPay();
+
+            return new DurationBetweenTwoRoom(oldRoomId, newRoomId, oldRoom.getRoomName(), newRoom.getRoomName(), currentDate, newRoom.getRoomEndDate(), durationRoomMoney, currentDate, newRoom.getWaterEndDate(), durationWaterMoney, currentDate, newRoom.getVehicleEndDate(), durationVehicleMoney);
+        }
+        throw new BadRequestException("Không được để trống id của phòng mới!!!!");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -258,6 +313,38 @@ public class StudentServiceImpl implements StudentService {
             }
         }
         return null;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int switchRoomForStudent(InfoSwitchRoom infoSwitchRoom, Integer studentId) {
+        LocalDate currentDate = LocalDate.now();
+        System.out.println("Info switch room: " + infoSwitchRoom);
+        Integer oldRoomId = infoSwitchRoom.getOldRoomId();
+        Integer newRoomId = infoSwitchRoom.getNewRoomId();
+        int resultUpdateRoomIdForStudent = studentRepositoryCustom.updateRoomIdForStudent(studentId, newRoomId);
+        int resultUpdateQuantityStudentOldRoom = roomRepositoryCustom.updateQuantityStudent(oldRoomId);
+        int resultUpdateQuantityStudentNewRoom = roomRepositoryCustom.updateQuantityStudent(newRoomId);
+
+        int resultAddDetailRoom = 0;
+        int resultAddWaterBill = 0;
+        int resultAddVehicleBill = 0;
+        DurationBetweenTwoRoom durationBetweenTwoRoom = durationMoneyBetweenTwoRoom(oldRoomId, newRoomId);
+        SwitchRoomHistoryDto switchRoomHistoryDto;
+        if (durationBetweenTwoRoom.getDurationRoomMoney() < 0 && durationBetweenTwoRoom.getDurationWaterMoney() < 0 && durationBetweenTwoRoom.getDurationVehicleMoney() < 0) {
+            switchRoomHistoryDto = new SwitchRoomHistoryDto(null, durationBetweenTwoRoom.getOldRoomName(), durationBetweenTwoRoom.getNewRoomName(), Math.abs(durationBetweenTwoRoom.getDurationRoomMoney()), 0, Math.abs(durationBetweenTwoRoom.getDurationWaterMoney()), 0, Math.abs(durationBetweenTwoRoom.getDurationVehicleMoney()), 0, studentId, DateUtil.getSDateFromLDate(currentDate));
+            resultAddDetailRoom = detailRoomRepositoryCustom.addDetailRoom(infoSwitchRoom.getRoomBill());
+            resultAddWaterBill = waterBillRepositoryCustom.addWaterBill(infoSwitchRoom.getWaterBill());
+            resultAddVehicleBill = vehicleBillRepositoryCustom.addVehicleBillRepository(infoSwitchRoom.getVehicleBill());
+        } else {
+            switchRoomHistoryDto = new SwitchRoomHistoryDto(null, durationBetweenTwoRoom.getOldRoomName(), durationBetweenTwoRoom.getNewRoomName(), 0, durationBetweenTwoRoom.getDurationRoomMoney(), 0, durationBetweenTwoRoom.getDurationWaterMoney(), 0, durationBetweenTwoRoom.getDurationVehicleMoney(), studentId, DateUtil.getSDateFromLDate(currentDate));
+        }
+        int resultAddSwitchRoomHistory = switchRoomRepositoryCustom.addSwitchRoomHistory(switchRoomHistoryDto);
+        if (resultUpdateRoomIdForStudent > 0 && resultUpdateQuantityStudentNewRoom > 0
+                && resultUpdateQuantityStudentOldRoom > 0 && resultAddDetailRoom >= 0 && resultAddWaterBill >= 0 && resultAddVehicleBill >= 0) {
+            return 1;
+        }
+        return 0;
     }
 
 }

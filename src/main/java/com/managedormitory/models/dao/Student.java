@@ -56,7 +56,7 @@ public class Student {
     private LocalDate endingDateOfStay;
 
     @OneToOne
-    @JoinColumn(name="water_price_id")
+    @JoinColumn(name = "water_price_id")
     private PriceList priceList;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
@@ -76,4 +76,8 @@ public class Student {
     @OneToOne(cascade = CascadeType.MERGE, mappedBy = "studentId")
     @JsonIgnore
     private Vehicle vehicle;
+
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "student")
+    @JsonIgnore
+    private List<SwitchRoomHistory> switchRoomHistories;
 }
