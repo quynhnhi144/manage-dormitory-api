@@ -15,7 +15,7 @@ public interface StudentRepositoryCustom {
 
     int updateStudent(Integer id, StudentDto studentDto);
 
-    int updateRoomIdOfStudent(Integer studentId, Integer roomId);
+    int updateRoomIdForStudent(Integer studentId, Integer newRoomId);
 
     RoomBillDto getDetailRoomRecently(Integer id);
 

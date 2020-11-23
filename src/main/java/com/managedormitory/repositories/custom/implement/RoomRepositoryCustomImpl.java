@@ -114,15 +114,25 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
         String queryRoomPriceAndWaterPrice =
                 "with water_price as (select s.id, p.price, s.water_price_id\n" +
                         "                     from student s\n" +
-                        "                              join price_list p on p.id = s.water_price_id)\n" +
-                        "\n" +
-                        "select r.id             as roomId,\n" +
-                        "       tr.max_quantity  as maxQuantityStudent,\n" +
+                        "                              join price_list p on p.id = s.water_price_id\n" +
+                        "),\n" +
+                        "     vehicle_price as (select s2.id, pl2.price, v2.vehicle_price_id\n" +
+                        "                       from student s2\n" +
+                        "                                left join vehicle v2 on s2.id = v2.student_id\n" +
+                        "                                left join price_list pl2 on v2.vehicle_price_id = pl2.id\n" +
+                        "                                left join vehicle_bill vb on v2.id = vb.vehicle_id\n" +
+                        ")\n" +
+                        "select distinct r.id as roomId,\n" +
+                        "       r.name as roomName,\n" +
+                        "       tr.max_quantity as maxQuantityStudent,\n" +
                         "       MAX(dr.end_date) as maxDateRoomBill,\n" +
                         "       MAX(wb.end_date) as maxDateWaterBill,\n" +
-                        "       pl.price         as roomPrice,\n" +
-                        "       wp.price         as waterPrice,\n" +
-                        "       wp.water_price_id as waterPriceId\n" +
+                        "       MAX(b.end_date) as maxDateVehicleBill,\n" +
+                        "       pl.price as roomPrice,\n" +
+                        "       wp.price as waterPrice,\n" +
+                        "       vp.price as vehiclePrice,\n" +
+                        "       wp.water_price_id as waterPriceId,\n" +
+                        "       vp.vehicle_price_id as vehicleId\n" +
                         "from room r\n" +
                         "         left join student s on r.id = s.room_id\n" +
                         "         join detail_room dr on s.id = dr.student_id\n" +
@@ -130,15 +140,29 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
                         "         join price_list pl on pl.id = r.price_list_id\n" +
                         "         join water_price wp on s.id = wp.id\n" +
                         "         left join type_room tr on tr.id = r.type_room_id\n" +
-                        "where r.id = :roomId\n" +
-                        "group by r.id, pl.price, wp.price, tr.max_quantity,wp.water_price_id";
+                        "         left join vehicle v on v.id = s.id\n" +
+                        "         left join vehicle_bill b on v.id = b.vehicle_id\n" +
+                        "         left join vehicle_price vp on v.id = vp.id\n" +
+                        "where r.id = :roomId and b.end_date is not null\n" +
+                        "group by r.id,\n" +
+                        "         r.name,\n" +
+                        "         tr.max_quantity,\n" +
+                        "         pl.price,\n" +
+                        "         wp.price,\n" +
+                        "         vp.price,\n" +
+                        "         wp.water_price_id,\n" +
+                        "         vp.vehicle_price_id";
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryRoomPriceAndWaterPrice);
         query.setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, roomId))
                 .addScalar("roomId", StandardBasicTypes.INTEGER)
+                .addScalar("roomName", StandardBasicTypes.STRING)
                 .addScalar("maxDateRoomBill", StandardBasicTypes.DATE)
                 .addScalar("maxDateWaterBill", StandardBasicTypes.DATE)
+                .addScalar("maxDateVehicleBill", StandardBasicTypes.DATE)
                 .addScalar("roomPrice", StandardBasicTypes.FLOAT)
                 .addScalar("waterPrice", StandardBasicTypes.FLOAT)
+                .addScalar("vehicleId", StandardBasicTypes.INTEGER)
+                .addScalar("vehiclePrice", StandardBasicTypes.FLOAT)
                 .addScalar("maxQuantityStudent", StandardBasicTypes.INTEGER)
                 .addScalar("waterPriceId", StandardBasicTypes.INTEGER);
         query.setResultTransformer(new AliasToBeanResultTransformer(RoomPriceAndWaterPrice.class));

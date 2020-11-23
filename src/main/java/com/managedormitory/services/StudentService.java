@@ -2,6 +2,8 @@ package com.managedormitory.services;
 
 import com.managedormitory.models.dao.Student;
 import com.managedormitory.models.dao.StudentLeft;
+import com.managedormitory.models.dto.DurationBetweenTwoRoom;
+import com.managedormitory.models.dto.InfoSwitchRoom;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
@@ -37,6 +39,10 @@ public interface StudentService {
 
     RoomPriceAndWaterPriceDto getRoomPriceAndWaterPrice(Integer roomId);
 
+    DurationBetweenTwoRoom durationMoneyBetweenTwoRoom(Integer oldRoomId, Integer newRoomId);
+
     StudentDto addStudent(StudentNewDto studentNewDto);
+
+    int switchRoomForStudent(InfoSwitchRoom infoSwitchRoom, Integer studentId);
 
 }

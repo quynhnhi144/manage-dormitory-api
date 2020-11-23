@@ -47,17 +47,22 @@ public class CalculateMoney {
     }
 
     public static float calculateRemainingMoney(LocalDate currentDate, LocalDate endDate, float price) {
-        Date dCurrentDate = DateUtil.getDateFromLDate(currentDate);
-        Date dEndDate = DateUtil.getDateFromLDate(endDate);
+        if (currentDate == null && endDate == null) {
+            return 0;
+        } else {
+            Date dCurrentDate = DateUtil.getDateFromLDate(currentDate);
+            Date dEndDate = DateUtil.getDateFromLDate(endDate);
 
-        Calendar cCurrentDate = Calendar.getInstance();
-        cCurrentDate.setTime(dCurrentDate);
+            Calendar cCurrentDate = Calendar.getInstance();
+            cCurrentDate.setTime(dCurrentDate);
 
-        Calendar cEndDate = Calendar.getInstance();
-        cEndDate.setTime(dEndDate);
+            Calendar cEndDate = Calendar.getInstance();
+            cEndDate.setTime(dEndDate);
 
-        long daysDuration = ChronoUnit.DAYS.between(cEndDate.toInstant(), cCurrentDate.toInstant());
+            long daysDuration = ChronoUnit.DAYS.between(cEndDate.toInstant(), cCurrentDate.toInstant());
+            System.out.println("currentDate: " + currentDate + ", endDate: " + endDate + ", duration: " + daysDuration);
 
-        return price / LimitedPower.NUMBER_OF_DATE * daysDuration;
+            return price / LimitedPower.NUMBER_OF_DATE * daysDuration;
+        }
     }
 }

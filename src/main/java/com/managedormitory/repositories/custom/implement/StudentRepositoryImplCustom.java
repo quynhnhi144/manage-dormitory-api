@@ -1,6 +1,5 @@
 package com.managedormitory.repositories.custom.implement;
 
-import com.managedormitory.models.dao.WaterBill;
 import com.managedormitory.models.dto.VehicleBillDto;
 import com.managedormitory.models.dto.WaterBillDto;
 import com.managedormitory.models.dto.room.RoomBillDto;
@@ -13,7 +12,6 @@ import org.hibernate.jpa.TypedParameterValue;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToBeanResultTransformer;
 import org.hibernate.type.*;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTabJc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +21,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Component
-
 public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
     @Autowired
     private EntityManager entityManager;
@@ -31,10 +28,9 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
     @Override
     public List<StudentDto> getAllStudentByTime() {
         LocalDate currentDate = LocalDate.now();
-        int month = currentDate.getMonthValue();
-        int year = currentDate.getYear();
         String queryStudent =
-                "SELECT s.id AS id,\n" +
+                "SELECT MAX(wb.create_date),\n" +
+                        "s.id AS id,\n" +
                         "s.name AS name,\n" +
                         "s.birthday AS birthday,\n" +
                         "s.phone AS phone,\n" +
@@ -42,11 +38,12 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                         "s.address AS address,\n" +
                         "s.starting_date_of_stay AS startingDateOfStay,\n" +
                         "s.ending_date_of_stay AS endingDateOfStay,\n" +
+                        "r.id AS roomId,\n" +
                         "r.name AS roomName,\n" +
                         "c.name AS campusName,\n" +
-                        "r.id AS roomId,\n" +
                         "u.full_name AS userManager,\n" +
-                        "s.water_price_id AS waterPriceId\n"+
+                        "s.water_price_id AS waterPriceId,\n" +
+                        "v.student_id AS vehicleId\n" +
                         "from student s\n" +
                         "         left join room r on r.id = s.room_id\n" +
                         "         join campus c on r.campus_id = c.id\n" +
@@ -54,9 +51,11 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                         "         join users u on u.user_id = c.user_id\n" +
                         "         join detail_room dr on s.id = dr.student_id\n" +
                         "         join water_bill wb on s.id = wb.student_id\n" +
+                        "         left join vehicle v on v.student_id = s.id\n" +
                         "where dr.end_date >= :currentDate\n" +
                         "  and wb.end_date >= :currentDate\n" +
-                        "order by s.id asc";
+                        "group by s.id, r.id, c.name, u.full_name, v.student_id\n" +
+                        "order by s.id asc;";
 
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryStudent);
         query.setParameter("currentDate", new TypedParameterValue(LocalDateType.INSTANCE, currentDate))
@@ -69,7 +68,8 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .addScalar("startingDateOfStay", StandardBasicTypes.DATE)
                 .addScalar("endingDateOfStay", StandardBasicTypes.DATE)
                 .addScalar("roomId", StandardBasicTypes.INTEGER)
-                .addScalar("waterPriceId", StandardBasicTypes.INTEGER);
+                .addScalar("waterPriceId", StandardBasicTypes.INTEGER)
+                .addScalar("vehicleId", StandardBasicTypes.INTEGER);
 
         query.setResultTransformer(new AliasToBeanResultTransformer(StudentDto.class));
         return safeList(query);
@@ -97,18 +97,14 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
     }
 
     @Override
-    public int updateRoomIdOfStudent(Integer studentId, Integer roomId) {
-        String queryUpdate =
-                "UPDATE student \n" +
-                        "SET room_id = :roomId\n" +
-                        "WHERE id = :studentId";
-
-        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryUpdate);
-        query.setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, roomId))
-                .setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, studentId));
-        int result = query.executeUpdate();
-
-        return result;
+    public int updateRoomIdForStudent(Integer studentId, Integer newRoomId) {
+        String queryUpdateStudent = "UPDATE student\n" +
+                "SET room_id = :newRoomId\n" +
+                "WHERE id = :studentId";
+        NativeQuery<?> query = getCurrentSession().createNativeQuery(queryUpdateStudent);
+        query.setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, studentId))
+                .setParameter("newRoomId", new TypedParameterValue(IntegerType.INSTANCE, newRoomId));
+        return query.executeUpdate();
     }
 
     @Override

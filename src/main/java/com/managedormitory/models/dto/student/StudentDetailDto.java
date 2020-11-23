@@ -23,4 +23,5 @@ public class StudentDetailDto {
     private Boolean isPayWaterBill;
     private boolean isActive;
     private Integer waterPriceId;
+    private Integer vehicleId;
 }

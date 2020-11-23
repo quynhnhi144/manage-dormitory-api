@@ -31,6 +31,11 @@ public class DetailRoom {
 
     @Column
     @NonNull
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate createDate;
+
+    @Column
+    @NonNull
     private float payedMoney;
 
     @ManyToOne

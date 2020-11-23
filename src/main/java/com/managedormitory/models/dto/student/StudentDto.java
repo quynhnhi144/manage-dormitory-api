@@ -22,4 +22,5 @@ public class StudentDto {
     private Date endingDateOfStay;
     private Integer roomId;
     private Integer waterPriceId;
+    private Integer vehicleId;
 }

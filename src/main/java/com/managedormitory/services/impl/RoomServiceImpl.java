@@ -174,7 +174,7 @@ public class RoomServiceImpl implements RoomService {
         int resultTypeRoom = 0;
         for (StudentDto studentDto : studentDtos) {
             if (studentDto.getId() == studentDtoNew.getId()) {
-                resultStudent = studentRepositoryCustom.updateRoomIdOfStudent(studentDtoNew.getId(), null);
+                resultStudent = studentRepositoryCustom.updateRoomIdForStudent(studentDtoNew.getId(), null);
                 resultQuantity = roomRepositoryCustom.updateQuantityStudent(roomId);
                 resultTypeRoom = roomRepositoryCustom.updateTypeRoom(roomId, currentDetailRoomDto);
             }
