@@ -8,6 +8,7 @@ import com.managedormitory.models.dto.student.StudentMoveDto;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StudentRepositoryCustom {
@@ -17,11 +18,11 @@ public interface StudentRepositoryCustom {
 
     int updateRoomIdForStudent(Integer studentId, Integer newRoomId);
 
-    RoomBillDto getDetailRoomRecently(Integer id);
+    Optional<RoomBillDto> getDetailRoomRecently(Integer id);
 
-    WaterBillDto getWaterBillRecently(Integer id);
+    Optional<WaterBillDto> getWaterBillRecently(Integer id);
 
-    VehicleBillDto getVehicleBillRecently(Integer id);
+    Optional<VehicleBillDto> getVehicleBillRecently(Integer id);
 
     int addStudentLeft(StudentMoveDto studentMoveDto);
 
