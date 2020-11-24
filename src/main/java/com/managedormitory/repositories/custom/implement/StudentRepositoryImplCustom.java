@@ -19,6 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
@@ -108,7 +109,7 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
     }
 
     @Override
-    public RoomBillDto getDetailRoomRecently(Integer id) {
+    public Optional<RoomBillDto> getDetailRoomRecently(Integer id) {
         String queryMaxDate = "with max_date as (\n" +
                 "    select MAX(dr.end_date) max_date\n" +
                 "    from detail_room dr\n" +
@@ -140,11 +141,11 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .addScalar("maxQuantity", StandardBasicTypes.INTEGER);
         query.setResultTransformer(new AliasToBeanResultTransformer(RoomBillDto.class));
 
-        return (RoomBillDto) safeObject(query);
+        return safeObject(query);
     }
 
     @Override
-    public WaterBillDto getWaterBillRecently(Integer id) {
+    public Optional<WaterBillDto> getWaterBillRecently(Integer id) {
         String queryWaterBillMaxDate =
                 "with max_date as (\n" +
                         "    select MAX(wb.end_date) max_date_water_bill\n" +
@@ -174,17 +175,17 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .addScalar("roomId", StandardBasicTypes.INTEGER);
         query.setResultTransformer(new AliasToBeanResultTransformer(WaterBillDto.class));
 
-        return (WaterBillDto) safeObject(query);
+        return safeObject(query);
     }
 
     @Override
-    public VehicleBillDto getVehicleBillRecently(Integer id) {
+    public Optional<VehicleBillDto> getVehicleBillRecently(Integer id) {
         String queryVehicleBillMaxDate =
                 "with max_date as (\n" +
                         "    select MAX(vb.end_date) max_date_water_bill\n" +
                         "    from vehicle_bill vb\n" +
                         "             join vehicle v on v.id = vb.vehicle_id\n" +
-                        "             join student s2 on s2.id = v.student_id\n" +
+                        "            left join student s2 on s2.id = v.student_id\n" +
                         "    where v.student_id = :id)\n" +
                         "select vb.bill_id    as billId,\n" +
                         "       s.name        as studentName,\n" +
@@ -196,8 +197,8 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                         "from vehicle_bill vb\n" +
                         "         join max_date md on vb.end_date = md.max_date_water_bill\n" +
                         "         join vehicle v2 on v2.id = vb.vehicle_id\n" +
-                        "         join student s on s.id = v2.student_id\n" +
-                        "         join room r on r.id = s.room_id\n" +
+                        "         left join student s on s.id = v2.student_id\n" +
+                        "         left join room r on r.id = s.room_id\n" +
                         "         join price_list pl on pl.id = v2.vehicle_price_id\n" +
                         "where v2.student_id = :id";
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryVehicleBillMaxDate);
@@ -211,7 +212,7 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .addScalar("roomId", StandardBasicTypes.INTEGER);
         query.setResultTransformer(new AliasToBeanResultTransformer(VehicleBillDto.class));
 
-        return (VehicleBillDto) safeObject(query);
+        return safeObject(query);
     }
 
     @Override
@@ -249,8 +250,8 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
         return query.getResultList();
     }
 
-    public static Object safeObject(Query query) {
-        return query.getSingleResult();
+    public static <T> Optional<T> safeObject(Query query) {
+        return query.getResultStream().findFirst();
     }
 
     protected Session getCurrentSession() {

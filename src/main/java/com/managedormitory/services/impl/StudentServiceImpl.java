@@ -30,10 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -180,20 +177,26 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public RoomBillDto getDetailRoomRecently(Integer id) {
-        return studentRepositoryCustom.getDetailRoomRecently(id);
+        return studentRepositoryCustom.getDetailRoomRecently(id).orElse(null);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public StudentMoveDto getInfoMovingStudent(Integer id) {
-        RoomBillDto roomBillDto = studentRepositoryCustom.getDetailRoomRecently(id);
-        WaterBillDto waterBillDto = studentRepositoryCustom.getWaterBillRecently(id);
-        VehicleBillDto vehicleBillDto = studentRepositoryCustom.getVehicleBillRecently(id);
         LocalDate currentDate = LocalDate.now();
+        RoomBillDto roomBillDto = studentRepositoryCustom.getDetailRoomRecently(id).orElse(null);
+        System.out.println("aaaaaaaaa");
+        WaterBillDto waterBillDto = studentRepositoryCustom.getWaterBillRecently(id).orElse(null);
+        System.out.println("bbbbb");
 
+        VehicleBillDto vehicleBillDto = studentRepositoryCustom.getVehicleBillRecently(id).orElse(null);
+        System.out.println("vehicle" + vehicleBillDto);
+        float remainingMoneyOfVehicle = 0;
+        if(vehicleBillDto != null){
+            remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(vehicleBillDto.getEndDate()), vehicleBillDto.getPrice());
+        }
         float remainingMoneyOfRoom = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(roomBillDto.getEndDate()), roomBillDto.getPrice() / roomBillDto.getMaxQuantity());
         float remainingMoneyOfWater = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(waterBillDto.getEndDate()), waterBillDto.getPrice());
-        float remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(vehicleBillDto.getEndDate()), vehicleBillDto.getPrice());
 
         return new StudentMoveDto(id, currentDate, remainingMoneyOfRoom, remainingMoneyOfWater, remainingMoneyOfVehicle, roomBillDto.getRoomId());
     }
