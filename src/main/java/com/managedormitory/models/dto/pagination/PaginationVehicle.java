@@ -1,6 +1,6 @@
 package com.managedormitory.models.dto.pagination;
 
-import com.managedormitory.models.dto.VehicleDetailDto;
+import com.managedormitory.models.dto.vehicle.VehicleDetailDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

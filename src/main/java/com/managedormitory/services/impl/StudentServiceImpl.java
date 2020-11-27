@@ -14,7 +14,9 @@ import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentMoveDto;
 import com.managedormitory.models.dto.student.StudentNewDto;
+import com.managedormitory.models.dto.vehicle.VehicleBillDto;
 import com.managedormitory.models.filter.StudentFilterDto;
+import com.managedormitory.repositories.PriceListRepository;
 import com.managedormitory.repositories.StudentLeftRepository;
 import com.managedormitory.repositories.StudentRepository;
 import com.managedormitory.repositories.custom.*;
@@ -23,7 +25,6 @@ import com.managedormitory.utils.CalculateMoney;
 import com.managedormitory.utils.DateUtil;
 import com.managedormitory.utils.PaginationUtils;
 import com.managedormitory.utils.StringUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+
 
 public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository;
@@ -54,7 +56,9 @@ public class StudentServiceImpl implements StudentService {
 
     private final VehicleBillRepositoryCustom vehicleBillRepositoryCustom;
 
-    public StudentServiceImpl(StudentRepository studentRepository, StudentRepositoryCustom studentRepositoryCustom, StudentLeftRepository studentLeftRepository, RoomRepositoryCustom roomRepositoryCustom, StudentConvertToStudentDto studentConvertToStudentDto, WaterBillRepositoryCustom waterBillRepositoryCustom, DetailRoomRepositoryCustom detailRoomRepositoryCustom, SwitchRoomRepositoryCustom switchRoomRepositoryCustom, VehicleBillRepositoryCustom vehicleBillRepositoryCustom) {
+    private final PriceListRepository priceListRepository;
+
+    public StudentServiceImpl(StudentRepository studentRepository, StudentRepositoryCustom studentRepositoryCustom, StudentLeftRepository studentLeftRepository, RoomRepositoryCustom roomRepositoryCustom, StudentConvertToStudentDto studentConvertToStudentDto, WaterBillRepositoryCustom waterBillRepositoryCustom, DetailRoomRepositoryCustom detailRoomRepositoryCustom, SwitchRoomRepositoryCustom switchRoomRepositoryCustom, VehicleBillRepositoryCustom vehicleBillRepositoryCustom, PriceListRepository priceListRepository) {
         this.studentRepository = studentRepository;
         this.studentRepositoryCustom = studentRepositoryCustom;
         this.studentLeftRepository = studentLeftRepository;
@@ -64,6 +68,7 @@ public class StudentServiceImpl implements StudentService {
         this.detailRoomRepositoryCustom = detailRoomRepositoryCustom;
         this.switchRoomRepositoryCustom = switchRoomRepositoryCustom;
         this.vehicleBillRepositoryCustom = vehicleBillRepositoryCustom;
+        this.priceListRepository = priceListRepository;
     }
 
     @Override
@@ -82,6 +87,7 @@ public class StudentServiceImpl implements StudentService {
         for (Student student : students) {
             StudentDetailDto studentDetailDto = new StudentDetailDto();
             studentDetailDto.setId(student.getId());
+            studentDetailDto.setIdCard(student.getIdCard());
             studentDetailDto.setName(student.getName());
             studentDetailDto.setBirthday(student.getBirthday());
             studentDetailDto.setPhone(student.getPhone());
@@ -111,8 +117,7 @@ public class StudentServiceImpl implements StudentService {
 
             if (studentLeftIds.contains(student.getId())) {
                 studentDetailDto.setActive(false);
-            }
-            else {
+            } else {
                 studentDetailDto.setActive(true);
             }
             studentDetailDtosDetail.add(studentDetailDto);
@@ -177,28 +182,26 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public RoomBillDto getDetailRoomRecently(Integer id) {
-        return studentRepositoryCustom.getDetailRoomRecently(id).orElse(null);
+        return roomRepositoryCustom.getDetailRoomRecently(id).orElse(null);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public StudentMoveDto getInfoMovingStudent(Integer id) {
         LocalDate currentDate = LocalDate.now();
-        RoomBillDto roomBillDto = studentRepositoryCustom.getDetailRoomRecently(id).orElse(null);
-        System.out.println("aaaaaaaaa");
+        StudentDetailDto studentDetailDto = getStudentById(id);
+        RoomBillDto roomBillDto = roomRepositoryCustom.getDetailRoomRecently(id).orElse(null);
         WaterBillDto waterBillDto = studentRepositoryCustom.getWaterBillRecently(id).orElse(null);
-        System.out.println("bbbbb");
 
-        VehicleBillDto vehicleBillDto = studentRepositoryCustom.getVehicleBillRecently(id).orElse(null);
-        System.out.println("vehicle" + vehicleBillDto);
+        VehicleBillDto vehicleBillDto = vehicleBillRepositoryCustom.getVehicleBillRecentlyByStudentId(id).orElse(null);
         float remainingMoneyOfVehicle = 0;
-        if(vehicleBillDto != null){
+        if (vehicleBillDto != null) {
             remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(vehicleBillDto.getEndDate()), vehicleBillDto.getPrice());
         }
         float remainingMoneyOfRoom = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(roomBillDto.getEndDate()), roomBillDto.getPrice() / roomBillDto.getMaxQuantity());
         float remainingMoneyOfWater = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(waterBillDto.getEndDate()), waterBillDto.getPrice());
 
-        return new StudentMoveDto(id, currentDate, remainingMoneyOfRoom, remainingMoneyOfWater, remainingMoneyOfVehicle, roomBillDto.getRoomId());
+        return new StudentMoveDto(id, studentDetailDto.getName(), currentDate, remainingMoneyOfRoom, remainingMoneyOfWater, remainingMoneyOfVehicle, roomBillDto.getRoomId());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -215,8 +218,10 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public RoomPriceAndWaterPriceDto getRoomPriceAndWaterPrice(Integer roomId) {
         LocalDate currentDate = LocalDate.now();
-        RoomPriceAndWaterPrice roomPriceAndWaterPrice = roomRepositoryCustom.getRoomPriceAndWaterPrice(roomId);
+        RoomPriceAndWaterPrice roomPriceAndWaterPrice = roomRepositoryCustom.getRoomPriceAndWaterPrice(roomId).orElse(null);
 
+        PriceList priceListWater = priceListRepository.findById(2).orElse(null);
+        PriceList priceListVehicle = priceListRepository.findById(3).orElse(null);
         LocalDate currentDateRoom = currentDate;
         LocalDate endDateRoom;
 
@@ -228,25 +233,34 @@ public class StudentServiceImpl implements StudentService {
         float remainingMoneyOfRoom;
         float remainingMoneyOfWater;
         float remainingMoneyOfVehicle;
-        System.out.println("maxdateRoom: " + DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill()));
-        System.out.println("waterRoom: " + DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateWaterBill()));
         if (roomPriceAndWaterPrice == null) {
             endDateRoom = currentDate.plus(30, ChronoUnit.DAYS);
             endDateWater = currentDate.plus(30, ChronoUnit.DAYS);
         } else {
-            if (DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill()).isBefore(currentDate)) {
-                endDateRoom = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill()).plus(30, ChronoUnit.DAYS);
-                endDateWater = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateWaterBill()).plus(30, ChronoUnit.DAYS);
+            if (roomPriceAndWaterPrice.getWaterPrice() == null) {
+                roomPriceAndWaterPrice.setWaterPrice(priceListWater.getPrice());
+            }
+            if (roomPriceAndWaterPrice.getMaxDateRoomBill() != null) {
+                if (DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill()).isBefore(currentDate)) {
+                    endDateRoom = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill()).plus(30, ChronoUnit.DAYS);
+                    endDateWater = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateWaterBill()).plus(30, ChronoUnit.DAYS);
+                } else {
+                    currentDateRoom = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill());
+                    currentDateWater = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateWaterBill());
+                    endDateRoom = currentDate;
+                    endDateWater = currentDate;
+                }
             } else {
-                currentDateRoom = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill());
-                currentDateWater = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateWaterBill());
-                endDateRoom = currentDate;
-                endDateWater = currentDate;
+                currentDateRoom = currentDate;
+                currentDateWater = currentDate;
+                endDateRoom = currentDate.plus(30, ChronoUnit.DAYS);
+                endDateWater = currentDate.plus(30, ChronoUnit.DAYS);
             }
 
             if (roomPriceAndWaterPrice.getVehicleId() == null) {
                 currentDateVehicle = null;
                 endDateVehicle = null;
+                roomPriceAndWaterPrice.setVehiclePrice(priceListVehicle.getPrice());
             } else {
                 if (DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateVehicleBill()).isBefore(currentDate)) {
                     endDateVehicle = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateVehicleBill()).plus(30, ChronoUnit.DAYS);
@@ -256,6 +270,7 @@ public class StudentServiceImpl implements StudentService {
                 }
             }
         }
+
         remainingMoneyOfRoom = CalculateMoney.calculateRemainingMoney(endDateRoom, currentDateRoom, roomPriceAndWaterPrice.getRoomPrice() / roomPriceAndWaterPrice.getMaxQuantityStudent());
         remainingMoneyOfWater = CalculateMoney.calculateRemainingMoney(endDateWater, currentDateWater, roomPriceAndWaterPrice.getWaterPrice());
         remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(endDateVehicle, currentDateVehicle, roomPriceAndWaterPrice.getVehiclePrice());
@@ -348,6 +363,13 @@ public class StudentServiceImpl implements StudentService {
             return 1;
         }
         return 0;
+    }
+
+    @Override
+    public List<StudentDetailDto> getStudentsByIdCard(String idCard) {
+        return getAllStudentDto().stream()
+                .filter(studentDetailDto -> studentDetailDto.getName().equals(idCard))
+                .collect(Collectors.toList());
     }
 
 }

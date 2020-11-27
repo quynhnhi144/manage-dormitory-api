@@ -1,6 +1,6 @@
 package com.managedormitory.repositories.custom.implement;
 
-import com.managedormitory.models.dto.VehicleBillDto;
+import com.managedormitory.models.dto.vehicle.VehicleBillDto;
 import com.managedormitory.models.dto.WaterBillDto;
 import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.student.StudentDto;
@@ -32,6 +32,7 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
         String queryStudent =
                 "SELECT MAX(wb.create_date),\n" +
                         "s.id AS id,\n" +
+                        "s.id_card AS idCard,\n" +
                         "s.name AS name,\n" +
                         "s.birthday AS birthday,\n" +
                         "s.phone AS phone,\n" +
@@ -61,6 +62,7 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryStudent);
         query.setParameter("currentDate", new TypedParameterValue(LocalDateType.INSTANCE, currentDate))
                 .addScalar("id", StandardBasicTypes.INTEGER)
+                .addScalar("idCard", StandardBasicTypes.STRING)
                 .addScalar("name", StandardBasicTypes.STRING)
                 .addScalar("birthday", StandardBasicTypes.DATE)
                 .addScalar("phone", StandardBasicTypes.STRING)
@@ -78,13 +80,13 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
 
     @Override
     public int updateStudent(Integer studentId, StudentDto studentDto) {
-        System.out.println("studentUpdate: " + studentDto);
         String queryUpdateStudent = "UPDATE student\n" +
-                "SET name = :name, birthday = :birthday, address = :address, phone = :phone, email = :email, starting_date_of_stay = :startingDateOfStay, ending_date_of_stay = :endingDateOfStay, room_id = :roomId\n" +
+                "SET id_card = :idCard, name = :name, birthday = :birthday, address = :address, phone = :phone, email = :email, starting_date_of_stay = :startingDateOfStay, ending_date_of_stay = :endingDateOfStay, room_id = :roomId\n" +
                 "WHERE id = :studentId";
 
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryUpdateStudent);
-        query.setParameter("name", new TypedParameterValue(StringType.INSTANCE, studentDto.getName()))
+        query.setParameter("idCard", new TypedParameterValue(StringType.INSTANCE, studentDto.getIdCard()))
+                .setParameter("name", new TypedParameterValue(StringType.INSTANCE, studentDto.getName()))
                 .setParameter("birthday", new TypedParameterValue(DateType.INSTANCE, studentDto.getBirthday()))
                 .setParameter("address", new TypedParameterValue(StringType.INSTANCE, studentDto.getAddress()))
                 .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, studentDto.getPhone()))
@@ -106,42 +108,6 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
         query.setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, studentId))
                 .setParameter("newRoomId", new TypedParameterValue(IntegerType.INSTANCE, newRoomId));
         return query.executeUpdate();
-    }
-
-    @Override
-    public Optional<RoomBillDto> getDetailRoomRecently(Integer id) {
-        String queryMaxDate = "with max_date as (\n" +
-                "    select MAX(dr.end_date) max_date\n" +
-                "    from detail_room dr\n" +
-                "    where dr.student_id = :id)\n" +
-                "select dr.id         as billId,\n" +
-                "       s.name        as studentName,\n" +
-                "       dr.student_id as studentId,\n" +
-                "       dr.start_date as startDate,\n" +
-                "       dr.end_date   as endDate,\n" +
-                "       pl.price      as price,\n" +
-                "       r.id          as roomId,\n" +
-                "       tr.max_quantity as maxQuantity\n" +
-                "from detail_room dr\n" +
-                "         join max_date md on dr.end_date = md.max_date\n" +
-                "         join student s on dr.student_id = s.id\n" +
-                "         join room r on r.id = s.room_id\n" +
-                "         join price_list pl on pl.id = r.price_list_id\n" +
-                "         left join type_room tr on r.type_room_id = tr.id\n" +
-                "where dr.student_id = :id";
-        NativeQuery<?> query = getCurrentSession().createNativeQuery(queryMaxDate);
-        query.setParameter("id", new TypedParameterValue(IntegerType.INSTANCE, id))
-                .addScalar("billId", StandardBasicTypes.INTEGER)
-                .addScalar("studentName", StandardBasicTypes.STRING)
-                .addScalar("studentId", StandardBasicTypes.INTEGER)
-                .addScalar("startDate", StandardBasicTypes.DATE)
-                .addScalar("endDate", StandardBasicTypes.DATE)
-                .addScalar("price", StandardBasicTypes.FLOAT)
-                .addScalar("roomId", StandardBasicTypes.INTEGER)
-                .addScalar("maxQuantity", StandardBasicTypes.INTEGER);
-        query.setResultTransformer(new AliasToBeanResultTransformer(RoomBillDto.class));
-
-        return safeObject(query);
     }
 
     @Override
@@ -174,43 +140,6 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .addScalar("price", StandardBasicTypes.FLOAT)
                 .addScalar("roomId", StandardBasicTypes.INTEGER);
         query.setResultTransformer(new AliasToBeanResultTransformer(WaterBillDto.class));
-
-        return safeObject(query);
-    }
-
-    @Override
-    public Optional<VehicleBillDto> getVehicleBillRecently(Integer id) {
-        String queryVehicleBillMaxDate =
-                "with max_date as (\n" +
-                        "    select MAX(vb.end_date) max_date_water_bill\n" +
-                        "    from vehicle_bill vb\n" +
-                        "             join vehicle v on v.id = vb.vehicle_id\n" +
-                        "            left join student s2 on s2.id = v.student_id\n" +
-                        "    where v.student_id = :id)\n" +
-                        "select vb.bill_id    as billId,\n" +
-                        "       s.name        as studentName,\n" +
-                        "       v2.student_id as studentId,\n" +
-                        "       vb.start_date as startDate,\n" +
-                        "       vb.end_date   as endDate,\n" +
-                        "       pl.price      as price,\n" +
-                        "       r.id          as roomId\n" +
-                        "from vehicle_bill vb\n" +
-                        "         join max_date md on vb.end_date = md.max_date_water_bill\n" +
-                        "         join vehicle v2 on v2.id = vb.vehicle_id\n" +
-                        "         left join student s on s.id = v2.student_id\n" +
-                        "         left join room r on r.id = s.room_id\n" +
-                        "         join price_list pl on pl.id = v2.vehicle_price_id\n" +
-                        "where v2.student_id = :id";
-        NativeQuery<?> query = getCurrentSession().createNativeQuery(queryVehicleBillMaxDate);
-        query.setParameter("id", new TypedParameterValue(IntegerType.INSTANCE, id))
-                .addScalar("billId", StandardBasicTypes.INTEGER)
-                .addScalar("studentName", StandardBasicTypes.STRING)
-                .addScalar("studentId", StandardBasicTypes.INTEGER)
-                .addScalar("startDate", StandardBasicTypes.DATE)
-                .addScalar("endDate", StandardBasicTypes.DATE)
-                .addScalar("price", StandardBasicTypes.FLOAT)
-                .addScalar("roomId", StandardBasicTypes.INTEGER);
-        query.setResultTransformer(new AliasToBeanResultTransformer(VehicleBillDto.class));
 
         return safeObject(query);
     }

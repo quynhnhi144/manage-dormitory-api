@@ -19,12 +19,19 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @ToString
+@Table(name="student", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {
+                "idCard"
+        })})
 public class Student {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column
     private Integer id;
+
+    @Column
+    private String idCard;
 
     @Column(length = 100, name = "name", nullable = false)
     @Size(min = 1, max = 50)

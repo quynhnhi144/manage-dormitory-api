@@ -1,26 +1,42 @@
 package com.managedormitory.services.impl;
 
+import com.managedormitory.converters.StudentConvertToStudentDto;
+import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
+import com.managedormitory.models.dao.PriceList;
 import com.managedormitory.models.dao.Vehicle;
-import com.managedormitory.models.dto.VehicleDetailDto;
+import com.managedormitory.models.dao.VehicleBill;
+import com.managedormitory.models.dao.VehicleLeft;
+import com.managedormitory.models.dto.room.RoomBillDto;
+import com.managedormitory.models.dto.student.StudentDetailDto;
+import com.managedormitory.models.dto.vehicle.*;
 import com.managedormitory.models.dto.pagination.PaginationVehicle;
-import com.managedormitory.models.dto.VehicleDto;
 import com.managedormitory.models.filter.VehicleFilter;
+import com.managedormitory.repositories.PriceListRepository;
+import com.managedormitory.repositories.VehicleLeftRepository;
 import com.managedormitory.repositories.VehicleRepository;
+import com.managedormitory.repositories.custom.DetailRoomRepositoryCustom;
+import com.managedormitory.repositories.custom.RoomRepositoryCustom;
+import com.managedormitory.repositories.custom.VehicleBillRepositoryCustom;
 import com.managedormitory.repositories.custom.VehicleRepositoryCustom;
+import com.managedormitory.services.StudentService;
 import com.managedormitory.services.VehicleService;
+import com.managedormitory.utils.CalculateMoney;
+import com.managedormitory.utils.DateUtil;
 import com.managedormitory.utils.PaginationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+
+
 public class VehicleServiceImpl implements VehicleService {
     @Autowired
     private VehicleRepository vehicleRepository;
@@ -28,9 +44,29 @@ public class VehicleServiceImpl implements VehicleService {
     @Autowired
     private VehicleRepositoryCustom vehicleRepositoryCustom;
 
+    @Autowired
+    private StudentConvertToStudentDto studentConvertToStudentDto;
+
+    @Autowired
+    private VehicleLeftRepository vehicleLeftRepository;
+
+    @Autowired
+    private VehicleBillRepositoryCustom vehicleBillRepositoryCustom;
+
+    @Autowired
+    private RoomRepositoryCustom roomRepositoryCustom;
+
+    @Autowired
+    private PriceListRepository priceListRepository;
+
     @Override
     public List<Vehicle> getAllVehicles() {
         return vehicleRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    }
+
+    @Override
+    public List<VehicleLeft> getAllVehicleLeft() {
+        return vehicleLeftRepository.findAll();
     }
 
     @Override
@@ -39,14 +75,14 @@ public class VehicleServiceImpl implements VehicleService {
         List<VehicleDto> vehicleDtos = vehicleRepositoryCustom.getAllVehicleByTime();
         List<VehicleDetailDto> vehicleDtosDetail = new ArrayList<>();
         List<Integer> vehicleDtoIdList = vehicleDtos.stream().mapToInt(VehicleDto::getId).boxed().collect(Collectors.toList());
+        List<Integer> vehicleLeftIds = getAllVehicleLeft().stream().mapToInt(VehicleLeft::getId).boxed().collect(Collectors.toList());
         for (int i = 0; i < vehicles.size(); i++) {
             Vehicle vehicle = vehicles.get(i);
             VehicleDetailDto vehicleDetailDto = new VehicleDetailDto();
             vehicleDetailDto.setId(vehicle.getId());
             vehicleDetailDto.setLicensePlates(vehicle.getLicensePlates());
-            vehicleDetailDto.setTypeVehicle(vehicle.getTypeVehicleId().getName());
-            vehicleDetailDto.setStudentId(vehicle.getStudentId().getId());
-            vehicleDetailDto.setStudentName(vehicle.getStudentId().getName());
+            vehicleDetailDto.setTypeVehicle(vehicle.getTypeVehicleId());
+            vehicleDetailDto.setStudentDto(studentConvertToStudentDto.convert(vehicle.getStudentId()));
             if (vehicle.getStudentId().getRoom() == null) {
                 vehicleDetailDto.setRoomName(null);
                 vehicleDetailDto.setCampusName(null);
@@ -63,10 +99,17 @@ public class VehicleServiceImpl implements VehicleService {
                 vehicleDetailDto.setPayVehicleBill(false);
             }
 
+            if (vehicleLeftIds.contains(vehicle.getId())) {
+                vehicleDetailDto.setActive(false);
+            } else {
+                vehicleDetailDto.setActive(true);
+            }
+
             vehicleDtosDetail.add(vehicleDetailDto);
         }
         return vehicleDtosDetail;
     }
+
 
     @Override
     public PaginationVehicle paginationGetAllVehicles(VehicleFilter vehicleFilter, int skip, int take) {
@@ -81,7 +124,7 @@ public class VehicleServiceImpl implements VehicleService {
                     .collect(Collectors.toList());
         }
         if (vehicleFilter.getTypeVehicle() != null && !vehicleFilter.getTypeVehicle().equals("All")) {
-            vehicleDetailDtos = vehicleDetailDtos.stream().filter(vehicleDto -> vehicleDto.getTypeVehicle().toLowerCase().equals(vehicleFilter.getTypeVehicle().toLowerCase()))
+            vehicleDetailDtos = vehicleDetailDtos.stream().filter(vehicleDto -> vehicleDto.getTypeVehicle().getName().equals(vehicleFilter.getTypeVehicle().toLowerCase()))
                     .collect(Collectors.toList());
         }
 
@@ -103,6 +146,80 @@ public class VehicleServiceImpl implements VehicleService {
             throw new NotFoundException("Cannot find Student Id: " + id);
         }
         return vehicleById.get(0);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public VehicleDetailDto updateVehicle(Integer id, VehicleDetailDto vehicleDetailDto) {
+        if (vehicleRepositoryCustom.updateVehicle(id, vehicleDetailDto) <= 0) {
+            throw new BadRequestException("Cannot excute");
+        }
+        return getVehicleById(id);
+    }
+
+    @Override
+    public VehicleMoveDto getInfoMovingVehicle(Integer vehicleId) {
+        LocalDate currentDate = LocalDate.now();
+        VehicleDetailDto vehicleDetailDto = getVehicleById(vehicleId);
+        float remainingMoneyOfVehicle = 0;
+        VehicleBillDto vehicleBillDto = vehicleBillRepositoryCustom.getVehicleBillRecentlyByVehicleId(vehicleId).orElse(null);
+        if (vehicleBillDto != null) {
+            remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(vehicleBillDto.getEndDate()), vehicleBillDto.getPrice());
+        }
+        return new VehicleMoveDto(vehicleId, vehicleDetailDto.getLicensePlates(), vehicleDetailDto.getStudentDto().getName(), currentDate, remainingMoneyOfVehicle, vehicleBillDto.getStudentId());
+    }
+
+    @Override
+    public VehicleBillDto VehicleBillInfoForNewVehicle(Integer studentId) {
+        LocalDate currentDate = LocalDate.now();
+        LocalDate startDateVehicleBill = LocalDate.now();
+        LocalDate endDateVehicleBill = LocalDate.now();
+
+        float remainingMoneyOfVehicle = 0;
+        PriceList priceList = priceListRepository.findById(3).orElse(null);
+        RoomBillDto roomBillDto = roomRepositoryCustom.getDetailRoomRecently(studentId).orElse(null);
+        if (roomBillDto != null) {
+            if (DateUtil.getLDateFromSDate(roomBillDto.getEndDate()).isBefore(currentDate)) {
+                startDateVehicleBill = currentDate;
+                endDateVehicleBill = DateUtil.getLDateFromSDate(roomBillDto.getEndDate()).plus(30, ChronoUnit.DAYS);
+            } else {
+                startDateVehicleBill = currentDate;
+                endDateVehicleBill = DateUtil.getLDateFromSDate(roomBillDto.getEndDate());
+            }
+        } else {
+            startDateVehicleBill = currentDate;
+            endDateVehicleBill = currentDate.plus(30, ChronoUnit.DAYS);
+        }
+        remainingMoneyOfVehicle = Math.abs(CalculateMoney.calculateRemainingMoney(startDateVehicleBill, endDateVehicleBill, priceList.getPrice()));
+
+        return new VehicleBillDto(null, roomBillDto.getStudentName(), roomBillDto.getStudentId(), DateUtil.getSDateFromLDate(startDateVehicleBill), DateUtil.getSDateFromLDate(endDateVehicleBill), remainingMoneyOfVehicle, roomBillDto.getRoomId(), null);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int addVehicleLeft(VehicleMoveDto vehicleMoveDto) {
+        int resultVehicleLeft = vehicleRepositoryCustom.addVehicleLeft(vehicleMoveDto);
+        if (resultVehicleLeft > 0) {
+            return 1;
+        }
+        throw new BadRequestException("Cannot implement method!!!");
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int addVehicle(VehicleNew vehicleNew) {
+        int resultAddVehicle = vehicleRepositoryCustom.addVehicle(vehicleNew);
+        if (resultAddVehicle > 0) {
+            VehicleDetailDto vehicleDetailDto = getAllVehicleDto().get(getAllVehicleDto().size() - 1);
+
+            VehicleBillDto vehicleBillDto = vehicleNew.getVehicleBillDto();
+            vehicleBillDto.setVehicleId(vehicleDetailDto.getId());
+            int resultAddVehicleBill = vehicleBillRepositoryCustom.addVehicleBillRepository(vehicleBillDto);
+            if (resultAddVehicleBill > 0) {
+                return 1;
+            }
+        }
+        return 0;
     }
 
     @Override

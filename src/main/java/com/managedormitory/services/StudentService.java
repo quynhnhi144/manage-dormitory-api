@@ -45,4 +45,5 @@ public interface StudentService {
 
     int switchRoomForStudent(InfoSwitchRoom infoSwitchRoom, Integer studentId);
 
+    List<StudentDetailDto> getStudentsByIdCard(String idCard);
 }

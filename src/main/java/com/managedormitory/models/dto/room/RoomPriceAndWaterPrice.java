@@ -19,8 +19,8 @@ public class RoomPriceAndWaterPrice {
     private Date maxDateVehicleBill;
     private Integer waterPriceId;
     private Integer vehicleId;
-    private float roomPrice;
-    private float waterPrice;
-    private float vehiclePrice;
+    private Float roomPrice;
+    private Float waterPrice;
+    private Float vehiclePrice;
     private Integer maxQuantityStudent;
 }
