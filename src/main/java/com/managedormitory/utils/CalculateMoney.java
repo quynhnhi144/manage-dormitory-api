@@ -59,6 +59,9 @@ public class CalculateMoney {
             Calendar cEndDate = Calendar.getInstance();
             cEndDate.setTime(dEndDate);
 
+            // dayDuration = currentDate - endDate
+            // dayDuration > 0: sinh vien phai tra them tien
+            // dayDuration < 0: sinh vien duoc nhan tien
             long daysDuration = ChronoUnit.DAYS.between(cEndDate.toInstant(), cCurrentDate.toInstant());
             System.out.println("currentDate: " + currentDate + ", endDate: " + endDate + ", duration: " + daysDuration);
 

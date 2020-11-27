@@ -1,6 +1,6 @@
 package com.managedormitory.repositories.custom;
 
-import com.managedormitory.models.dto.VehicleBillDto;
+import com.managedormitory.models.dto.vehicle.VehicleBillDto;
 import com.managedormitory.models.dto.WaterBillDto;
 import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.student.StudentDto;
@@ -18,11 +18,7 @@ public interface StudentRepositoryCustom {
 
     int updateRoomIdForStudent(Integer studentId, Integer newRoomId);
 
-    Optional<RoomBillDto> getDetailRoomRecently(Integer id);
-
     Optional<WaterBillDto> getWaterBillRecently(Integer id);
-
-    Optional<VehicleBillDto> getVehicleBillRecently(Integer id);
 
     int addStudentLeft(StudentMoveDto studentMoveDto);
 

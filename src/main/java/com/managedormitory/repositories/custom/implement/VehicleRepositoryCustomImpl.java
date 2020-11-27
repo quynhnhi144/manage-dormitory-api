@@ -1,14 +1,16 @@
 package com.managedormitory.repositories.custom.implement;
 
-import com.managedormitory.models.dto.VehicleDto;
+import com.managedormitory.models.dto.vehicle.VehicleDetailDto;
+import com.managedormitory.models.dto.vehicle.VehicleDto;
+import com.managedormitory.models.dto.vehicle.VehicleMoveDto;
+import com.managedormitory.models.dto.vehicle.VehicleNew;
 import com.managedormitory.repositories.custom.VehicleRepositoryCustom;
-import com.managedormitory.utils.QueryUtil;
+import com.managedormitory.utils.DateUtil;
 import org.hibernate.Session;
 import org.hibernate.jpa.TypedParameterValue;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToBeanResultTransformer;
-import org.hibernate.type.LocalDateType;
-import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +37,8 @@ public class VehicleRepositoryCustomImpl implements VehicleRepositoryCustom {
                         "vb.start_date AS startDate,\n" +
                         "vb.end_date AS endDate,\n" +
                         "u.full_name AS userManager,\n" +
-                        "tv.name AS typeVehicle\n" +
+                        "tv.name AS typeVehicle,\n" +
+                        "tv.id AS typeVehicleId\n" +
                         "FROM vehicle v\n" +
                         "         JOIN student s on s.id = v.student_id\n" +
                         "         JOIN type_vehicle tv on tv.id = v.type_vehicle_id\n" +
@@ -48,13 +51,14 @@ public class VehicleRepositoryCustomImpl implements VehicleRepositoryCustom {
                         "         v.license_plates,\n" +
                         "         s.id,\n" +
                         "         r.name, c.name, vb.start_date,\n" +
-                        "         vb.end_date, u.full_name, tv.name\n" +
+                        "         vb.end_date, u.full_name, tv.name, tv.id\n" +
                         "ORDER BY v.id ASC";
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryVehicle);
         query.setParameter("currentDate", new TypedParameterValue(LocalDateType.INSTANCE, currentDate))
                 .addScalar("id", StandardBasicTypes.INTEGER)
                 .addScalar("licensePlates", StandardBasicTypes.STRING)
                 .addScalar("typeVehicle", StandardBasicTypes.STRING)
+                .addScalar("typeVehicleId", StandardBasicTypes.INTEGER)
                 .addScalar("studentId", StandardBasicTypes.INTEGER)
                 .addScalar("studentName", StandardBasicTypes.STRING)
                 .addScalar("roomName", StandardBasicTypes.STRING)
@@ -65,6 +69,44 @@ public class VehicleRepositoryCustomImpl implements VehicleRepositoryCustom {
         query.setResultTransformer(new AliasToBeanResultTransformer(VehicleDto.class));
 
         return safeList(query);
+    }
+
+    @Override
+    public int addVehicle(VehicleNew vehicleNew) {
+        String queryAdd = "INSERT INTO vehicle(license_plates, student_id, type_vehicle_id, vehicle_price_id)\n" +
+                "VALUES(:licensePlates, :studentId, :typeVehicleId, :vehiclePriceId)";
+
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAdd);
+        query.setParameter("licensePlates", new TypedParameterValue(StringType.INSTANCE, vehicleNew.getLicensePlates()))
+                .setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, vehicleNew.getVehicleBillDto().getStudentId()))
+                .setParameter("typeVehicleId", new TypedParameterValue(IntegerType.INSTANCE, vehicleNew.getTypeVehicleId()))
+                .setParameter("vehiclePriceId", new TypedParameterValue(IntegerType.INSTANCE, vehicleNew.getVehiclePriceId()));
+
+        return query.executeUpdate();
+    }
+
+    @Override
+    public int updateVehicle(Integer id, VehicleDetailDto vehicleDetailDto) {
+        String queryUpdate = "UPDATE vehicle\n" +
+                "SET license_plates = :licensePlates, type_vehicle_id= :typeVehicleId\n" +
+                "WHERE id = :id";
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryUpdate);
+        query.setParameter("licensePlates", new TypedParameterValue(StringType.INSTANCE, vehicleDetailDto.getLicensePlates()))
+                .setParameter("typeVehicleId", new TypedParameterValue(IntegerType.INSTANCE, vehicleDetailDto.getStudentDto().getId()))
+                .setParameter("id", new TypedParameterValue(IntegerType.INSTANCE, id));
+        return query.executeUpdate();
+    }
+
+    @Override
+    public int addVehicleLeft(VehicleMoveDto vehicleMoveDto) {
+        String queryAdd = "INSERT INTO vehicle_left\n" +
+                "VALUES(:id, :leavingDate, :numberOfVehicleMoney)";
+
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAdd);
+        query.setParameter("id", new TypedParameterValue(IntegerType.INSTANCE, vehicleMoveDto.getId()))
+                .setParameter("leavingDate", new TypedParameterValue(DateType.INSTANCE, DateUtil.getSDateFromLDate(vehicleMoveDto.getLeavingDate())))
+                .setParameter("numberOfVehicleMoney", new TypedParameterValue(FloatType.INSTANCE, vehicleMoveDto.getNumberOfVehicleMoney()));
+        return query.executeUpdate();
     }
 
     public static <Entity> List<Entity> safeList(Query query) {

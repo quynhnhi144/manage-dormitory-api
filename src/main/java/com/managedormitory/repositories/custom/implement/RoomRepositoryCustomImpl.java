@@ -21,6 +21,7 @@ import javax.persistence.Query;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 @Component
@@ -110,7 +111,7 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
     }
 
     @Override
-    public RoomPriceAndWaterPrice getRoomPriceAndWaterPrice(Integer roomId) {
+    public Optional<RoomPriceAndWaterPrice> getRoomPriceAndWaterPrice(Integer roomId) {
         String queryRoomPriceAndWaterPrice =
                 "with water_price as (select s.id, p.price, s.water_price_id\n" +
                         "                     from student s\n" +
@@ -121,31 +122,33 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
                         "                                left join vehicle v2 on s2.id = v2.student_id\n" +
                         "                                left join price_list pl2 on v2.vehicle_price_id = pl2.id\n" +
                         "                                left join vehicle_bill vb on v2.id = vb.vehicle_id\n" +
-                        ")\n" +
-                        "select distinct r.id as roomId,\n" +
-                        "       r.name as roomName,\n" +
-                        "       tr.max_quantity as maxQuantityStudent,\n" +
-                        "       MAX(dr.end_date) as maxDateRoomBill,\n" +
-                        "       MAX(wb.end_date) as maxDateWaterBill,\n" +
-                        "       MAX(b.end_date) as maxDateVehicleBill,\n" +
-                        "       pl.price as roomPrice,\n" +
-                        "       wp.price as waterPrice,\n" +
-                        "       vp.price as vehiclePrice,\n" +
-                        "       wp.water_price_id as waterPriceId,\n" +
-                        "       vp.vehicle_price_id as vehicleId\n" +
+                        "     )\n" +
+                        "\n" +
+                        "select distinct r.id                as roomId,\n" +
+                        "                r.name              as roomName,\n" +
+                        "                tr.max_quantity     as maxQuantityStudent,\n" +
+                        "                MAX(dr.end_date)    as maxDateRoomBill,\n" +
+                        "                MAX(wb.end_date)    as maxDateWaterBill,\n" +
+                        "                MAX(b.end_date)     as maxDateVehicleBill,\n" +
+                        "                pl.price            as roomPrice,\n" +
+                        "                wp.price            as waterPrice,\n" +
+                        "                vp.price            as vehiclePrice,\n" +
+                        "                wp.water_price_id   as waterPriceId,\n" +
+                        "                vp.vehicle_price_id as vehicleId\n" +
                         "from room r\n" +
                         "         left join student s on r.id = s.room_id\n" +
-                        "         join detail_room dr on s.id = dr.student_id\n" +
-                        "         join water_bill wb on s.id = wb.student_id\n" +
-                        "         join price_list pl on pl.id = r.price_list_id\n" +
-                        "         join water_price wp on s.id = wp.id\n" +
+                        "         left join detail_room dr on s.id = dr.student_id\n" +
+                        "         left join water_bill wb on s.id = wb.student_id\n" +
+                        "         left join price_list pl on pl.id = r.price_list_id\n" +
+                        "         left join water_price wp on s.id = wp.id\n" +
                         "         left join type_room tr on tr.id = r.type_room_id\n" +
                         "         left join vehicle v on v.id = s.id\n" +
                         "         left join vehicle_bill b on v.id = b.vehicle_id\n" +
                         "         left join vehicle_price vp on v.id = vp.id\n" +
-                        "where r.id = :roomId and b.end_date is not null\n" +
+                        "where (r.id = :roomId\n" +
+                        "  and b.end_date is not null) or r.id = :roomId\n" +
                         "group by r.id,\n" +
-                        "         r.name,\n" +
+                        "         s.id,\n" +
                         "         tr.max_quantity,\n" +
                         "         pl.price,\n" +
                         "         wp.price,\n" +
@@ -167,11 +170,47 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
                 .addScalar("waterPriceId", StandardBasicTypes.INTEGER);
         query.setResultTransformer(new AliasToBeanResultTransformer(RoomPriceAndWaterPrice.class));
 
-        return (RoomPriceAndWaterPrice) safeObject(query);
+        return safeObject(query);
     }
 
-    public static Object safeObject(Query query) {
-        return query.getSingleResult();
+    @Override
+    public Optional<RoomBillDto> getDetailRoomRecently(Integer id) {
+        String queryMaxDate = "with max_date as (\n" +
+                "    select MAX(dr.end_date) max_date\n" +
+                "    from detail_room dr\n" +
+                "    where dr.student_id = :id)\n" +
+                "select dr.id         as billId,\n" +
+                "       s.name        as studentName,\n" +
+                "       dr.student_id as studentId,\n" +
+                "       dr.start_date as startDate,\n" +
+                "       dr.end_date   as endDate,\n" +
+                "       pl.price      as price,\n" +
+                "       r.id          as roomId,\n" +
+                "       tr.max_quantity as maxQuantity\n" +
+                "from detail_room dr\n" +
+                "         join max_date md on dr.end_date = md.max_date\n" +
+                "         join student s on dr.student_id = s.id\n" +
+                "         join room r on r.id = s.room_id\n" +
+                "         join price_list pl on pl.id = r.price_list_id\n" +
+                "         left join type_room tr on r.type_room_id = tr.id\n" +
+                "where dr.student_id = :id";
+        NativeQuery<?> query = getCurrentSession().createNativeQuery(queryMaxDate);
+        query.setParameter("id", new TypedParameterValue(IntegerType.INSTANCE, id))
+                .addScalar("billId", StandardBasicTypes.INTEGER)
+                .addScalar("studentName", StandardBasicTypes.STRING)
+                .addScalar("studentId", StandardBasicTypes.INTEGER)
+                .addScalar("startDate", StandardBasicTypes.DATE)
+                .addScalar("endDate", StandardBasicTypes.DATE)
+                .addScalar("price", StandardBasicTypes.FLOAT)
+                .addScalar("roomId", StandardBasicTypes.INTEGER)
+                .addScalar("maxQuantity", StandardBasicTypes.INTEGER);
+        query.setResultTransformer(new AliasToBeanResultTransformer(RoomBillDto.class));
+
+        return safeObject(query);
+    }
+
+    public static <T> Optional<T> safeObject(Query query) {
+        return query.getResultStream().findFirst();
     }
 
     public static <Entity> List<Entity> safeList(Query query) {

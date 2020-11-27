@@ -1,7 +1,7 @@
 package com.managedormitory.services.impl;
 
 import com.managedormitory.exceptions.BadRequestException;
-import com.managedormitory.models.dto.VehicleBillDto;
+import com.managedormitory.models.dto.vehicle.VehicleBillDto;
 import com.managedormitory.services.VehicleBillService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

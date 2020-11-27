@@ -1,4 +1,4 @@
-package com.managedormitory.models.dto;
+package com.managedormitory.models.dto.vehicle;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,4 +19,5 @@ public class VehicleBillDto {
     private Date endDate;
     private float price;
     private Integer roomId;
+    private Integer vehicleId;
 }

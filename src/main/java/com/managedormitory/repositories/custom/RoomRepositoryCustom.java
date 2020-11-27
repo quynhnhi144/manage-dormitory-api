@@ -7,6 +7,7 @@ import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RoomRepositoryCustom {
@@ -16,5 +17,7 @@ public interface RoomRepositoryCustom {
 
     int updateTypeRoom(Integer id, DetailRoomDto room);
 
-    RoomPriceAndWaterPrice getRoomPriceAndWaterPrice(Integer roomId);
+    Optional<RoomPriceAndWaterPrice> getRoomPriceAndWaterPrice(Integer roomId);
+
+    Optional<RoomBillDto> getDetailRoomRecently(Integer studentId);
 }

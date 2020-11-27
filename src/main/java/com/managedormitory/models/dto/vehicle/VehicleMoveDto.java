@@ -1,4 +1,4 @@
-package com.managedormitory.models.dto.student;
+package com.managedormitory.models.dto.vehicle;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,12 +11,11 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class StudentMoveDto {
+public class VehicleMoveDto {
     private Integer id;
-    private String name;
+    private String licensePlates;
+    private String studentName;
     private LocalDate leavingDate;
-    private float numberOfRoomMoney;
-    private float numberOfWaterMoney;
     private float numberOfVehicleMoney;
-    private Integer roomId;
+    private Integer studentId;
 }

@@ -66,6 +66,11 @@ public class StudentController {
         return studentService.durationMoneyBetweenTwoRoom(oldRoomId, newRoomId);
     }
 
+    @GetMapping("/student")
+    public List<StudentDetailDto> getStudentByName(@RequestParam(required = false) String studentIdCard) {
+        return studentService.getStudentsByIdCard(studentIdCard);
+    }
+
     @PostMapping("/addStudent")
     public StudentDto addStudent(@RequestBody StudentNewDto studentNewDto) {
         return studentService.addStudent(studentNewDto);

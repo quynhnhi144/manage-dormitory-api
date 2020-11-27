@@ -11,6 +11,7 @@ import java.sql.Date;
 @ToString
 public class StudentDetailDto {
     private Integer id;
+    private String idCard;
     private String name;
     private Date birthday;
     private String phone;

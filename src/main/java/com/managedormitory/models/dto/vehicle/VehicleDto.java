@@ -1,4 +1,4 @@
-package com.managedormitory.models.dto;
+package com.managedormitory.models.dto.vehicle;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +14,7 @@ import java.sql.Date;
 public class VehicleDto {
     private Integer id;
     private String licensePlates;
+    private Integer typeVehicleId;
     private String typeVehicle;
     private Integer studentId;
     private String studentName;
@@ -22,4 +23,5 @@ public class VehicleDto {
     private String userManager;
     private Date startDate;
     private Date endDate;
+    private Integer vehiclePriceId;
 }
