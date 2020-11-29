@@ -50,7 +50,7 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                         "         left join room r on r.id = s.room_id\n" +
                         "         join campus c on r.campus_id = c.id\n" +
                         "         left join type_room tr on r.type_room_id = tr.id\n" +
-                        "         join users u on u.user_id = c.user_id\n" +
+                        "         join users u on u.id = c.user_id\n" +
                         "         join detail_room dr on s.id = dr.student_id\n" +
                         "         join water_bill wb on s.id = wb.student_id\n" +
                         "         left join vehicle v on v.student_id = s.id\n" +

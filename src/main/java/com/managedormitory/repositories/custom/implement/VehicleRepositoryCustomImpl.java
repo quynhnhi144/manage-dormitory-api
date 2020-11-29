@@ -45,7 +45,7 @@ public class VehicleRepositoryCustomImpl implements VehicleRepositoryCustom {
                         "         LEFT JOIN vehicle_bill vb on v.id = vb.vehicle_id\n" +
                         "         LEFT JOIN room r on r.id = s.room_id\n" +
                         "         LEFT JOIN campus c on c.id = r.campus_id\n" +
-                        "         LEFT JOIN users u on u.user_id = c.user_id\n" +
+                        "         LEFT JOIN users u on u.id = c.user_id\n" +
                         "WHERE vb.end_date >= :currentDate\n" +
                         "GROUP BY v.id,\n" +
                         "         v.license_plates,\n" +

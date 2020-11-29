@@ -2,12 +2,13 @@ package com.managedormitory.models.dao;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.managedormitory.models.dto.CampusDto;
 import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +29,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column
-    private Integer userId;
+    private Integer id;
 
     @Column(length = 100, unique = true, nullable = false)
     @Size(min = 1, max = 50)
@@ -49,7 +50,7 @@ public class User {
 
     @Column
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate birthday;
+    private Date birthday;
 
     @Email
     @NonNull
@@ -71,7 +72,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    public User(String username, String password, String fullName, LocalDate birthday, String email, String address, String phone) {
+    public User(String username, String password, String fullName, Date birthday, String email, String address, String phone) {
         this.username = username;
         this.password = password;
         this.fullName = fullName;

@@ -1,5 +1,6 @@
 package com.managedormitory.controllers;
 
+import com.managedormitory.models.dto.UserUpdate;
 import com.managedormitory.models.dto.pagination.PaginationUser;
 import com.managedormitory.models.dto.UserDto;
 import com.managedormitory.services.UserService;
@@ -21,7 +22,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserDto getDetailUser(@PathVariable Integer id){
+    public UserDto getDetailUser(@PathVariable Integer id) {
         try {
             return userService.getUserById(id);
         } catch (Exception e) {
@@ -30,8 +31,23 @@ public class UserController {
         return null;
     }
 
+    @GetMapping("/profile/{username}")
+    public UserDto getProfile(@PathVariable String username) {
+        try {
+            return userService.getProfile(username);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
     @GetMapping("/all")
-    public List<UserDto> getAllusers(){
+    public List<UserDto> getAllUsers() {
         return userService.getAllUserDto();
+    }
+
+    @PatchMapping("/{id}")
+    public UserDto updateUser(@PathVariable Integer id, @RequestBody UserUpdate userUpdate) {
+        return userService.updateUser(id, userUpdate);
     }
 }
