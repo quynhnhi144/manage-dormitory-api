@@ -1,6 +1,5 @@
 package com.managedormitory.models.dto;
 
-import com.managedormitory.models.dao.Campus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,5 +20,5 @@ public class UserDto {
     private String email;
     private String address;
     private String phone;
-    private List<Campus> campuses;
+    private List<CampusDto> campuses;
 }

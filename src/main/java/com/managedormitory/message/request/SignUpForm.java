@@ -2,6 +2,8 @@ package com.managedormitory.message.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.managedormitory.models.dao.Campus;
+import com.managedormitory.models.dto.CampusDto;
+import com.managedormitory.models.dto.UserUpdate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,8 +32,7 @@ public class SignUpForm {
     @Size(min = 3, max = 50)
     private String fullName;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate birthday;
+    private String birthday;
 
     @NotBlank
     @Size(max = 60)
@@ -44,7 +45,7 @@ public class SignUpForm {
     @Size(min = 10, max = 11)
     private String phone;
 
-    private List<Campus> campuses;
+    private List<CampusDto> campuses;
 
     private Set role;
 }

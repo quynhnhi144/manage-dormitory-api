@@ -10,6 +10,7 @@ import com.managedormitory.models.dao.User;
 import com.managedormitory.repositories.RoleRepository;
 import com.managedormitory.repositories.UserRepository;
 import com.managedormitory.security.jwt.JwtProvider;
+import com.managedormitory.utils.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -73,7 +74,7 @@ public class AuthRestAPIs {
         User user = new User(signUpRequest.getUsername(),
                 encoder.encode(signUpRequest.getPassword()),
                 signUpRequest.getFullName(),
-                signUpRequest.getBirthday(),
+                DateUtil.getSDateFromLDate(DateUtil.getLDateFromString(signUpRequest.getBirthday())),
                 signUpRequest.getEmail(),
                 signUpRequest.getAddress(),
                 signUpRequest.getPhone());
@@ -97,6 +98,7 @@ public class AuthRestAPIs {
 
         user.setRoles(roles);
         userRepository.save(user);
+
         return new ResponseEntity(new ResponseMessage("User đã đăng ký thành công!!!"), HttpStatus.OK);
     }
 }

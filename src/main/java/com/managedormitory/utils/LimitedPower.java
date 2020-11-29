@@ -14,6 +14,7 @@ public class LimitedPower {
     public static final float HIGHER_POWER_FINES = 0.889f;
 
     public static final int BATCH_SIZE = 14;
+    public static final int BATCH_SIZE_CAMPUS = 1;
     public static final int NUMBER_OF_DATE = 30;
 
 }

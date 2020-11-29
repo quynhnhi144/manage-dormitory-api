@@ -46,7 +46,7 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
                         "v.vehicle_price_id AS vehiclePriceId\n" +
                         "FROM room r\n" +
                         "join campus c on c.id = r.campus_id\n" +
-                        "join users u on u.user_id = c.user_id\n" +
+                        "join users u on u.id = c.user_id\n" +
                         "left join type_room tr on tr.id = r.type_room_id\n" +
                         "left join student s on r.id = s.room_id\n" +
                         "left join water_bill wb on s.id = wb.student_id\n" +
