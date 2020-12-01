@@ -1,5 +1,6 @@
 package com.managedormitory.repositories.custom;
 
+import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.vehicle.VehicleBillDto;
 import com.managedormitory.models.dto.WaterBillDto;
 import com.managedormitory.models.dto.room.RoomBillDto;
@@ -23,4 +24,6 @@ public interface StudentRepositoryCustom {
     int addStudentLeft(StudentMoveDto studentMoveDto);
 
     int addStudent(StudentDto studentDto);
+
+    int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto);
 }

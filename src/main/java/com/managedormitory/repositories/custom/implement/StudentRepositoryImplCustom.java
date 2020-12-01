@@ -1,8 +1,7 @@
 package com.managedormitory.repositories.custom.implement;
 
-import com.managedormitory.models.dto.vehicle.VehicleBillDto;
 import com.managedormitory.models.dto.WaterBillDto;
-import com.managedormitory.models.dto.room.RoomBillDto;
+import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentMoveDto;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
@@ -172,6 +171,23 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .setParameter("endingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentDto.getEndingDateOfStay()))
                 .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, studentDto.getRoomId()))
                 .setParameter("waterPriceId", new TypedParameterValue(IntegerType.INSTANCE, studentDto.getWaterPriceId()));
+        return query.executeUpdate();
+    }
+
+    @Override
+    public int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto) {
+        String queryAddStudentForRemainingRoom = "INSERT INTO register_room (address, birthday, email, id_card, phone, starting_date_of_stay, student_name, room_id)\n" +
+                "VALUES(:address, :birthday, :email, :idCard, :phone, :startingDateOfStay, :studentName, :roomId)";
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAddStudentForRemainingRoom);
+        query.setParameter("address", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getAddress()))
+                .setParameter("birthday", new TypedParameterValue(DateType.INSTANCE, registerRoomDto.getBirthday()))
+                .setParameter("email", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getEmail()))
+                .setParameter("idCard", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getIdCard()))
+                .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getPhone()))
+                .setParameter("startingDateOfStay", new TypedParameterValue(DateType.INSTANCE, registerRoomDto.getStartingDateOfStay()))
+                .setParameter("studentName", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getStudentName()))
+                .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, registerRoomDto.getRoomId()));
+
         return query.executeUpdate();
     }
 

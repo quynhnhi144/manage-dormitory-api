@@ -54,4 +54,8 @@ public class Room {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "room")
     @JsonIgnore
     private List<PowerBill> powerBills;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "room")
+    @JsonIgnore
+    private List<RegisterRoom> registerRooms;
 }

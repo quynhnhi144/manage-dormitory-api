@@ -3,6 +3,7 @@ package com.managedormitory.repositories.custom.implement;
 import com.managedormitory.models.dao.WaterBill;
 import com.managedormitory.models.dto.WaterBillDto;
 import com.managedormitory.repositories.custom.WaterBillRepositoryCustom;
+import com.managedormitory.utils.DateUtil;
 import org.hibernate.Session;
 import org.hibernate.jpa.TypedParameterValue;
 import org.hibernate.query.NativeQuery;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
@@ -23,14 +25,16 @@ public class WaterBillRepositoryCustomImpl implements WaterBillRepositoryCustom 
 
     @Override
     public int addWaterBill(WaterBillDto waterBillDto) {
-        String queryAdd = "INSERT INTO water_bill(start_date, end_date, student_id, payed_money)\n" +
-                "VALUES(:startDate, :endDate, :studentId, :payedMoney)";
+        LocalDate currentDate = LocalDate.now();
+        String queryAdd = "INSERT INTO water_bill(start_date, end_date, student_id, payed_money, create_date)\n" +
+                "VALUES(:startDate, :endDate, :studentId, :payedMoney, :createDate)";
 
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAdd);
         query.setParameter("startDate", new TypedParameterValue(DateType.INSTANCE, waterBillDto.getStartDate()))
                 .setParameter("endDate", new TypedParameterValue(DateType.INSTANCE, waterBillDto.getEndDate()))
                 .setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, waterBillDto.getStudentId()))
-                .setParameter("payedMoney", new TypedParameterValue(FloatType.INSTANCE, waterBillDto.getPrice()));
+                .setParameter("payedMoney", new TypedParameterValue(FloatType.INSTANCE, waterBillDto.getPrice()))
+                .setParameter("currentDate", new TypedParameterValue(DateType.INSTANCE, DateUtil.getSDateFromLDate(currentDate)));
         return query.executeUpdate();
     }
 

@@ -6,6 +6,7 @@ import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dao.*;
 import com.managedormitory.models.dto.*;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
+import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomDto;
 import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
@@ -370,6 +371,16 @@ public class StudentServiceImpl implements StudentService {
         return getAllStudentDto().stream()
                 .filter(studentDetailDto -> studentDetailDto.getName().equals(idCard))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto) {
+        if (studentRepositoryCustom.registerRemainingRoomForStudent(registerRoomDto) > 0) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
 }

@@ -28,7 +28,7 @@ public interface RoomService {
 
     DetailRoomDto updateTypeRoom(Integer id, DetailRoomDto room);
 
-    List<DetailRoomDto> getAllRemainingRoomDto();
+    List<DetailRoomDto> getAllRemainingRoomDto(String searchText);
 
     int countRoom();
 

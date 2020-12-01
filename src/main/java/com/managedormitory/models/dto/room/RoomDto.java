@@ -23,15 +23,16 @@ public class RoomDto {
     private String userManager;
 
     private Integer waterPriceId;
+
     private Integer vehiclePriceId;
 
     public RoomDto(Room room) {
         this.id = room.getId();
         this.name = room.getName();
         this.quantityStudent = room.getQuantityStudent();
-        if(room.getTypeRoom() == null){
+        if (room.getTypeRoom() == null) {
             this.typeRoomName = null;
-        }else{
+        } else {
             this.typeRoomName = room.getTypeRoom().getName();
         }
         this.campusName = room.getCampus().getName();
