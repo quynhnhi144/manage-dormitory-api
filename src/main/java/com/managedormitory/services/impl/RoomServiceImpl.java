@@ -195,12 +195,20 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public List<DetailRoomDto> getAllRemainingRoomDto() {
-        List<DetailRoomDto> detailRoomDtos = getAllDetailRoomDto();
-        return detailRoomDtos.stream()
+    public List<DetailRoomDto> getAllRemainingRoomDto(String searchText) {
+        List<DetailRoomDto> detailRoomDtos = getAllDetailRoomDto().stream()
                 .filter(detailRoomDto -> detailRoomDto.getTypeRoom() != null && detailRoomDto.getTypeRoom().getMaxQuantity() - detailRoomDto.getQuantityStudent() > 0
                         || (detailRoomDto.getQuantityStudent() == 0 && detailRoomDto.getStudents().size() == 0))
                 .collect(Collectors.toList());
+
+        if (searchText != null && !searchText.equals("")) {
+            String searchTextConverted = searchText.toLowerCase() + StringUtil.DOT_STAR;
+            detailRoomDtos = detailRoomDtos.stream()
+                    .filter(detailRoomDto -> detailRoomDto.getName().toLowerCase().matches(searchTextConverted)
+                            || detailRoomDto.getTypeRoom().getName().toLowerCase().matches(searchTextConverted))
+                    .collect(Collectors.toList());
+        }
+        return detailRoomDtos;
     }
 
     @Override
@@ -210,7 +218,7 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public int countRemainingRoom() {
-        return getAllRemainingRoomDto().size();
+        return getAllRemainingRoomDto("").size();
     }
 
 }

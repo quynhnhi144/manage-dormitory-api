@@ -37,8 +37,8 @@ public class RoomController {
     }
 
     @GetMapping("/remaining-room")
-    public List<DetailRoomDto> getAllRemainingRooms() {
-        return roomService.getAllRemainingRoomDto();
+    public List<DetailRoomDto> getAllRemainingRooms(@RequestParam(required = false) String searchText) {
+        return roomService.getAllRemainingRoomDto(searchText);
     }
 
     @GetMapping("/{id}")

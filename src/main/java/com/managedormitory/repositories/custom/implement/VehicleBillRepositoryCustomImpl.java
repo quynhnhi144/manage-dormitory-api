@@ -50,10 +50,9 @@ public class VehicleBillRepositoryCustomImpl implements VehicleBillRepositoryCus
                         "             join vehicle v on v.id = vb.vehicle_id\n" +
                         "             left join student s2 on s2.id = v.student_id\n" +
                         "    where v.id = :vehicleId)\n" +
-                        "\n" +
                         "select vb.bill_id       as billId,\n" +
                         "       s.name           as studentName,\n" +
-                        "       v.id             as vehicleId,\n" +
+                        "       v2.id             as vehicleId,\n" +
                         "       v2.student_id    as studentId,\n" +
                         "       vb.start_date    as startDate,\n" +
                         "       vb.end_date      as endDate,\n" +

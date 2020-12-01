@@ -5,6 +5,7 @@ import com.managedormitory.models.dao.StudentLeft;
 import com.managedormitory.models.dto.DurationBetweenTwoRoom;
 import com.managedormitory.models.dto.InfoSwitchRoom;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
+import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
 import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
@@ -46,4 +47,6 @@ public interface StudentService {
     int switchRoomForStudent(InfoSwitchRoom infoSwitchRoom, Integer studentId);
 
     List<StudentDetailDto> getStudentsByIdCard(String idCard);
+
+    int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto);
 }
