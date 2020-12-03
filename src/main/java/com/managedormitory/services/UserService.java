@@ -21,7 +21,7 @@ public interface UserService {
 
     UserDto updateUser(Integer id, UserUpdate userUpdate);
 
-//    UserDto newUser(SignUpForm newUser);
+    int deleteUser(Integer id);
 
     int countUser();
 }

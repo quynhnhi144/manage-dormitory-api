@@ -3,6 +3,7 @@ package com.managedormitory.services.impl;
 import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
+import com.managedormitory.helper.PowerBillExcelHelper;
 import com.managedormitory.models.dao.PriceList;
 import com.managedormitory.models.dao.Vehicle;
 import com.managedormitory.models.dao.VehicleBill;
@@ -24,11 +25,18 @@ import com.managedormitory.services.VehicleService;
 import com.managedormitory.utils.CalculateMoney;
 import com.managedormitory.utils.DateUtil;
 import com.managedormitory.utils.PaginationUtils;
+import com.managedormitory.utils.StringUtil;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -90,7 +98,11 @@ public class VehicleServiceImpl implements VehicleService {
             } else {
                 vehicleDetailDto.setRoomName(vehicle.getStudentId().getRoom().getName());
                 vehicleDetailDto.setCampusName(vehicle.getStudentId().getRoom().getCampus().getName());
-                vehicleDetailDto.setUserManager(vehicle.getStudentId().getRoom().getCampus().getUserManager().getFullName());
+                if (vehicle.getStudentId().getRoom().getCampus().getUserManager() == null) {
+                    vehicleDetailDto.setUserManager(null);
+                } else {
+                    vehicleDetailDto.setUserManager(vehicle.getStudentId().getRoom().getCampus().getUserManager().getFullName());
+                }
             }
 
             if (vehicleDtoIdList.contains(vehicle.getId())) {
@@ -193,6 +205,36 @@ public class VehicleServiceImpl implements VehicleService {
         remainingMoneyOfVehicle = Math.abs(CalculateMoney.calculateRemainingMoney(startDateVehicleBill, endDateVehicleBill, priceList.getPrice()));
 
         return new VehicleBillDto(null, roomBillDto.getStudentName(), roomBillDto.getStudentId(), DateUtil.getSDateFromLDate(startDateVehicleBill), DateUtil.getSDateFromLDate(endDateVehicleBill), remainingMoneyOfVehicle, roomBillDto.getRoomId(), null);
+    }
+
+    @Override
+    public ByteArrayInputStream exportExcel() throws IOException {
+        List<VehicleDetailDto> vehicleDetailDtos = getAllVehicleDto();
+        PowerBillExcelHelper<VehicleDetailDto> powerBillExcelHelper = new PowerBillExcelHelper<>(vehicleDetailDtos);
+        powerBillExcelHelper.writeHeaderLine(StringUtil.HEADER_VEHICLES, StringUtil.SHEET_VEHICLE);
+        powerBillExcelHelper.writeDataLines(vehicleDetailDto -> {
+            int rowCount = 1;
+            CellStyle style = powerBillExcelHelper.getWorkbook().createCellStyle();
+            XSSFFont font = powerBillExcelHelper.getWorkbook().createFont();
+            font.setFontHeight(14);
+            style.setFont(font);
+
+            for (VehicleDetailDto vehicleDetailDtoCurrent : vehicleDetailDtos) {
+                Row row = powerBillExcelHelper.getSheet().createRow(rowCount++);
+                int columnCount = 0;
+                powerBillExcelHelper.createCell(row, columnCount++, vehicleDetailDtoCurrent.getId(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, vehicleDetailDtoCurrent.getLicensePlates(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, vehicleDetailDtoCurrent.getTypeVehicle().getName(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, vehicleDetailDtoCurrent.getStudentDto().getName(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, vehicleDetailDtoCurrent.isPayVehicleBill() ? "x" : "--", style);
+                powerBillExcelHelper.createCell(row, columnCount++, vehicleDetailDtoCurrent.isActive() ? "x" : "--", style);
+            }
+        });
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        powerBillExcelHelper.getWorkbook().write(outputStream);
+        powerBillExcelHelper.getWorkbook().close();
+        outputStream.close();
+        return new ByteArrayInputStream(outputStream.toByteArray());
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -45,9 +45,6 @@ import java.util.stream.Collectors;
 @Service
 public class PowerBillServiceImpl implements PowerBillService {
     @Autowired
-    private PowerBillRepository powerBillRepository;
-
-    @Autowired
     private PowerBillRepositoryCustom powerBillRepositoryCustom;
 
     @Autowired
@@ -161,7 +158,7 @@ public class PowerBillServiceImpl implements PowerBillService {
     public ByteArrayInputStream exportExcelFile(LocalDate currentDate) throws IOException {
         List<PowerBillDetail> powerBillDetails = getAllDetailPowerBills(currentDate);
         PowerBillExcelHelper<PowerBillDetail> powerBillExcelHelper = new PowerBillExcelHelper(powerBillDetails);
-        powerBillExcelHelper.writeHeaderLine(StringUtil.HEADER_POWER_BILLS);
+        powerBillExcelHelper.writeHeaderLine(StringUtil.HEADER_POWER_BILLS, StringUtil.SHEET_POWERBILL);
         powerBillExcelHelper.writeDataLines(powerBillDetail -> {
             int rowCount = 1;
 

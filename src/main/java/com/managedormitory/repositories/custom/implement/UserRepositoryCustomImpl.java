@@ -80,7 +80,6 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 
     @Override
     public int updateCampus(UserUpdate userUpdate) {
-        System.out.println("caampus: " + userUpdate);
         String queryUpdateCampus = "UPDATE campus\n" +
                 "SET user_id = ?\n" +
                 "WHERE id = ?";
@@ -123,6 +122,25 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .addScalar("username", StandardBasicTypes.STRING);
         query.setResultTransformer(new AliasToBeanResultTransformer(User.class));
         return safeObject(query);
+    }
+
+    @Override
+    public int deleteUser(Integer id) {
+        String queryDelete = "DELETE FROM users WHERE id = :id";
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryDelete);
+        query.setParameter("id", new TypedParameterValue(IntegerType.INSTANCE, id));
+        return query.executeUpdate();
+    }
+
+    @Override
+    public int deleteCampusForDeleteUser(Integer campusId) {
+        String queryUpdateCampus = "UPDATE campus\n" +
+                "SET user_id = null\n" +
+                "WHERE id = :campusId";
+
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryUpdateCampus);
+        query.setParameter("campusId", new TypedParameterValue(IntegerType.INSTANCE, campusId));
+        return query.executeUpdate();
     }
 
     public static <Entity> List<Entity> safeList(Query query) {

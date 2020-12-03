@@ -16,4 +16,8 @@ public interface UserRepositoryCustom {
     int updateCampus(UserUpdate userUpdate);
 
     Optional<User> getUser(Integer id);
+
+    int deleteUser(Integer id);
+
+    int deleteCampusForDeleteUser(Integer campusId);
 }

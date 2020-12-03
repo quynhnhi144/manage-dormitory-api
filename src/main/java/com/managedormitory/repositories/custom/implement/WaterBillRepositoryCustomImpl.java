@@ -34,7 +34,7 @@ public class WaterBillRepositoryCustomImpl implements WaterBillRepositoryCustom 
                 .setParameter("endDate", new TypedParameterValue(DateType.INSTANCE, waterBillDto.getEndDate()))
                 .setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, waterBillDto.getStudentId()))
                 .setParameter("payedMoney", new TypedParameterValue(FloatType.INSTANCE, waterBillDto.getPrice()))
-                .setParameter("currentDate", new TypedParameterValue(DateType.INSTANCE, DateUtil.getSDateFromLDate(currentDate)));
+                .setParameter("createDate", new TypedParameterValue(DateType.INSTANCE, DateUtil.getSDateFromLDate(currentDate)));
         return query.executeUpdate();
     }
 

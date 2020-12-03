@@ -13,7 +13,6 @@ public class CampusCovertToCampusDto extends Converter<Campus, CampusDto> {
         CampusDto campusDto = new CampusDto();
         campusDto.setId(source.getId());
         campusDto.setName(source.getName());
-        campusDto.setUserManager(source.getUserManager().getFullName());
         return campusDto;
     }
 }

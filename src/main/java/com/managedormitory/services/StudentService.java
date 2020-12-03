@@ -15,6 +15,9 @@ import com.managedormitory.models.dto.student.StudentMoveDto;
 import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface StudentService {
@@ -43,6 +46,10 @@ public interface StudentService {
     DurationBetweenTwoRoom durationMoneyBetweenTwoRoom(Integer oldRoomId, Integer newRoomId);
 
     StudentDto addStudent(StudentNewDto studentNewDto);
+
+    ByteArrayInputStream exportPDFStudentNew(StudentNewDto studentNewDto);
+
+    ByteArrayInputStream exportExcel() throws IOException;
 
     int switchRoomForStudent(InfoSwitchRoom infoSwitchRoom, Integer studentId);
 

@@ -5,10 +5,17 @@ import com.managedormitory.models.dto.vehicle.*;
 import com.managedormitory.models.dto.pagination.PaginationVehicle;
 import com.managedormitory.models.filter.VehicleFilter;
 import com.managedormitory.services.VehicleService;
+import com.managedormitory.utils.StringUtil;
 import org.hibernate.type.IntegerType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -51,6 +58,20 @@ public class VehicleController {
     @GetMapping("/{studentId}/paymentVehicle")
     public VehicleBillDto getPaymentVehicle(@PathVariable Integer studentId) {
         return vehicleService.VehicleBillInfoForNewVehicle(studentId);
+    }
+
+    @GetMapping("/exportExcel")
+    public ResponseEntity<Resource> exportExcelFile() {
+        try {
+            InputStreamResource file = new InputStreamResource(vehicleService.exportExcel());
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + StringUtil.FILE_NAME_EXCEL_VEHICLE)
+                    .contentType(MediaType.parseMediaType(StringUtil.MEDIA_TYPE))
+                    .body(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
+        return null;
     }
 
     @PostMapping("/vehicle")

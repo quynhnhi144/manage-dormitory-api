@@ -36,6 +36,5 @@ public class RoomDto {
             this.typeRoomName = room.getTypeRoom().getName();
         }
         this.campusName = room.getCampus().getName();
-        this.userManager = room.getCampus().getUserManager().getFullName();
     }
 }

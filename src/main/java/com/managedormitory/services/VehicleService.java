@@ -7,6 +7,8 @@ import com.managedormitory.models.dto.vehicle.*;
 import com.managedormitory.models.filter.VehicleFilter;
 import org.hibernate.type.IntegerType;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +28,8 @@ public interface VehicleService {
     VehicleMoveDto getInfoMovingVehicle(Integer vehicleId);
 
     VehicleBillDto VehicleBillInfoForNewVehicle(Integer studentId);
+
+    ByteArrayInputStream exportExcel() throws IOException;
 
     int addVehicleLeft(VehicleMoveDto vehicleMoveDto);
 
