@@ -26,7 +26,6 @@ public class Campus {
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id")
-    @NonNull
     //@NotBlank(message = "User is mandatory")
     private User userManager;
 

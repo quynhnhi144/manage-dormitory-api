@@ -3,8 +3,8 @@ package com.managedormitory.services.impl;
 import com.managedormitory.converters.CampusCovertToCampusDto;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
-import com.managedormitory.message.request.SignUpForm;
 import com.managedormitory.models.dao.User;
+import com.managedormitory.models.dto.CampusDto;
 import com.managedormitory.models.dto.UserUpdate;
 import com.managedormitory.models.dto.pagination.PaginationUser;
 import com.managedormitory.models.dto.UserDto;
@@ -127,6 +127,26 @@ public class UserServiceImpl implements UserService {
             }
         }
         return null;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int deleteUser(Integer id) {
+        UserDto userDto = getUserById(id);
+
+        UserUpdate userUpdate = new UserUpdate(userDto, null, null);
+        List<CampusDto> campusDtos = userUpdate.getUserDto().getCampuses();
+        long count = campusDtos.stream()
+                .map(campusDto -> userRepositoryCustom.deleteCampusForDeleteUser(campusDto.getId()))
+                .filter(result -> result > 0)
+                .count();
+
+        int resultDeleteUser = userRepositoryCustom.deleteUser(id);
+        if (count == campusDtos.size() && resultDeleteUser > 0) {
+            return 1;
+        } else {
+            throw new BadRequestException("Khong the xoa nhan vien");
+        }
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.managedormitory.services.impl;
 
-import com.managedormitory.converters.RoomConvertToRoomDto;
 import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
@@ -9,17 +8,16 @@ import com.managedormitory.models.dao.Room;
 import com.managedormitory.models.dao.StudentLeft;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
-import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomDto;
-import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
 import com.managedormitory.models.dto.student.StudentDto;
+import com.managedormitory.models.dto.student.StudentMoveDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.repositories.PriceListRepository;
 import com.managedormitory.repositories.RoomRepository;
 import com.managedormitory.repositories.StudentLeftRepository;
 import com.managedormitory.repositories.custom.RoomRepositoryCustom;
-import com.managedormitory.repositories.custom.StudentRepositoryCustom;
 import com.managedormitory.services.RoomService;
+import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -47,10 +45,10 @@ public class RoomServiceImpl implements RoomService {
     private StudentLeftRepository studentLeftRepository;
 
     @Autowired
-    private StudentRepositoryCustom studentRepositoryCustom;
+    private PriceListRepository priceListRepository;
 
     @Autowired
-    private PriceListRepository priceListRepository;
+    private StudentService studentService;
 
     @Override
     public List<Room> getAllRooms() {
@@ -84,7 +82,11 @@ public class RoomServiceImpl implements RoomService {
                 detailRoomDto.setTypeRoom(room.getTypeRoom());
             }
             detailRoomDto.setCampusName(room.getCampus().getName());
-            detailRoomDto.setUserManager(room.getCampus().getUserManager().getFullName());
+            if (room.getCampus().getUserManager() == null) {
+                detailRoomDto.setUserManager(null);
+            } else {
+                detailRoomDto.setUserManager(room.getCampus().getUserManager().getFullName());
+            }
             detailRoomDto.setPriceRoom(room.getPriceList().getPrice());
             if (roomDtosDdList.contains(room.getId())) {
                 detailRoomDto.setIsPayRoom(true);
@@ -166,27 +168,6 @@ public class RoomServiceImpl implements RoomService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean deleteStudentInRoom(Integer roomId, StudentDto studentDtoNew) throws NotFoundException {
-        DetailRoomDto currentDetailRoomDto = getRoomById(roomId);
-        List<StudentDto> studentDtos = currentDetailRoomDto.getStudents();
-        int resultStudent = 0;
-        int resultQuantity = 0;
-        int resultTypeRoom = 0;
-        for (StudentDto studentDto : studentDtos) {
-            if (studentDto.getId() == studentDtoNew.getId()) {
-                resultStudent = studentRepositoryCustom.updateRoomIdForStudent(studentDtoNew.getId(), null);
-                resultQuantity = roomRepositoryCustom.updateQuantityStudent(roomId);
-                resultTypeRoom = roomRepositoryCustom.updateTypeRoom(roomId, currentDetailRoomDto);
-            }
-        }
-        if (resultStudent > 0 && resultQuantity > 0 && resultTypeRoom > 0) {
-            return true;
-        }
-        throw new NotFoundException("Cannot implement the method");
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
     public DetailRoomDto updateTypeRoom(Integer id, DetailRoomDto room) throws BadRequestException {
         if (roomRepositoryCustom.updateTypeRoom(id, room) <= 0) {
             throw new BadRequestException("Cannot implement update");
@@ -209,6 +190,14 @@ public class RoomServiceImpl implements RoomService {
                     .collect(Collectors.toList());
         }
         return detailRoomDtos;
+    }
+
+    @Override
+    public List<StudentMoveDto> getPaymentOfAllStudentsInRoom(Integer id) {
+        DetailRoomDto detailRoomDto = getRoomById(id);
+        return detailRoomDto.getStudents().stream()
+                .map(studentDto -> studentService.getInfoMovingStudent(studentDto.getId()))
+                .collect(Collectors.toList());
     }
 
     @Override

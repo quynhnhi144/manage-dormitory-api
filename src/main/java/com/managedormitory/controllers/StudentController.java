@@ -5,7 +5,6 @@ import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dto.DurationBetweenTwoRoom;
 import com.managedormitory.models.dto.InfoSwitchRoom;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
-import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
 import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
@@ -13,9 +12,17 @@ import com.managedormitory.models.dto.student.StudentMoveDto;
 import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.services.StudentService;
+import com.managedormitory.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -69,6 +76,36 @@ public class StudentController {
     @GetMapping("/student")
     public List<StudentDetailDto> getStudentByName(@RequestParam(required = false) String studentIdCard) {
         return studentService.getStudentsByIdCard(studentIdCard);
+    }
+
+    @GetMapping("/exportExcel")
+    public ResponseEntity<Resource> exportExcelFile() {
+        try {
+            InputStreamResource file = new InputStreamResource(studentService.exportExcel());
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + StringUtil.FILE_NAME_EXCEL_POWER_BILL)
+                    .contentType(MediaType.parseMediaType(StringUtil.MEDIA_TYPE))
+                    .body(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    @GetMapping("/demoExport")
+    public ResponseEntity<Resource> demo(@RequestBody StudentNewDto studentNewDto) {
+        InputStreamResource file = new InputStreamResource(studentService.exportPDFStudentNew(studentNewDto));
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + studentNewDto.getStudentDto().getIdCard() + LocalDate.now().toString() + ".pdf")
+                .contentType(MediaType.parseMediaType("application/pdf"))
+                .body(file);
+    }
+
+    @PostMapping("/exportPDF")
+    public ResponseEntity<Resource> exportToPDF(@RequestBody StudentNewDto studentNewDto) {
+        InputStreamResource file = new InputStreamResource(studentService.exportPDFStudentNew(studentNewDto));
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + studentNewDto.getStudentDto().getIdCard() + LocalDate.now().toString() + ".pdf")
+                .contentType(MediaType.parseMediaType("application/pdf"))
+                .body(file);
     }
 
     @PostMapping("/addStudent")

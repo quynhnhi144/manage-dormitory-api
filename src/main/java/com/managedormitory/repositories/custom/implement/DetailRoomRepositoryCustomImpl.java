@@ -33,7 +33,7 @@ public class DetailRoomRepositoryCustomImpl implements DetailRoomRepositoryCusto
                 .setParameter("endDate", new TypedParameterValue(DateType.INSTANCE, roomBillDto.getEndDate()))
                 .setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, roomBillDto.getStudentId()))
                 .setParameter("payedMoney", new TypedParameterValue(FloatType.INSTANCE, roomBillDto.getPrice()))
-                .setParameter("currentDate", new TypedParameterValue(DateType.INSTANCE, DateUtil.getSDateFromLDate(currentDate)));
+                .setParameter("createDate", new TypedParameterValue(DateType.INSTANCE, DateUtil.getSDateFromLDate(currentDate)));
         return query.executeUpdate();
     }
 

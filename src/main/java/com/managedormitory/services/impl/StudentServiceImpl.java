@@ -3,6 +3,8 @@ package com.managedormitory.services.impl;
 import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
+import com.managedormitory.helper.ExportBillNewStudent;
+import com.managedormitory.helper.PowerBillExcelHelper;
 import com.managedormitory.models.dao.*;
 import com.managedormitory.models.dto.*;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
@@ -26,10 +28,16 @@ import com.managedormitory.utils.CalculateMoney;
 import com.managedormitory.utils.DateUtil;
 import com.managedormitory.utils.PaginationUtils;
 import com.managedormitory.utils.StringUtil;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -333,6 +341,48 @@ public class StudentServiceImpl implements StudentService {
         }
         return null;
     }
+
+    @Override
+    public ByteArrayInputStream exportPDFStudentNew(StudentNewDto studentNewDto) {
+        ExportBillNewStudent exportBillNewStudent = new ExportBillNewStudent(studentNewDto);
+        ByteArrayInputStream inputStream = exportBillNewStudent.export(studentNewDto);
+        return inputStream;
+    }
+
+    @Override
+    public ByteArrayInputStream exportExcel() throws IOException {
+        List<StudentDetailDto> studentDetailDtos = getAllStudentDto();
+        PowerBillExcelHelper<StudentDetailDto> powerBillExcelHelper = new PowerBillExcelHelper(studentDetailDtos);
+        powerBillExcelHelper.writeHeaderLine(StringUtil.HEADER_STUDENTS, StringUtil.SHEET_STUDENT);
+        powerBillExcelHelper.writeDataLines(studentDetailDto -> {
+            int rowCount = 1;
+            CellStyle style = powerBillExcelHelper.getWorkbook().createCellStyle();
+            XSSFFont font = powerBillExcelHelper.getWorkbook().createFont();
+            font.setFontHeight(14);
+            style.setFont(font);
+
+            for (StudentDetailDto studentDetailDtoCurrent : studentDetailDtos) {
+                Row row = powerBillExcelHelper.getSheet().createRow(rowCount++);
+                int columnCount = 0;
+                powerBillExcelHelper.createCell(row, columnCount++, studentDetailDtoCurrent.getId(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, studentDetailDtoCurrent.getIdCard(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, studentDetailDtoCurrent.getName(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, studentDetailDtoCurrent.getPhone(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, studentDetailDtoCurrent.getAddress(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, studentDetailDtoCurrent.getRoomDto().getName(), style);
+                powerBillExcelHelper.createCell(row, columnCount++, studentDetailDtoCurrent.getIsPayRoom() ? "x" : "--", style);
+                powerBillExcelHelper.createCell(row, columnCount++, studentDetailDtoCurrent.getIsPayWaterBill() ? "x" : "--", style);
+                powerBillExcelHelper.createCell(row, columnCount++, studentDetailDtoCurrent.isActive() ? "x" : "--", style);
+            }
+        });
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        powerBillExcelHelper.getWorkbook().write(outputStream);
+        powerBillExcelHelper.getWorkbook().close();
+        outputStream.close();
+        return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
 
     @Transactional(rollbackFor = Exception.class)
     @Override

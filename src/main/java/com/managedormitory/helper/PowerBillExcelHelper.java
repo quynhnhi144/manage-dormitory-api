@@ -37,8 +37,8 @@ public class PowerBillExcelHelper<E> {
         this.sheet = sheet;
     }
 
-    public void writeHeaderLine(String[] strings) {
-        sheet = workbook.createSheet("Rooms");
+    public void writeHeaderLine(String[] strings, String sheetName) {
+        sheet = workbook.createSheet(sheetName);
 
         Row row = sheet.createRow(0);
 

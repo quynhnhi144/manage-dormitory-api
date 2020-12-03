@@ -85,7 +85,7 @@ public class PowerBillController {
         try {
             InputStreamResource file = new InputStreamResource(powerBillService.exportExcelFile(currentDate));
             return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + StringUtil.FILE_NAME_EXCEL_POWER_BILL)
-                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .contentType(MediaType.parseMediaType(StringUtil.MEDIA_TYPE))
                     .body(file);
         } catch (IOException e) {
             System.out.println(e.getMessage());

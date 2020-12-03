@@ -2,6 +2,7 @@ package com.managedormitory.models.dto.student;
 
 import com.managedormitory.models.dto.WaterBillDto;
 import com.managedormitory.models.dto.room.RoomBillDto;
+import com.managedormitory.models.dto.vehicle.VehicleBillDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

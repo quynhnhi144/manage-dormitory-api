@@ -4,6 +4,7 @@ import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
 import com.managedormitory.models.dto.student.StudentDto;
+import com.managedormitory.models.dto.student.StudentMoveDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.services.RoomService;
 import com.managedormitory.utils.StringUtil;
@@ -63,9 +64,9 @@ public class RoomController {
         return null;
     }
 
-    @PutMapping("/{id}/student")
-    public boolean deleteStudentInRoom(@PathVariable Integer id, @RequestBody StudentDto student) throws NotFoundException {
-        return roomService.deleteStudentInRoom(id, student);
+    @GetMapping("/all-bill/{id}")
+    public List<StudentMoveDto> getPaymentOfAllStudentsInRoom(@PathVariable Integer id) {
+        return roomService.getPaymentOfAllStudentsInRoom(id);
     }
 
     @PutMapping("/{id}")

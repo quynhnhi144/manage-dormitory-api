@@ -158,11 +158,11 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
 
     @Override
     public int addStudent(StudentDto studentDto) {
-        System.out.println("newStudent: " + studentDto);
-        String queryAdd = "INSERT INTO student(name, birthday, address, phone, email, starting_date_of_stay,ending_date_of_stay, room_id, water_price_id)" +
-                "VALUES(:name, :birthday, :address, :phone, :email, :startingDateOfStay, :endingDateOfStay, :roomId, :waterPriceId)";
+        String queryAdd = "INSERT INTO student(id_card, name, birthday, address, phone, email, starting_date_of_stay,ending_date_of_stay, room_id, water_price_id)" +
+                "VALUES(:idCard, :name, :birthday, :address, :phone, :email, :startingDateOfStay, :endingDateOfStay, :roomId, :waterPriceId)";
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAdd);
-        query.setParameter("name", new TypedParameterValue(StringType.INSTANCE, studentDto.getName()))
+        query.setParameter("idCard", new TypedParameterValue(StringType.INSTANCE, studentDto.getIdCard()))
+                .setParameter("name", new TypedParameterValue(StringType.INSTANCE, studentDto.getName()))
                 .setParameter("birthday", new TypedParameterValue(DateType.INSTANCE, studentDto.getBirthday()))
                 .setParameter("address", new TypedParameterValue(StringType.INSTANCE, studentDto.getAddress()))
                 .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, studentDto.getPhone()))
