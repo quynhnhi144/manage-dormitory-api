@@ -17,8 +17,8 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public PaginationUser filterUser(@RequestParam(required = false) String fullName, @RequestParam int skip, @RequestParam int take) {
-        return userService.paginationGetAllUsers(fullName, skip, take);
+    public PaginationUser filterUser(@RequestParam(required = false) String searchText, @RequestParam int skip, @RequestParam int take) {
+        return userService.paginationGetAllUsers(searchText, skip, take);
     }
 
     @GetMapping("/{id}")

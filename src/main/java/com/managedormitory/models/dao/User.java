@@ -28,24 +28,21 @@ import java.util.Set;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(length = 20)
     private Integer id;
 
     @Column(length = 100, unique = true, nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-    //@NotBlank(message = "Username is mandatory")
     private String username;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     @NonNull
-    //@NotBlank(message = "Password is mandatory")
     private String password;
 
     @Column(length = 100, name = "full_name", nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-    //@NotBlank(message = "Full Name is mandatory")
     private String fullName;
 
     @Column
@@ -54,7 +51,7 @@ public class User {
 
     @Email
     @NonNull
-    //@NotBlank(message = "Email is mandatory")
+    @Column(length = 100)
     private String email;
 
     @Column(length = 100)

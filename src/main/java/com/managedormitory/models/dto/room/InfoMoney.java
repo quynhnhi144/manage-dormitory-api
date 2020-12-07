@@ -11,16 +11,14 @@ import java.sql.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoomPriceAndWaterPrice {
+public class InfoMoney {
     private Integer roomId;
     private String roomName;
     private Date maxDateRoomBill;
     private Date maxDateWaterBill;
     private Date maxDateVehicleBill;
     private Integer waterPriceId;
-    private Integer vehicleId;
     private Float roomPrice;
     private Float waterPrice;
-    private Float vehiclePrice;
     private Integer maxQuantityStudent;
 }

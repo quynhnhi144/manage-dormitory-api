@@ -194,11 +194,11 @@ public class PowerBillServiceImpl implements PowerBillService {
             helper.setTo(studentDto.getEmail());
             helper.setSubject(subject);
             helper.setText(text);
-            String path = "/home/nhile/Downloads/link.txt";
-
-            // Attachment
-            FileSystemResource file = new FileSystemResource(new File(path));
-            helper.addAttachment("link", file);
+//            String path = "/home/nhile/Downloads/link.txt";
+//
+//            // Attachment
+//            FileSystemResource file = new FileSystemResource(new File(path));
+//            helper.addAttachment("link", file);
             javaMailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();

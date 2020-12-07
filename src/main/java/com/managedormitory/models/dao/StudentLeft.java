@@ -16,20 +16,24 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class StudentLeft {
     @Id
+    @Column(length = 20)
     private Integer id;
 
-    @Column()
+    @Column(length = 20)
+    private String idCard;
+
+    @Column
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate leavingDate;
 
-    @Column
-    private float numberOfGiveOfTakeRoomMoney;
+    @Column(length = 20)
+    private float roomMoney;
 
-    @Column
-    private float numberOfGiveOfTakeWaterMoney;
+    @Column(length = 20)
+    private float waterMoney;
 
-    @Column
-    private float numberOfGiveOfTakeVehicleMoney;
+    @Column(length = 20)
+    private float vehicleMoney;
 
     @OneToOne
     @PrimaryKeyJoinColumn(name = "id", referencedColumnName = "id")

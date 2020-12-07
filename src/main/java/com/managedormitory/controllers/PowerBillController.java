@@ -54,15 +54,15 @@ public class PowerBillController {
         List<PowerBillDetail> list = powerBillService.getAllDetailPowerBills(localDate);
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        String subject = "Notification about power bill monthly";
+        String subject = "Thông báo về hóa đơn điện hàng tháng";
         list.stream()
                 .filter(powerBillDetail -> powerBillDetail.getBillId() != null)
                 .collect(Collectors.toList())
                 .forEach(powerBillDetail -> {
                     String contentMessageForPowerBills =
-                            "Hi " + powerBillDetail.getDetailRoomDto().getName() + "\n"
-                                    + "Please pay power bill for month: " + DateUtil.getLDateFromSDate(powerBillDetail.getEndDate()).getMonth() + "\n"
-                                    + "Total money need to pay: " + powerBillDetail.getNumberOfMoneyMustPay();
+                            "Chào " + powerBillDetail.getDetailRoomDto().getName() + "\n"
+                                    + "Thông tin tiền điện tháng: " + DateUtil.getLDateFromSDate(powerBillDetail.getEndDate()).getMonth() + "\n"
+                                    + "Tổng số tiền cần thanh toán là: " + powerBillDetail.getNumberOfMoneyMustPay();
                     powerBillDetail.getDetailRoomDto().getStudents().forEach(studentDto -> {
                         powerBillService.sendMail(contentMessageForPowerBills, subject, studentDto, javaMailSender, message, helper);
                     });

@@ -11,8 +11,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class StudentMoveDto {
+public class StudentLeftDto {
     private Integer id;
+    private String idCard;
     private String name;
     private LocalDate leavingDate;
     private float numberOfRoomMoney;

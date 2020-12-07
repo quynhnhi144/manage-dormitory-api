@@ -7,23 +7,20 @@ import com.managedormitory.models.dto.InfoSwitchRoom;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.room.RoomBillDto;
-import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
-import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
-import com.managedormitory.models.dto.student.StudentDetailDto;
-import com.managedormitory.models.dto.student.StudentDto;
-import com.managedormitory.models.dto.student.StudentMoveDto;
-import com.managedormitory.models.dto.student.StudentNewDto;
+import com.managedormitory.models.dto.room.InfoMoneyDto;
+import com.managedormitory.models.dto.student.*;
 import com.managedormitory.models.filter.StudentFilterDto;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.List;
 
 public interface StudentService {
     List<Student> getAllStudents();
 
     List<StudentDetailDto> getAllStudentDto();
+
+    List<StudentDetailDto> getAllStudentDtoActive();
 
     PaginationStudent paginationGetAllStudents(StudentFilterDto studentFilterDto, int skip, int take);
 
@@ -37,17 +34,25 @@ public interface StudentService {
 
     RoomBillDto getDetailRoomRecently(Integer id);
 
-    StudentMoveDto getInfoMovingStudent(Integer id);
+    StudentLeftDto getInfoMovingStudent(Integer id);
 
-    int addStudentLeft(StudentMoveDto studentMoveDto);
+    int addStudentLeft(StudentLeftDto studentMoveDto);
 
-    RoomPriceAndWaterPriceDto getRoomPriceAndWaterPrice(Integer roomId);
+    InfoMoneyDto getInfoMoneyDtoForNewStudent(Integer roomId);
+
+    StudentBill getInfoMoneyRoomPaymentDto(Integer studentId);
 
     DurationBetweenTwoRoom durationMoneyBetweenTwoRoom(Integer oldRoomId, Integer newRoomId);
 
     StudentDto addStudent(StudentNewDto studentNewDto);
 
     ByteArrayInputStream exportPDFStudentNew(StudentNewDto studentNewDto);
+
+    ByteArrayInputStream exportPDFStudentRemove(StudentLeftDto studentMoveDto);
+
+    ByteArrayInputStream exportPDFStudentSwitchRoom(InfoSwitchRoom studentSwitchRoom);
+
+    ByteArrayInputStream exportPDFStudentPayment(StudentBill studentBill);
 
     ByteArrayInputStream exportExcel() throws IOException;
 
@@ -56,4 +61,6 @@ public interface StudentService {
     List<StudentDetailDto> getStudentsByIdCard(String idCard);
 
     int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto);
+
+    int addPaymentForStudent(StudentBill studentBill);
 }

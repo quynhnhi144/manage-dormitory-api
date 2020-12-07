@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class DetailRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(length = 20)
     private Integer id;
 
     @Column
@@ -34,7 +34,7 @@ public class DetailRoom {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate createDate;
 
-    @Column
+    @Column(length = 20)
     @NonNull
     private float payedMoney;
 

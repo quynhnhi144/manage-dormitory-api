@@ -11,14 +11,12 @@ import java.sql.Date;
 @AllArgsConstructor
 public class SwitchRoomHistoryDto {
     private Integer id;
+    private String studentIdCard;
     private String oldRoomName;
     private String newRoomName;
-    private float givingRoomMoney;
-    private float takingRoomMoney;
-    private float givingWaterMoney;
-    private float takingWaterMoney;
-    private float givingVehicleMoney;
-    private float takingVehicleMoney;
+    private float roomMoney;
+    private float waterMoney;
+    private float vehicleMoney;
     private Integer studentId;
     private Date createDate;
 

@@ -1,6 +1,7 @@
 package com.managedormitory.controllers;
 
 import com.managedormitory.exceptions.NotFoundException;
+import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.dto.vehicle.*;
 import com.managedormitory.models.dto.pagination.PaginationVehicle;
 import com.managedormitory.models.filter.VehicleFilter;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -72,6 +74,22 @@ public class VehicleController {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+
+    @PostMapping("/exportPDFRemoveVehicle")
+    public ResponseEntity<Resource> exportPDFRemoveVehicle(@RequestBody VehicleMoveDto vehicleMoveDto) {
+        InputStreamResource file = new InputStreamResource(vehicleService.exportPDFVehicleLeft(vehicleMoveDto));
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + vehicleMoveDto.getLicensePlates() + LocalDate.now().toString() + ".pdf")
+                .contentType(MediaType.parseMediaType("application/pdf"))
+                .body(file);
+    }
+
+    @PostMapping("/exportPDFNewVehicle")
+    public ResponseEntity<Resource> exportPDFNewVehicle(@RequestBody VehicleNew vehicleNew) {
+        InputStreamResource file = new InputStreamResource(vehicleService.exportPDFVehicleNew(vehicleNew));
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + vehicleNew.getLicensePlates() + LocalDate.now().toString() + ".pdf")
+                .contentType(MediaType.parseMediaType("application/pdf"))
+                .body(file);
     }
 
     @PostMapping("/vehicle")

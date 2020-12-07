@@ -18,7 +18,6 @@ public class StudentDetailDto {
     private String email;
     private String address;
     private Date startingDateOfStay;
-    private Date endingDateOfStay;
     private RoomDto roomDto;
     private Boolean isPayRoom;
     private Boolean isPayWaterBill;

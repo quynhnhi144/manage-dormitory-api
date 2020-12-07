@@ -12,19 +12,12 @@ public class RoomDto {
 
     private Integer id;
     private String name;
-    //@NotBlank(message = "Quantity Student is mandatory")
     private Integer quantityStudent;
-    //@NotBlank(message = "Type Room is mandatory")
     private String typeRoomName;
-    //@NotBlank(message = "Campus Name is mandatory")
     private String campusName;
-    @NonNull
-    //@NotBlank(message = "User Manager is mandatory")
     private String userManager;
 
     private Integer waterPriceId;
-
-    private Integer vehiclePriceId;
 
     public RoomDto(Room room) {
         this.id = room.getId();

@@ -1,5 +1,6 @@
 package com.managedormitory.models.dao;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import javax.persistence.*;
@@ -14,24 +15,26 @@ public class RegisterRoom {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(length = 20)
     private Integer id;
 
-    @Column
+    @Column(length = 20)
     private String idCard;
 
-    @Column
+    @Column(length = 100)
     private String studentName;
 
     @Column
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date birthday;
 
-    @Column
+    @Column(length = 255)
     private String address;
 
-    @Column
+    @Column(length = 11)
     private String phone;
 
-    @Column
+    @Column(length = 100)
     private String email;
 
     @Column

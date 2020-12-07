@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InfoSwitchRoom {
-    private  Integer studentId;
+    private Integer studentId;
+    private String studentIdCard;
     private String studentName;
     private Integer oldRoomId;
     private String oldRoomName;

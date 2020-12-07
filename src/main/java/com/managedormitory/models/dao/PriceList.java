@@ -18,18 +18,16 @@ public class PriceList {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(length = 20)
     private Integer id;
 
     @Column(length = 100, name = "name", nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-    //@NotBlank(message = "Name is mandatory")
     private String name;
 
-    @Column
+    @Column(length = 20)
     @NonNull
-    //@NotBlank
     private Float price;
 
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "priceList")

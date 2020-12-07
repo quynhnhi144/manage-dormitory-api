@@ -1,6 +1,6 @@
 package com.managedormitory.models.dto.registerRoom;
 
-import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
+import com.managedormitory.models.dto.room.InfoMoneyDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,5 +12,5 @@ import lombok.ToString;
 @ToString
 public class RegisterRoomIncludePayment {
     private RegisterRoomDto registerRoomDto;
-    private RoomPriceAndWaterPriceDto roomPriceAndWaterPriceDto;
+    private InfoMoneyDto infoMoneyDto;
 }

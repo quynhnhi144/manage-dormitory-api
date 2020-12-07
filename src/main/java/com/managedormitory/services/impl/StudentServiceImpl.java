@@ -1,22 +1,19 @@
 package com.managedormitory.services.impl;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
-import com.managedormitory.helper.ExportBillNewStudent;
+import com.managedormitory.helper.ExportPDFBill;
 import com.managedormitory.helper.PowerBillExcelHelper;
 import com.managedormitory.models.dao.*;
 import com.managedormitory.models.dto.*;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
-import com.managedormitory.models.dto.room.RoomBillDto;
-import com.managedormitory.models.dto.room.RoomDto;
-import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
-import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
-import com.managedormitory.models.dto.student.StudentDetailDto;
-import com.managedormitory.models.dto.student.StudentDto;
-import com.managedormitory.models.dto.student.StudentMoveDto;
-import com.managedormitory.models.dto.student.StudentNewDto;
+import com.managedormitory.models.dto.room.*;
+import com.managedormitory.models.dto.student.*;
 import com.managedormitory.models.dto.vehicle.VehicleBillDto;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.repositories.PriceListRepository;
@@ -24,6 +21,7 @@ import com.managedormitory.repositories.StudentLeftRepository;
 import com.managedormitory.repositories.StudentRepository;
 import com.managedormitory.repositories.custom.*;
 import com.managedormitory.services.StudentService;
+import com.managedormitory.services.VehicleService;
 import com.managedormitory.utils.CalculateMoney;
 import com.managedormitory.utils.DateUtil;
 import com.managedormitory.utils.PaginationUtils;
@@ -41,12 +39,15 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 
 
 public class StudentServiceImpl implements StudentService {
+    private static final LocalDate currentDate = LocalDate.now();
+
     private final StudentRepository studentRepository;
 
     private final StudentRepositoryCustom studentRepositoryCustom;
@@ -67,7 +68,11 @@ public class StudentServiceImpl implements StudentService {
 
     private final PriceListRepository priceListRepository;
 
-    public StudentServiceImpl(StudentRepository studentRepository, StudentRepositoryCustom studentRepositoryCustom, StudentLeftRepository studentLeftRepository, RoomRepositoryCustom roomRepositoryCustom, StudentConvertToStudentDto studentConvertToStudentDto, WaterBillRepositoryCustom waterBillRepositoryCustom, DetailRoomRepositoryCustom detailRoomRepositoryCustom, SwitchRoomRepositoryCustom switchRoomRepositoryCustom, VehicleBillRepositoryCustom vehicleBillRepositoryCustom, PriceListRepository priceListRepository) {
+    private final VehicleRepositoryCustom vehicleRepositoryCustom;
+
+    private final VehicleService vehicleService;
+
+    public StudentServiceImpl(StudentRepository studentRepository, StudentRepositoryCustom studentRepositoryCustom, StudentLeftRepository studentLeftRepository, RoomRepositoryCustom roomRepositoryCustom, StudentConvertToStudentDto studentConvertToStudentDto, WaterBillRepositoryCustom waterBillRepositoryCustom, DetailRoomRepositoryCustom detailRoomRepositoryCustom, SwitchRoomRepositoryCustom switchRoomRepositoryCustom, VehicleBillRepositoryCustom vehicleBillRepositoryCustom, PriceListRepository priceListRepository, VehicleRepositoryCustom vehicleRepositoryCustom, VehicleService vehicleService) {
         this.studentRepository = studentRepository;
         this.studentRepositoryCustom = studentRepositoryCustom;
         this.studentLeftRepository = studentLeftRepository;
@@ -78,6 +83,8 @@ public class StudentServiceImpl implements StudentService {
         this.switchRoomRepositoryCustom = switchRoomRepositoryCustom;
         this.vehicleBillRepositoryCustom = vehicleBillRepositoryCustom;
         this.priceListRepository = priceListRepository;
+        this.vehicleRepositoryCustom = vehicleRepositoryCustom;
+        this.vehicleService = vehicleService;
     }
 
     @Override
@@ -103,7 +110,6 @@ public class StudentServiceImpl implements StudentService {
             studentDetailDto.setEmail(student.getEmail());
             studentDetailDto.setAddress(student.getAddress());
             studentDetailDto.setStartingDateOfStay(DateUtil.getSDateFromLDate(student.getStartingDateOfStay()));
-            studentDetailDto.setEndingDateOfStay(DateUtil.getSDateFromLDate(student.getEndingDateOfStay()));
             studentDetailDto.setWaterPriceId(student.getPriceList().getId());
             if (student.getVehicle() == null) {
                 studentDetailDto.setVehicleId(null);
@@ -135,6 +141,22 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public List<StudentDetailDto> getAllStudentDtoActive() {
+        List<StudentDetailDto> studentDetailDtos = getAllStudentDto();
+        List<StudentDetailDto> studentDetailDtosDetail = new ArrayList<>();
+        List<String> studentLeftIdCards = getAllStudentLeft().stream().map(StudentLeft::getIdCard).collect(Collectors.toList());
+        studentDetailDtos = studentDetailDtos.stream()
+                .filter(studentDetailDto -> studentDetailDto.getVehicleId() == null)
+                .collect(Collectors.toList());
+        for (StudentDetailDto studentDetailDto : studentDetailDtos) {
+            if (!studentLeftIdCards.contains(studentDetailDto.getIdCard())) {
+                studentDetailDtosDetail.add(studentDetailDto);
+            }
+        }
+        return studentDetailDtosDetail;
+    }
+
+    @Override
     public PaginationStudent paginationGetAllStudents(StudentFilterDto studentFilterDto, int skip, int take) {
         List<StudentDetailDto> studentDetailDtos = getAllStudentDto();
         if (studentFilterDto.getCampusName() != null) {
@@ -146,8 +168,9 @@ public class StudentServiceImpl implements StudentService {
             String searchText = studentFilterDto.getStudentNameOrRoomNameOrUserManager().toLowerCase() + StringUtil.DOT_STAR;
             studentDetailDtos = studentDetailDtos.stream()
                     .filter(studentDto -> (studentDto.getRoomDto() != null && studentDto.getRoomDto().getName().toLowerCase().matches(searchText))
-                            || (studentDto.getRoomDto() != null && studentDto.getRoomDto().getUserManager().toLowerCase().matches(searchText))
-                            || studentDto.getName().toLowerCase().matches(searchText))
+                            || (studentDto.getRoomDto() != null && studentDto.getRoomDto().getUserManager() != null && studentDto.getRoomDto().getUserManager().toLowerCase().matches(searchText))
+                            || studentDto.getName().toLowerCase().matches(searchText)
+                            || studentDto.getIdCard().matches(searchText))
                     .collect(Collectors.toList());
         }
 
@@ -196,8 +219,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public StudentMoveDto getInfoMovingStudent(Integer id) {
-        LocalDate currentDate = LocalDate.now();
+    public StudentLeftDto getInfoMovingStudent(Integer id) {
         StudentDetailDto studentDetailDto = getStudentById(id);
         RoomBillDto roomBillDto = roomRepositoryCustom.getDetailRoomRecently(id).orElse(null);
         WaterBillDto waterBillDto = studentRepositoryCustom.getWaterBillRecently(id).orElse(null);
@@ -210,24 +232,65 @@ public class StudentServiceImpl implements StudentService {
         float remainingMoneyOfRoom = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(roomBillDto.getEndDate()), roomBillDto.getPrice() / roomBillDto.getMaxQuantity());
         float remainingMoneyOfWater = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(waterBillDto.getEndDate()), waterBillDto.getPrice());
 
-        return new StudentMoveDto(id, studentDetailDto.getName(), currentDate, remainingMoneyOfRoom, remainingMoneyOfWater, remainingMoneyOfVehicle, roomBillDto.getRoomId());
+        return new StudentLeftDto(id, studentDetailDto.getIdCard(), studentDetailDto.getName(), currentDate, remainingMoneyOfRoom, remainingMoneyOfWater, remainingMoneyOfVehicle, roomBillDto.getRoomId());
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public int addStudentLeft(StudentMoveDto studentMoveDto) {
-        int resultStudentLeft = studentRepositoryCustom.addStudentLeft(studentMoveDto);
-        int resultRoom = roomRepositoryCustom.updateQuantityStudent(studentMoveDto.getRoomId());
-        if (resultStudentLeft > 0 && resultRoom > 0) {
-            return 1;
+    public StudentBill getInfoMoneyRoomPaymentDto(Integer studentId) {
+        StudentDetailDto studentDetailDto = getStudentById(studentId);
+        RoomBillDto roomBillDto = roomRepositoryCustom.getDetailRoomRecently(studentId).orElse(null);
+        WaterBillDto waterBillDto = studentRepositoryCustom.getWaterBillRecently(studentId).orElse(null);
+        VehicleBillDto vehicleBillDto = vehicleBillRepositoryCustom.getVehicleBillRecentlyByStudentId(studentId).orElse(null);
+        LocalDate startDateRoom = DateUtil.getLDateFromSDate(roomBillDto.getEndDate());
+        LocalDate endDateRoom = startDateRoom.plus(30, ChronoUnit.DAYS);
+        LocalDate startDateWater = DateUtil.getLDateFromSDate(waterBillDto.getEndDate());
+        LocalDate endDateWater = startDateWater.plus(30, ChronoUnit.DAYS);
+        LocalDate startDateVehicle;
+        LocalDate endDateVehicle;
+
+        float remainingMoneyOfVehicle = 0;
+        if (vehicleBillDto != null) {
+            startDateVehicle = DateUtil.getLDateFromSDate(vehicleBillDto.getEndDate());
+            endDateVehicle = startDateVehicle.plus(30, ChronoUnit.DAYS);
+            remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(endDateVehicle, startDateVehicle, vehicleBillDto.getPrice());
+        } else {
+            startDateVehicle = null;
+            endDateVehicle = null;
         }
-        throw new BadRequestException("Cannot implement method!!!");
+        float remainingMoneyOfRoom = CalculateMoney.calculateRemainingMoney(endDateRoom, startDateRoom, roomBillDto.getPrice() / roomBillDto.getMaxQuantity());
+        float remainingMoneyOfWater = CalculateMoney.calculateRemainingMoney(endDateWater, startDateWater, waterBillDto.getPrice());
+        return new StudentBill(studentId, studentDetailDto.getName(), studentDetailDto.getRoomDto().getId(), studentDetailDto.getRoomDto().getName(), studentDetailDto.getIdCard(), startDateRoom, endDateRoom, remainingMoneyOfRoom, studentDetailDto.getRoomDto().getQuantityStudent(), startDateWater, endDateWater, remainingMoneyOfWater, studentDetailDto.getVehicleId(), startDateVehicle, endDateVehicle, remainingMoneyOfVehicle);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int addStudentLeft(StudentLeftDto studentMoveDto) {
+        int resultStudentLeft = studentRepositoryCustom.addStudentLeft(studentMoveDto);
+        int resultVehicleLeft = 0;
+        if (vehicleService.getVehicleByStudentId(studentMoveDto.getId()) != null) {
+            resultVehicleLeft = vehicleRepositoryCustom.addVehicleLeft(vehicleService.getVehicleByStudentId(studentMoveDto.getId()));
+        }
+        int resultRoom = roomRepositoryCustom.updateQuantityStudent(studentMoveDto.getRoomId());
+        if (vehicleService.getVehicleByStudentId(studentMoveDto.getId()) != null) {
+            if (resultStudentLeft > 0 && resultRoom > 0 && resultVehicleLeft > 0) {
+                return 1;
+            } else {
+                throw new BadRequestException("Cannot implement method!!!");
+            }
+        } else {
+            if (resultStudentLeft > 0 && resultRoom > 0) {
+                return 1;
+            } else {
+                throw new BadRequestException("Cannot implement method!!!");
+            }
+        }
+
     }
 
     @Override
-    public RoomPriceAndWaterPriceDto getRoomPriceAndWaterPrice(Integer roomId) {
-        LocalDate currentDate = LocalDate.now();
-        RoomPriceAndWaterPrice roomPriceAndWaterPrice = roomRepositoryCustom.getRoomPriceAndWaterPrice(roomId).orElse(null);
+    public InfoMoneyDto getInfoMoneyDtoForNewStudent(Integer roomId) {
+        InfoMoney infoMoney = roomRepositoryCustom.getInfoLatestBillForNewStudent(roomId).orElse(null);
 
         PriceList priceListWater = priceListRepository.findById(2).orElse(null);
         PriceList priceListVehicle = priceListRepository.findById(3).orElse(null);
@@ -242,71 +305,66 @@ public class StudentServiceImpl implements StudentService {
         float remainingMoneyOfRoom;
         float remainingMoneyOfWater;
         float remainingMoneyOfVehicle;
-        if (roomPriceAndWaterPrice == null) {
+        if (infoMoney == null) {
             endDateRoom = currentDate.plus(30, ChronoUnit.DAYS);
             endDateWater = currentDate.plus(30, ChronoUnit.DAYS);
+            endDateVehicle = currentDate.plus(30, ChronoUnit.DAYS);
         } else {
-            if (roomPriceAndWaterPrice.getWaterPrice() == null) {
-                roomPriceAndWaterPrice.setWaterPrice(priceListWater.getPrice());
+            if (infoMoney.getWaterPrice() == null) {
+                infoMoney.setWaterPrice(priceListWater.getPrice());
             }
-            if (roomPriceAndWaterPrice.getMaxDateRoomBill() != null) {
-                if (DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill()).isBefore(currentDate)) {
-                    endDateRoom = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill()).plus(30, ChronoUnit.DAYS);
-                    endDateWater = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateWaterBill()).plus(30, ChronoUnit.DAYS);
+            if (infoMoney.getMaxDateRoomBill() != null) {
+                if (DateUtil.getLDateFromSDate(infoMoney.getMaxDateRoomBill()).isBefore(currentDate)) {
+                    endDateRoom = DateUtil.getLDateFromSDate(infoMoney.getMaxDateRoomBill()).plus(30, ChronoUnit.DAYS);
+                    endDateWater = DateUtil.getLDateFromSDate(infoMoney.getMaxDateWaterBill()).plus(30, ChronoUnit.DAYS);
                 } else {
-                    currentDateRoom = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateRoomBill());
-                    currentDateWater = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateWaterBill());
-                    endDateRoom = currentDate;
-                    endDateWater = currentDate;
+                    endDateRoom = DateUtil.getLDateFromSDate(infoMoney.getMaxDateRoomBill());
+                    endDateWater = DateUtil.getLDateFromSDate(infoMoney.getMaxDateWaterBill());
                 }
             } else {
-                currentDateRoom = currentDate;
-                currentDateWater = currentDate;
                 endDateRoom = currentDate.plus(30, ChronoUnit.DAYS);
                 endDateWater = currentDate.plus(30, ChronoUnit.DAYS);
             }
 
-            if (roomPriceAndWaterPrice.getVehicleId() == null) {
-                currentDateVehicle = null;
-                endDateVehicle = null;
-                roomPriceAndWaterPrice.setVehiclePrice(priceListVehicle.getPrice());
+            if (infoMoney.getMaxDateVehicleBill() == null) {
+                currentDateVehicle = currentDate;
+                endDateVehicle = endDateRoom;
             } else {
-                if (DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateVehicleBill()).isBefore(currentDate)) {
-                    endDateVehicle = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateVehicleBill()).plus(30, ChronoUnit.DAYS);
+                if (DateUtil.getLDateFromSDate(infoMoney.getMaxDateVehicleBill()).isBefore(currentDate)) {
+                    endDateVehicle = DateUtil.getLDateFromSDate(infoMoney.getMaxDateVehicleBill()).plus(30, ChronoUnit.DAYS);
                 } else {
-                    currentDateVehicle = DateUtil.getLDateFromSDate(roomPriceAndWaterPrice.getMaxDateVehicleBill());
-                    endDateVehicle = currentDate;
+                    endDateVehicle = DateUtil.getLDateFromSDate(infoMoney.getMaxDateVehicleBill());
                 }
             }
         }
 
-        remainingMoneyOfRoom = CalculateMoney.calculateRemainingMoney(endDateRoom, currentDateRoom, roomPriceAndWaterPrice.getRoomPrice() / roomPriceAndWaterPrice.getMaxQuantityStudent());
-        remainingMoneyOfWater = CalculateMoney.calculateRemainingMoney(endDateWater, currentDateWater, roomPriceAndWaterPrice.getWaterPrice());
-        remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(endDateVehicle, currentDateVehicle, roomPriceAndWaterPrice.getVehiclePrice());
+        remainingMoneyOfRoom = CalculateMoney.calculateRemainingMoney(currentDateRoom, endDateRoom, infoMoney.getRoomPrice() / infoMoney.getMaxQuantityStudent());
+        remainingMoneyOfWater = CalculateMoney.calculateRemainingMoney(currentDateWater, endDateWater, infoMoney.getWaterPrice());
+        remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(currentDateVehicle, endDateVehicle, priceListVehicle.getPrice());
 
-        return new RoomPriceAndWaterPriceDto(roomId, roomPriceAndWaterPrice.getRoomName(), endDateRoom, currentDateRoom, remainingMoneyOfRoom, roomPriceAndWaterPrice.getWaterPriceId(), endDateWater, currentDateWater, remainingMoneyOfWater, roomPriceAndWaterPrice.getVehicleId(), endDateVehicle, currentDateVehicle, remainingMoneyOfVehicle, roomPriceAndWaterPrice.getMaxQuantityStudent());
+        return new InfoMoneyDto(roomId, infoMoney.getRoomName(), currentDateRoom, endDateRoom, remainingMoneyOfRoom, infoMoney.getWaterPriceId(), currentDateWater, endDateWater, remainingMoneyOfWater, currentDateVehicle, endDateVehicle, remainingMoneyOfVehicle, infoMoney.getMaxQuantityStudent());
     }
+
 
     @Override
     public DurationBetweenTwoRoom durationMoneyBetweenTwoRoom(Integer oldRoomId, Integer newRoomId) {
-        LocalDate currentDate = LocalDate.now();
         if (oldRoomId != null && newRoomId != null) {
-            RoomPriceAndWaterPriceDto oldRoom = getRoomPriceAndWaterPrice(oldRoomId);
+            InfoMoneyDto oldRoom = getInfoMoneyDtoForNewStudent(oldRoomId);
             System.out.println("tien phong cu: " + oldRoom.getMoneyOfRoomMustPay());
             System.out.println("tien nuoc cu: " + oldRoom.getMoneyOfWaterMustPay());
             System.out.println("tien xe cu: " + oldRoom.getMoneyOfVehicleMustPay());
             System.out.println("oldRoom: " + oldRoom);
-            RoomPriceAndWaterPriceDto newRoom = getRoomPriceAndWaterPrice(newRoomId);
+            InfoMoneyDto newRoom = getInfoMoneyDtoForNewStudent(newRoomId);
             System.out.println("========================");
             System.out.println("tien phong moi: " + newRoom.getMoneyOfRoomMustPay());
             System.out.println("tien nuoc moi: " + newRoom.getMoneyOfWaterMustPay());
             System.out.println("tien xe moi: " + newRoom.getMoneyOfVehicleMustPay());
-            System.out.println("oldRoom: " + newRoom);
+            System.out.println("newRoom: " + newRoom);
 
 
-            float durationRoomMoney = newRoom.getMoneyOfRoomMustPay() - oldRoom.getMoneyOfRoomMustPay();
-            float durationWaterMoney = newRoom.getMoneyOfWaterMustPay() - oldRoom.getMoneyOfWaterMustPay();
-            float durationVehicleMoney = newRoom.getMoneyOfVehicleMustPay() - oldRoom.getMoneyOfVehicleMustPay();
+            float durationRoomMoney = oldRoom.getMoneyOfRoomMustPay() - newRoom.getMoneyOfRoomMustPay();
+            float durationWaterMoney = oldRoom.getMoneyOfWaterMustPay() - newRoom.getMoneyOfWaterMustPay();
+            float durationVehicleMoney = oldRoom.getMoneyOfVehicleMustPay() - newRoom.getMoneyOfVehicleMustPay();
 
             return new DurationBetweenTwoRoom(oldRoomId, newRoomId, oldRoom.getRoomName(), newRoom.getRoomName(), currentDate, newRoom.getRoomEndDate(), durationRoomMoney, currentDate, newRoom.getWaterEndDate(), durationWaterMoney, currentDate, newRoom.getVehicleEndDate(), durationVehicleMoney);
         }
@@ -344,9 +402,144 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public ByteArrayInputStream exportPDFStudentNew(StudentNewDto studentNewDto) {
-        ExportBillNewStudent exportBillNewStudent = new ExportBillNewStudent(studentNewDto);
-        ByteArrayInputStream inputStream = exportBillNewStudent.export(studentNewDto);
-        return inputStream;
+        ExportPDFBill exportPDFBill = new ExportPDFBill(studentNewDto);
+        Document document
+                = new Document(PageSize.A4);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+            exportPDFBill.writeBillHeader(document);
+            exportPDFBill.writeBillData(t -> {
+                BaseFont baseFont = null;
+                try {
+                    baseFont = BaseFont.createFont(exportPDFBill.getFontName(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    Font font = new Font(baseFont, 16);
+
+                    Paragraph infoStudent = new Paragraph();
+                    infoStudent.add(new Paragraph("Mã số sinh viên:        " + studentNewDto.getStudentDto().getIdCard(), font));
+
+                    infoStudent.add(new Paragraph("Họ và tên sinh viên:   " + studentNewDto.getStudentDto().getName(), font));
+
+                    infoStudent.add(new Paragraph("Số tiền là:                " + Math.abs(studentNewDto.getRoomBillDto().getPrice()) + " đ" + " (Tiền phòng) - " + Math.abs(studentNewDto.getWaterBillDto().getPrice()) + " đ" + " (Tiền nước)", font));
+                    infoStudent.add(new Paragraph("\n", font));
+                    document.add(infoStudent);
+                } catch (DocumentException | IOException e) {
+                    e.printStackTrace();
+                }
+
+            });
+            exportPDFBill.writeBillFooter(document);
+            document.close();
+        } catch (DocumentException | IOException e) {
+            e.printStackTrace();
+        }
+        return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    @Override
+    public ByteArrayInputStream exportPDFStudentRemove(StudentLeftDto studentMoveDto) {
+        ExportPDFBill exportPDFBill = new ExportPDFBill(studentMoveDto);
+        Document document = new Document(PageSize.A4);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+            exportPDFBill.writeBillHeader(document);
+            exportPDFBill.writeBillData(t -> {
+                BaseFont baseFont = null;
+                try {
+                    baseFont = BaseFont.createFont(exportPDFBill.getFontName(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    Font font = new Font(baseFont, 16);
+
+                    Paragraph infoStudent = new Paragraph();
+                    infoStudent.add(new Paragraph("Mã số sinh viên:                        " + studentMoveDto.getIdCard(), font));
+                    infoStudent.add(new Paragraph("Họ và tên sinh viên:                   " + studentMoveDto.getName(), font));
+                    String moneyPayOrTake = "Số tiền " + (studentMoveDto.getNumberOfRoomMoney() > 0 ? "phải trả là: " : "được nhận là: ");
+                    infoStudent.add(new Paragraph(moneyPayOrTake + "                " + Math.abs(studentMoveDto.getNumberOfRoomMoney()) + " đ" + " (Tiền phòng) - " + Math.abs(studentMoveDto.getNumberOfWaterMoney()) + " đ" + " (Tiền nước) - " + Math.abs(studentMoveDto.getNumberOfVehicleMoney()) + " đ" + " (Tiền xe)", font));
+                    infoStudent.add(new Paragraph("\n", font));
+                    document.add(infoStudent);
+                } catch (DocumentException | IOException e) {
+                    e.printStackTrace();
+                }
+
+            });
+            exportPDFBill.writeBillFooter(document);
+            document.close();
+        } catch (DocumentException | IOException e) {
+            e.printStackTrace();
+        }
+        return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    @Override
+    public ByteArrayInputStream exportPDFStudentSwitchRoom(InfoSwitchRoom studentSwitchRoom) {
+        ExportPDFBill exportPDFBill = new ExportPDFBill(studentSwitchRoom);
+        Document document = new Document(PageSize.A4);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+            exportPDFBill.writeBillHeader(document);
+            exportPDFBill.writeBillData(t -> {
+                BaseFont baseFont = null;
+                try {
+                    baseFont = BaseFont.createFont(exportPDFBill.getFontName(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    Font font = new Font(baseFont, 16);
+
+                    Paragraph infoStudent = new Paragraph();
+                    infoStudent.add(new Paragraph("Mã số sinh viên:                        " + studentSwitchRoom.getStudentIdCard(), font));
+                    infoStudent.add(new Paragraph("Họ và tên sinh viên:                   " + studentSwitchRoom.getStudentName(), font));
+                    String moneyPayOrTake = "Số tiền " + (studentSwitchRoom.getRoomBill().getPrice() > 0 ? "phải trả là: " : "được nhận là: ");
+                    infoStudent.add(new Paragraph(moneyPayOrTake + "                " + Math.abs(studentSwitchRoom.getRoomBill().getPrice()) + " đ" + " (Tiền phòng) - " + Math.abs(studentSwitchRoom.getWaterBill().getPrice()) + " đ" + " (Tiền nước) - " + Math.abs(studentSwitchRoom.getVehicleBill().getPrice()) + " đ" + " (Tiền xe)", font));
+                    infoStudent.add(new Paragraph("\n", font));
+                    document.add(infoStudent);
+                } catch (DocumentException | IOException e) {
+                    e.printStackTrace();
+                }
+
+            });
+            exportPDFBill.writeBillFooter(document);
+            document.close();
+        } catch (DocumentException | IOException e) {
+            e.printStackTrace();
+        }
+        return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    @Override
+    public ByteArrayInputStream exportPDFStudentPayment(StudentBill studentBill) {
+        ExportPDFBill exportPDFBill = new ExportPDFBill(studentBill);
+        Document document = new Document(PageSize.A4);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+            exportPDFBill.writeBillHeader(document);
+            exportPDFBill.writeBillData(t -> {
+                BaseFont baseFont = null;
+                try {
+                    baseFont = BaseFont.createFont(exportPDFBill.getFontName(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    Font font = new Font(baseFont, 16);
+
+                    Paragraph infoStudent = new Paragraph();
+                    infoStudent.add(new Paragraph("Mã số sinh viên:                        " + studentBill.getStudentIdCard(), font));
+                    infoStudent.add(new Paragraph("Họ và tên sinh viên:                   " + studentBill.getStudentName(), font));
+                    String moneyPayOrTake = "Số tiền " + (studentBill.getMoneyOfRoomMustPay() > 0 ? "phải trả là: " : "được nhận là: ");
+                    infoStudent.add(new Paragraph(moneyPayOrTake + "                " + Math.abs(studentBill.getMoneyOfRoomMustPay()) + " đ" + " (Tiền phòng) - " + Math.abs(studentBill.getMoneyOfWaterMustPay()) + " đ" + " (Tiền nước) - " + Math.abs(studentBill.getMoneyOfVehicleMustPay()) + " đ" + " (Tiền xe)", font));
+                    infoStudent.add(new Paragraph("\n", font));
+                    document.add(infoStudent);
+                } catch (DocumentException | IOException e) {
+                    e.printStackTrace();
+                }
+
+            });
+            exportPDFBill.writeBillFooter(document);
+            document.close();
+        } catch (DocumentException | IOException e) {
+            e.printStackTrace();
+        }
+        return new ByteArrayInputStream(outputStream.toByteArray());
     }
 
     @Override
@@ -383,11 +576,9 @@ public class StudentServiceImpl implements StudentService {
         return new ByteArrayInputStream(outputStream.toByteArray());
     }
 
-
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int switchRoomForStudent(InfoSwitchRoom infoSwitchRoom, Integer studentId) {
-        LocalDate currentDate = LocalDate.now();
         System.out.println("Info switch room: " + infoSwitchRoom);
         Integer oldRoomId = infoSwitchRoom.getOldRoomId();
         Integer newRoomId = infoSwitchRoom.getNewRoomId();
@@ -395,25 +586,34 @@ public class StudentServiceImpl implements StudentService {
         int resultUpdateQuantityStudentOldRoom = roomRepositoryCustom.updateQuantityStudent(oldRoomId);
         int resultUpdateQuantityStudentNewRoom = roomRepositoryCustom.updateQuantityStudent(newRoomId);
 
-        int resultAddDetailRoom = 0;
-        int resultAddWaterBill = 0;
-        int resultAddVehicleBill = 0;
         DurationBetweenTwoRoom durationBetweenTwoRoom = durationMoneyBetweenTwoRoom(oldRoomId, newRoomId);
-        SwitchRoomHistoryDto switchRoomHistoryDto;
-        if (durationBetweenTwoRoom.getDurationRoomMoney() < 0 && durationBetweenTwoRoom.getDurationWaterMoney() < 0 && durationBetweenTwoRoom.getDurationVehicleMoney() < 0) {
-            switchRoomHistoryDto = new SwitchRoomHistoryDto(null, durationBetweenTwoRoom.getOldRoomName(), durationBetweenTwoRoom.getNewRoomName(), Math.abs(durationBetweenTwoRoom.getDurationRoomMoney()), 0, Math.abs(durationBetweenTwoRoom.getDurationWaterMoney()), 0, Math.abs(durationBetweenTwoRoom.getDurationVehicleMoney()), 0, studentId, DateUtil.getSDateFromLDate(currentDate));
-            resultAddDetailRoom = detailRoomRepositoryCustom.addDetailRoom(infoSwitchRoom.getRoomBill());
-            resultAddWaterBill = waterBillRepositoryCustom.addWaterBill(infoSwitchRoom.getWaterBill());
+        SwitchRoomHistoryDto switchRoomHistoryDto = null;
+
+        int resultAddDetailRoom = detailRoomRepositoryCustom.addDetailRoom(infoSwitchRoom.getRoomBill());
+        int resultAddWaterBill = waterBillRepositoryCustom.addWaterBill(infoSwitchRoom.getWaterBill());
+        int resultAddVehicleBill = 0;
+        if (infoSwitchRoom.getVehicleBill().getVehicleId() != null) {
             resultAddVehicleBill = vehicleBillRepositoryCustom.addVehicleBillRepository(infoSwitchRoom.getVehicleBill());
+            switchRoomHistoryDto = new SwitchRoomHistoryDto(null, infoSwitchRoom.getStudentIdCard(), durationBetweenTwoRoom.getOldRoomName(), durationBetweenTwoRoom.getNewRoomName(), durationBetweenTwoRoom.getDurationRoomMoney(), durationBetweenTwoRoom.getDurationWaterMoney(), durationBetweenTwoRoom.getDurationVehicleMoney(), studentId, DateUtil.getSDateFromLDate(currentDate));
         } else {
-            switchRoomHistoryDto = new SwitchRoomHistoryDto(null, durationBetweenTwoRoom.getOldRoomName(), durationBetweenTwoRoom.getNewRoomName(), 0, durationBetweenTwoRoom.getDurationRoomMoney(), 0, durationBetweenTwoRoom.getDurationWaterMoney(), 0, durationBetweenTwoRoom.getDurationVehicleMoney(), studentId, DateUtil.getSDateFromLDate(currentDate));
+            switchRoomHistoryDto = new SwitchRoomHistoryDto(null, infoSwitchRoom.getStudentIdCard(), durationBetweenTwoRoom.getOldRoomName(), durationBetweenTwoRoom.getNewRoomName(), durationBetweenTwoRoom.getDurationRoomMoney(), durationBetweenTwoRoom.getDurationWaterMoney(), 0, studentId, DateUtil.getSDateFromLDate(currentDate));
         }
         int resultAddSwitchRoomHistory = switchRoomRepositoryCustom.addSwitchRoomHistory(switchRoomHistoryDto);
-        if (resultUpdateRoomIdForStudent > 0 && resultUpdateQuantityStudentNewRoom > 0
-                && resultUpdateQuantityStudentOldRoom > 0 && resultAddDetailRoom >= 0 && resultAddWaterBill >= 0 && resultAddVehicleBill >= 0) {
-            return 1;
+        if (infoSwitchRoom.getVehicleBill().getVehicleId() == null) {
+            if (resultUpdateRoomIdForStudent > 0 && resultUpdateQuantityStudentNewRoom > 0
+                    && resultUpdateQuantityStudentOldRoom > 0 && resultAddDetailRoom > 0 && resultAddWaterBill > 0 && resultAddSwitchRoomHistory > 0) {
+                return 1;
+            } else {
+                throw new BadRequestException("Khong the thuc hien chuyen phong cho sinh vien " + studentId);
+            }
+        } else {
+            if (resultUpdateRoomIdForStudent > 0 && resultUpdateQuantityStudentNewRoom > 0
+                    && resultUpdateQuantityStudentOldRoom > 0 && resultAddDetailRoom > 0 && resultAddWaterBill > 0 && resultAddVehicleBill > 0 && resultAddSwitchRoomHistory > 0) {
+                return 1;
+            } else {
+                throw new BadRequestException("Khong the thuc hien chuyen phong cho sinh vien " + studentId);
+            }
         }
-        return 0;
     }
 
     @Override
@@ -430,6 +630,31 @@ public class StudentServiceImpl implements StudentService {
             return 1;
         } else {
             return 0;
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public int addPaymentForStudent(StudentBill studentBill) {
+        RoomBillDto roomBillDto = new RoomBillDto(studentBill);
+        WaterBillDto waterBillDto = new WaterBillDto(studentBill);
+        int resultVehicleBill = 0;
+        int resultDetailRoom = detailRoomRepositoryCustom.addDetailRoom(roomBillDto);
+        int resultWaterBill = waterBillRepositoryCustom.addWaterBill(waterBillDto);
+        if (studentBill.getVehicleId() != null) {
+            VehicleBillDto vehicleBillDto = new VehicleBillDto(studentBill);
+            resultVehicleBill = vehicleBillRepositoryCustom.addVehicleBillRepository(vehicleBillDto);
+            if (resultDetailRoom > 0 && resultWaterBill > 0 && resultVehicleBill > 0) {
+                return studentBill.getStudentId();
+            } else {
+                throw new BadRequestException("Không thể thực hiện hành động này!!!");
+            }
+        } else {
+            if (resultDetailRoom > 0 && resultWaterBill > 0) {
+                return studentBill.getStudentId();
+            } else {
+                throw new BadRequestException("Không thể thực hiện hành động này!!!");
+            }
         }
     }
 

@@ -1,9 +1,6 @@
 package com.managedormitory.repositories.custom;
 
-import com.managedormitory.models.dto.room.DetailRoomDto;
-import com.managedormitory.models.dto.room.RoomBillDto;
-import com.managedormitory.models.dto.room.RoomDto;
-import com.managedormitory.models.dto.room.RoomPriceAndWaterPrice;
+import com.managedormitory.models.dto.room.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,7 +14,7 @@ public interface RoomRepositoryCustom {
 
     int updateTypeRoom(Integer id, DetailRoomDto room);
 
-    Optional<RoomPriceAndWaterPrice> getRoomPriceAndWaterPrice(Integer roomId);
+    Optional<InfoMoney> getInfoLatestBillForNewStudent(Integer roomId);
 
     Optional<RoomBillDto> getDetailRoomRecently(Integer studentId);
 }

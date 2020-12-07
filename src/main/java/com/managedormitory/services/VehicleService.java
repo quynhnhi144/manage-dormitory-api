@@ -23,6 +23,8 @@ public interface VehicleService {
 
     VehicleDetailDto getVehicleById(Integer id);
 
+    VehicleMoveDto getVehicleByStudentId(Integer studentId);
+
     VehicleDetailDto updateVehicle(Integer id, VehicleDetailDto vehicleDetailDto);
 
     VehicleMoveDto getInfoMovingVehicle(Integer vehicleId);
@@ -30,6 +32,10 @@ public interface VehicleService {
     VehicleBillDto VehicleBillInfoForNewVehicle(Integer studentId);
 
     ByteArrayInputStream exportExcel() throws IOException;
+
+    ByteArrayInputStream exportPDFVehicleNew(VehicleNew vehicleNew);
+
+    ByteArrayInputStream exportPDFVehicleLeft(VehicleMoveDto vehicleMoveDto);
 
     int addVehicleLeft(VehicleMoveDto vehicleMoveDto);
 

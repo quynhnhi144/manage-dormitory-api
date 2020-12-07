@@ -1,11 +1,9 @@
 package com.managedormitory.repositories.custom;
 
 import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
-import com.managedormitory.models.dto.vehicle.VehicleBillDto;
 import com.managedormitory.models.dto.WaterBillDto;
-import com.managedormitory.models.dto.room.RoomBillDto;
 import com.managedormitory.models.dto.student.StudentDto;
-import com.managedormitory.models.dto.student.StudentMoveDto;
+import com.managedormitory.models.dto.student.StudentLeftDto;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,7 +19,7 @@ public interface StudentRepositoryCustom {
 
     Optional<WaterBillDto> getWaterBillRecently(Integer id);
 
-    int addStudentLeft(StudentMoveDto studentMoveDto);
+    int addStudentLeft(StudentLeftDto studentMoveDto);
 
     int addStudent(StudentDto studentDto);
 

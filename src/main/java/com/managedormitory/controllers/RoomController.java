@@ -3,8 +3,9 @@ package com.managedormitory.controllers;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
-import com.managedormitory.models.dto.student.StudentDto;
-import com.managedormitory.models.dto.student.StudentMoveDto;
+import com.managedormitory.models.dto.room.RoomPayment;
+import com.managedormitory.models.dto.student.StudentBill;
+import com.managedormitory.models.dto.student.StudentLeftDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.services.RoomService;
 import com.managedormitory.utils.StringUtil;
@@ -42,6 +43,11 @@ public class RoomController {
         return roomService.getAllRemainingRoomDto(searchText);
     }
 
+    @GetMapping("/enough-condition-switch-room")
+    public List<DetailRoomDto> getEnoughConditionSwitchRooms() {
+        return roomService.getEnoughConditionSwitchRooms();
+    }
+
     @GetMapping("/{id}")
     public DetailRoomDto getDetailARoom(@PathVariable Integer id) {
         try {
@@ -65,7 +71,7 @@ public class RoomController {
     }
 
     @GetMapping("/all-bill/{id}")
-    public List<StudentMoveDto> getPaymentOfAllStudentsInRoom(@PathVariable Integer id) {
+    public RoomPayment getPaymentOfAllStudentsInRoom(@PathVariable Integer id) {
         return roomService.getPaymentOfAllStudentsInRoom(id);
     }
 

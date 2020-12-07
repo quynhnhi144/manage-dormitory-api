@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoomPriceAndWaterPriceDto {
+public class InfoMoneyDto {
     private Integer roomId;
     private String roomName;
     private LocalDate roomStartDate;
@@ -21,7 +21,6 @@ public class RoomPriceAndWaterPriceDto {
     private LocalDate waterEndDate;
     private float moneyOfWaterMustPay;
 
-    private Integer vehiclePriceId;
     private LocalDate vehicleStartDate;
     private LocalDate vehicleEndDate;
     private float moneyOfVehicleMustPay;

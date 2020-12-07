@@ -25,7 +25,7 @@ public class RoomExcelHelper {
     }
 
     private void writeHeaderLine() {
-        sheet = workbook.createSheet("Rooms");
+        sheet = workbook.createSheet("Phòng");
 
         Row row = sheet.createRow(0);
 
@@ -37,16 +37,16 @@ public class RoomExcelHelper {
 
         String currentDate = LocalDate.now().toString();
 
-        createCell(row, 0, "Room ID", style);
-        createCell(row, 1, "Room Name", style);
-        createCell(row, 2, "Quantity Student", style);
-        createCell(row, 3, "Type Room", style);
-        createCell(row, 4, "Campus Name", style);
-        createCell(row, 5, "User Manager", style);
-        createCell(row, 6, "Room Payment", style);
-        createCell(row, 7, "Water Bill Payment", style);
-        createCell(row, 8, "Vehicle Bill Payment", style);
-        createCell(row, 10, "Date: " + currentDate, style);
+        createCell(row, 0, "ID Phòng", style);
+        createCell(row, 1, "Tên phòng", style);
+        createCell(row, 2, "Số lượng sinh viên", style);
+        createCell(row, 3, "Loại phòng", style);
+        createCell(row, 4, "Tên khu nhà", style);
+        createCell(row, 5, "Tên quản lý", style);
+        createCell(row, 6, "Đã trả tiền phòng", style);
+        createCell(row, 7, "Đã trả tiền nước", style);
+        createCell(row, 8, "Đã trả tiền xe", style);
+        createCell(row, 10, "Ngày: " + currentDate, style);
     }
 
     private void createCell(Row row, int columnCount, Object value, CellStyle style) {
@@ -84,7 +84,6 @@ public class RoomExcelHelper {
             createCell(row, columnCount++, detailRoomDto.getUserManager(), style);
             createCell(row, columnCount++, detailRoomDto.getIsPayRoom() ? "x" : "--", style);
             createCell(row, columnCount++, detailRoomDto.getIsPayWaterBill() ? "x" : "--", style);
-            createCell(row, columnCount++, detailRoomDto.getIsPayVehicleBill() ? "x" : "--", style);
         }
     }
 

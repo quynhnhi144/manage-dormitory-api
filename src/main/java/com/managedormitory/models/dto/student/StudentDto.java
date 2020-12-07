@@ -20,7 +20,6 @@ public class StudentDto {
     private String email;
     private String address;
     private Date startingDateOfStay;
-    private Date endingDateOfStay;
     private Integer roomId;
     private Integer waterPriceId;
     private Integer vehicleId;

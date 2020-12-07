@@ -23,17 +23,14 @@ public class SwitchRoomRepositoryCustomImpl implements SwitchRoomRepositoryCusto
 
     @Override
     public int addSwitchRoomHistory(SwitchRoomHistoryDto switchRoomHistoryDto) {
-        String queryAdd = "INSERT INTO switch_room_history(old_room_name, new_room_name, giving_room_money,taking_room_money, giving_water_money, taking_water_money, giving_vehicle_money, taking_vehicle_money, student_id, create_date)\n"
-                + "VALUES(:oldRoomName, :newRoomName, :givingRoomMoney, :takingRoomMoney, :givingWaterMoney, :takingWaterMoney, :givingVehicleMoney, :takingVehicleMoney, :studentId, :createDate)";
+        String queryAdd = "INSERT INTO switch_room_history(old_room_name, new_room_name, room_money, water_money, vehicle_money, student_id, create_date)\n"
+                + "VALUES(:oldRoomName, :newRoomName, :roomMoney, :waterMoney, :vehicleMoney, :studentId, :createDate)";
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAdd);
         query.setParameter("oldRoomName", new TypedParameterValue(StringType.INSTANCE, switchRoomHistoryDto.getOldRoomName()))
                 .setParameter("newRoomName", new TypedParameterValue(StringType.INSTANCE, switchRoomHistoryDto.getNewRoomName()))
-                .setParameter("givingRoomMoney", new TypedParameterValue(FloatType.INSTANCE, switchRoomHistoryDto.getGivingRoomMoney()))
-                .setParameter("takingRoomMoney", new TypedParameterValue(FloatType.INSTANCE, switchRoomHistoryDto.getTakingRoomMoney()))
-                .setParameter("givingWaterMoney", new TypedParameterValue(FloatType.INSTANCE, switchRoomHistoryDto.getGivingWaterMoney()))
-                .setParameter("takingWaterMoney", new TypedParameterValue(FloatType.INSTANCE, switchRoomHistoryDto.getTakingWaterMoney()))
-                .setParameter("givingVehicleMoney", new TypedParameterValue(FloatType.INSTANCE, switchRoomHistoryDto.getGivingVehicleMoney()))
-                .setParameter("takingVehicleMoney", new TypedParameterValue(FloatType.INSTANCE, switchRoomHistoryDto.getTakingVehicleMoney()))
+                .setParameter("roomMoney", new TypedParameterValue(FloatType.INSTANCE, switchRoomHistoryDto.getRoomMoney()))
+                .setParameter("waterMoney", new TypedParameterValue(FloatType.INSTANCE, switchRoomHistoryDto.getWaterMoney()))
+                .setParameter("vehicleMoney", new TypedParameterValue(FloatType.INSTANCE, switchRoomHistoryDto.getVehicleMoney()))
                 .setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, switchRoomHistoryDto.getStudentId()))
                 .setParameter("createDate", new TypedParameterValue(DateType.INSTANCE, switchRoomHistoryDto.getCreateDate()));
         return query.executeUpdate();

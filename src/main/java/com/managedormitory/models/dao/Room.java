@@ -16,35 +16,31 @@ import java.util.List;
 public class Room {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(length = 20)
     private Integer id;
 
     @Column(length = 100, name = "name", nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-    //@NotBlank(message = "Name is mandatory")
     private String name;
 
-    @Column
+    @Column(length = 3)
     private Integer quantityStudent;
 
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "type_room_id")
     @NonNull
-    //@NotBlank
     private TypeRoom typeRoom;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "campus_id")
     @NonNull
-    //@NotBlank
     private Campus campus;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "price_list_id")
     @NonNull
-    //@NotBlank
     private PriceList priceList;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "room")

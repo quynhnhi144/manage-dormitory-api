@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class WaterBill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "bill_id")
+    @Column(name = "bill_id", length = 20)
     private Integer billId;
 
     @Column
@@ -31,7 +31,7 @@ public class WaterBill {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate createDate;
 
-    @Column
+    @Column(length = 20)
     @NonNull
     private float payedMoney;
 
