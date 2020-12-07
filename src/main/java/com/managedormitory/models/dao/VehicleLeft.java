@@ -17,13 +17,14 @@ import java.time.LocalDate;
 public class VehicleLeft {
 
     @Id
+    @Column(length = 20)
     private Integer id;
 
-    @Column()
+    @Column
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate leavingDate;
 
-    @Column
+    @Column(length = 20)
     private float numberOfGiveOfTakeVehicleMoney;
 
     @OneToOne

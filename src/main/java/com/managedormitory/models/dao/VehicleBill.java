@@ -16,7 +16,7 @@ import java.time.LocalDate;
 public class VehicleBill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "bill_id")
+    @Column(name = "bill_id", length = 20)
     private Integer billId;
 
     @Column
@@ -32,7 +32,7 @@ public class VehicleBill {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate createDate;
 
-    @Column
+    @Column(length = 20)
     @NonNull
     private float payedMoney;
 

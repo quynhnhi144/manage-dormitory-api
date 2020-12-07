@@ -1,8 +1,12 @@
 package com.managedormitory.services.impl;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.exceptions.NotFoundException;
+import com.managedormitory.helper.ExportPDFBill;
 import com.managedormitory.helper.PowerBillExcelHelper;
 import com.managedormitory.models.dao.PriceList;
 import com.managedormitory.models.dao.Vehicle;
@@ -40,6 +44,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -160,6 +165,19 @@ public class VehicleServiceImpl implements VehicleService {
         return vehicleById.get(0);
     }
 
+    @Override
+    public VehicleMoveDto getVehicleByStudentId(Integer studentId) {
+        List<VehicleDetailDto> vehicleDetailDtos = getAllVehicleDto();
+        VehicleDetailDto vehicleDetailDtoFindByStudentId = vehicleDetailDtos.stream()
+                .filter(vehicleDetailDto -> vehicleDetailDto.getStudentDto().getId() == studentId)
+                .findFirst().orElse(null);
+        if (vehicleDetailDtoFindByStudentId == null) {
+            throw new BadRequestException("Khong co xe nay");
+        } else {
+            return getInfoMovingVehicle(vehicleDetailDtoFindByStudentId.getId());
+        }
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public VehicleDetailDto updateVehicle(Integer id, VehicleDetailDto vehicleDetailDto) {
@@ -178,7 +196,7 @@ public class VehicleServiceImpl implements VehicleService {
         if (vehicleBillDto != null) {
             remainingMoneyOfVehicle = CalculateMoney.calculateRemainingMoney(currentDate, DateUtil.getLDateFromSDate(vehicleBillDto.getEndDate()), vehicleBillDto.getPrice());
         }
-        return new VehicleMoveDto(vehicleId, vehicleDetailDto.getLicensePlates(), vehicleDetailDto.getStudentDto().getName(), currentDate, remainingMoneyOfVehicle, vehicleBillDto.getStudentId());
+        return new VehicleMoveDto(vehicleId, vehicleDetailDto.getLicensePlates(), vehicleDetailDto.getStudentDto().getName(), vehicleDetailDto.getStudentDto().getIdCard(), currentDate, remainingMoneyOfVehicle, vehicleBillDto.getStudentId());
     }
 
     @Override
@@ -204,7 +222,7 @@ public class VehicleServiceImpl implements VehicleService {
         }
         remainingMoneyOfVehicle = Math.abs(CalculateMoney.calculateRemainingMoney(startDateVehicleBill, endDateVehicleBill, priceList.getPrice()));
 
-        return new VehicleBillDto(null, roomBillDto.getStudentName(), roomBillDto.getStudentId(), DateUtil.getSDateFromLDate(startDateVehicleBill), DateUtil.getSDateFromLDate(endDateVehicleBill), remainingMoneyOfVehicle, roomBillDto.getRoomId(), null);
+        return new VehicleBillDto(null, roomBillDto.getStudentName(), roomBillDto.getStudentId(), roomBillDto.getStudentIdCard(), DateUtil.getSDateFromLDate(startDateVehicleBill), DateUtil.getSDateFromLDate(endDateVehicleBill), remainingMoneyOfVehicle, roomBillDto.getRoomId(), null);
     }
 
     @Override
@@ -234,6 +252,82 @@ public class VehicleServiceImpl implements VehicleService {
         powerBillExcelHelper.getWorkbook().write(outputStream);
         powerBillExcelHelper.getWorkbook().close();
         outputStream.close();
+        return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    @Override
+    public ByteArrayInputStream exportPDFVehicleNew(VehicleNew vehicleNew) {
+        ExportPDFBill exportPDFBill = new ExportPDFBill(vehicleNew);
+        Document document
+                = new Document(PageSize.A4);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+            exportPDFBill.writeBillHeader(document);
+            exportPDFBill.writeBillData(t -> {
+                BaseFont baseFont = null;
+                try {
+                    baseFont = BaseFont.createFont(exportPDFBill.getFontName(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    Font font = new Font(baseFont, 16);
+
+                    Paragraph infoVehicle = new Paragraph();
+                    infoVehicle.add(new Paragraph("Biển số xe:                " + vehicleNew.getLicensePlates(), font));
+                    infoVehicle.add(new Paragraph("Mã số sinh viên:        " + vehicleNew.getVehicleBillDto().getStudentIdCard(), font));
+
+                    infoVehicle.add(new Paragraph("Họ và tên sinh viên:   " + vehicleNew.getVehicleBillDto().getStudentName(), font));
+
+                    infoVehicle.add(new Paragraph("Số tiền là:                  " + Math.abs(vehicleNew.getVehicleBillDto().getPrice()) + " đ" + " (Tiền xe)", font));
+                    infoVehicle.add(new Paragraph("\n", font));
+                    document.add(infoVehicle);
+                } catch (DocumentException | IOException e) {
+                    e.printStackTrace();
+                }
+
+            });
+            exportPDFBill.writeBillFooter(document);
+            document.close();
+        } catch (DocumentException | IOException e) {
+            e.printStackTrace();
+        }
+        return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    @Override
+    public ByteArrayInputStream exportPDFVehicleLeft(VehicleMoveDto vehicleMoveDto) {
+        ExportPDFBill exportPDFBill = new ExportPDFBill(vehicleMoveDto);
+        Document document
+                = new Document(PageSize.A4);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+            exportPDFBill.writeBillHeader(document);
+            exportPDFBill.writeBillData(t -> {
+                BaseFont baseFont = null;
+                try {
+                    baseFont = BaseFont.createFont(exportPDFBill.getFontName(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    Font font = new Font(baseFont, 16);
+
+                    Paragraph infoVehicle = new Paragraph();
+                    infoVehicle.add(new Paragraph("Biển số xe:                " + vehicleMoveDto.getLicensePlates(), font));
+                    infoVehicle.add(new Paragraph("Mã số sinh viên:        " + vehicleMoveDto.getStudentIdCard(), font));
+
+                    infoVehicle.add(new Paragraph("Họ và tên sinh viên:   " + vehicleMoveDto.getStudentName(), font));
+
+                    infoVehicle.add(new Paragraph("Số tiền là:                  " + Math.abs(vehicleMoveDto.getNumberOfVehicleMoney()) + " đ" + " (Tiền xe)", font));
+                    infoVehicle.add(new Paragraph("\n", font));
+                    document.add(infoVehicle);
+                } catch (DocumentException | IOException e) {
+                    e.printStackTrace();
+                }
+
+            });
+            exportPDFBill.writeBillFooter(document);
+            document.close();
+        } catch (DocumentException | IOException e) {
+            e.printStackTrace();
+        }
         return new ByteArrayInputStream(outputStream.toByteArray());
     }
 

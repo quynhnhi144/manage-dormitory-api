@@ -14,32 +14,23 @@ import java.time.LocalDate;
 public class SwitchRoomHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(length = 20)
     private Integer id;
 
-    @Column
+    @Column(length = 45)
     private String oldRoomName;
 
-    @Column
+    @Column(length = 45)
     private String newRoomName;
 
-    @Column
-    private float givingRoomMoney;
+    @Column(length = 20)
+    private float roomMoney;
 
-    @Column
-    private float takingRoomMoney;
+    @Column(length = 20)
+    private float waterMoney;
 
-    @Column
-    private float givingWaterMoney;
-
-    @Column
-    private float takingWaterMoney;
-
-    @Column
-    private float givingVehicleMoney;
-
-    @Column
-    private float takingVehicleMoney;
+    @Column(length = 20)
+    private float vehicleMoney;
 
     @ManyToOne
     @MapsId("studentId")

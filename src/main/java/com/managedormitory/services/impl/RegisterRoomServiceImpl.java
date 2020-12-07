@@ -4,7 +4,7 @@ import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.models.dto.pagination.PaginationRegisterRoom;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomIncludePayment;
-import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
+import com.managedormitory.models.dto.room.InfoMoneyDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.RegisterRoomFilter;
@@ -66,8 +66,8 @@ public class RegisterRoomServiceImpl implements RegisterRoomService {
         RegisterRoomDto registerRoomDto = getAllRegisterRoom().stream()
                 .filter(t -> t.getId() == id)
                 .findFirst().orElse(null);
-        RoomPriceAndWaterPriceDto roomPriceAndWaterPriceDto = studentService.getRoomPriceAndWaterPrice(registerRoomDto.getRoomId());
-        return new RegisterRoomIncludePayment(registerRoomDto, roomPriceAndWaterPriceDto);
+        InfoMoneyDto infoMoneyDto = studentService.getInfoMoneyDtoForNewStudent(registerRoomDto.getRoomId());
+        return new RegisterRoomIncludePayment(registerRoomDto, infoMoneyDto);
     }
 
     @Override

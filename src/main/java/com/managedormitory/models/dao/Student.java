@@ -27,16 +27,15 @@ public class Student {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(length = 20)
     private Integer id;
 
-    @Column
+    @Column(length = 255)
     private String idCard;
 
     @Column(length = 100, name = "name", nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-//    //@NotBlank(message = "Full Name is mandatory")
     private String name;
 
     @Column
@@ -51,16 +50,12 @@ public class Student {
 
     @Email
     @NonNull
-//    //@NotBlank(message = "Email is mandatory")
+    @Column(length = 100)
     private String email;
 
     @Column
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startingDateOfStay;
-
-    @Column
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate endingDateOfStay;
 
     @OneToOne
     @JoinColumn(name = "water_price_id")
@@ -69,7 +64,6 @@ public class Student {
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "room_id")
     @NonNull
-//    //@NotBlank(message = "Room is mandatory")
     private Room room;
 
     @OneToMany(cascade = CascadeType.MERGE, mappedBy = "student")

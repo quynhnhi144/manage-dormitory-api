@@ -24,4 +24,5 @@ public class StringUtil {
     public static String CHXHCNVN = "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM";
     public static String DLTDHP = "Độc lập - Tự do - Hạnh phúc";
     public static String TITLE = "PHIẾU THANH TOÁN";
+    public static final String PATH_TO_FONT = "/font/arialuni.ttf";
 }

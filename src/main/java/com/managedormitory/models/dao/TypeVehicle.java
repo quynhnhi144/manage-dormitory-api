@@ -15,12 +15,11 @@ public class TypeVehicle {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(length = 20)
     private Integer id;
 
     @Column(length = 100, name = "name", nullable = false)
     @Size(min = 1, max = 50)
     @NonNull
-    //@NotBlank(message = "Name is mandatory")
     private String name;
 }

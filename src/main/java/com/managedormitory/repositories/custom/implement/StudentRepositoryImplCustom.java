@@ -3,7 +3,7 @@ package com.managedormitory.repositories.custom.implement;
 import com.managedormitory.models.dto.WaterBillDto;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.student.StudentDto;
-import com.managedormitory.models.dto.student.StudentMoveDto;
+import com.managedormitory.models.dto.student.StudentLeftDto;
 import com.managedormitory.repositories.custom.StudentRepositoryCustom;
 import com.managedormitory.utils.DateUtil;
 import org.hibernate.Session;
@@ -38,7 +38,6 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                         "s.email AS email,\n" +
                         "s.address AS address,\n" +
                         "s.starting_date_of_stay AS startingDateOfStay,\n" +
-                        "s.ending_date_of_stay AS endingDateOfStay,\n" +
                         "r.id AS roomId,\n" +
                         "r.name AS roomName,\n" +
                         "c.name AS campusName,\n" +
@@ -68,7 +67,6 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .addScalar("email", StandardBasicTypes.STRING)
                 .addScalar("address", StandardBasicTypes.STRING)
                 .addScalar("startingDateOfStay", StandardBasicTypes.DATE)
-                .addScalar("endingDateOfStay", StandardBasicTypes.DATE)
                 .addScalar("roomId", StandardBasicTypes.INTEGER)
                 .addScalar("waterPriceId", StandardBasicTypes.INTEGER)
                 .addScalar("vehicleId", StandardBasicTypes.INTEGER);
@@ -80,7 +78,7 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
     @Override
     public int updateStudent(Integer studentId, StudentDto studentDto) {
         String queryUpdateStudent = "UPDATE student\n" +
-                "SET id_card = :idCard, name = :name, birthday = :birthday, address = :address, phone = :phone, email = :email, starting_date_of_stay = :startingDateOfStay, ending_date_of_stay = :endingDateOfStay, room_id = :roomId\n" +
+                "SET id_card = :idCard, name = :name, birthday = :birthday, address = :address, phone = :phone, email = :email, starting_date_of_stay = :startingDateOfStay, room_id = :roomId\n" +
                 "WHERE id = :studentId";
 
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryUpdateStudent);
@@ -91,7 +89,6 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, studentDto.getPhone()))
                 .setParameter("email", new TypedParameterValue(StringType.INSTANCE, studentDto.getEmail()))
                 .setParameter("startingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentDto.getStartingDateOfStay()))
-                .setParameter("endingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentDto.getEndingDateOfStay()))
                 .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, studentDto.getRoomId()))
                 .setParameter("studentId", new TypedParameterValue(IntegerType.INSTANCE, studentDto.getId()));
 
@@ -144,22 +141,23 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
     }
 
     @Override
-    public int addStudentLeft(StudentMoveDto studentMoveDto) {
-        String queryAdd = "INSERT INTO student_left(id, leaving_date, number_of_give_of_take_room_money, number_of_give_of_take_water_money, number_of_give_of_take_vehicle_money)\n" +
-                "VALUES(:id, :leavingDate, :numberOfGiveOfTakeRoomMoney, :numberOfGiveOfTakeWaterMoney, :numberOfGiveOfTakeVehicleMoney)";
+    public int addStudentLeft(StudentLeftDto studentMoveDto) {
+        String queryAdd = "INSERT INTO student_left(id, id_card, leaving_date, room_money, water_money, vehicle_money)\n" +
+                "VALUES(:id,:idCard, :leavingDate, :roomMoney, :waterMoney, :vehicleMoney)";
         NativeQuery<?> query = getCurrentSession().createNativeQuery(queryAdd);
         query.setParameter("id", new TypedParameterValue(IntegerType.INSTANCE, studentMoveDto.getId()))
+                .setParameter("idCard", new TypedParameterValue(StringType.INSTANCE, studentMoveDto.getIdCard()))
                 .setParameter("leavingDate", new TypedParameterValue(DateType.INSTANCE, DateUtil.getSDateFromLDate(studentMoveDto.getLeavingDate())))
-                .setParameter("numberOfGiveOfTakeRoomMoney", new TypedParameterValue(FloatType.INSTANCE, studentMoveDto.getNumberOfRoomMoney()))
-                .setParameter("numberOfGiveOfTakeWaterMoney", new TypedParameterValue(FloatType.INSTANCE, studentMoveDto.getNumberOfWaterMoney()))
-                .setParameter("numberOfGiveOfTakeVehicleMoney", new TypedParameterValue(FloatType.INSTANCE, studentMoveDto.getNumberOfVehicleMoney()));
+                .setParameter("roomMoney", new TypedParameterValue(FloatType.INSTANCE, studentMoveDto.getNumberOfRoomMoney()))
+                .setParameter("waterMoney", new TypedParameterValue(FloatType.INSTANCE, studentMoveDto.getNumberOfWaterMoney()))
+                .setParameter("vehicleMoney", new TypedParameterValue(FloatType.INSTANCE, studentMoveDto.getNumberOfVehicleMoney()));
         return query.executeUpdate();
     }
 
     @Override
     public int addStudent(StudentDto studentDto) {
-        String queryAdd = "INSERT INTO student(id_card, name, birthday, address, phone, email, starting_date_of_stay,ending_date_of_stay, room_id, water_price_id)" +
-                "VALUES(:idCard, :name, :birthday, :address, :phone, :email, :startingDateOfStay, :endingDateOfStay, :roomId, :waterPriceId)";
+        String queryAdd = "INSERT INTO student(id_card, name, birthday, address, phone, email, starting_date_of_stay, room_id, water_price_id)" +
+                "VALUES(:idCard, :name, :birthday, :address, :phone, :email, :startingDateOfStay, :roomId, :waterPriceId)";
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAdd);
         query.setParameter("idCard", new TypedParameterValue(StringType.INSTANCE, studentDto.getIdCard()))
                 .setParameter("name", new TypedParameterValue(StringType.INSTANCE, studentDto.getName()))
@@ -168,7 +166,6 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
                 .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, studentDto.getPhone()))
                 .setParameter("email", new TypedParameterValue(StringType.INSTANCE, studentDto.getEmail()))
                 .setParameter("startingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentDto.getStartingDateOfStay()))
-                .setParameter("endingDateOfStay", new TypedParameterValue(DateType.INSTANCE, studentDto.getEndingDateOfStay()))
                 .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, studentDto.getRoomId()))
                 .setParameter("waterPriceId", new TypedParameterValue(IntegerType.INSTANCE, studentDto.getWaterPriceId()));
         return query.executeUpdate();

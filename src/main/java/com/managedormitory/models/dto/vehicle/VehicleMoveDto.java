@@ -15,6 +15,7 @@ public class VehicleMoveDto {
     private Integer id;
     private String licensePlates;
     private String studentName;
+    private String studentIdCard;
     private LocalDate leavingDate;
     private float numberOfVehicleMoney;
     private Integer studentId;

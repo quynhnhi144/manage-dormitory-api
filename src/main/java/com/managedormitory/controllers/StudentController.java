@@ -5,11 +5,8 @@ import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dto.DurationBetweenTwoRoom;
 import com.managedormitory.models.dto.InfoSwitchRoom;
 import com.managedormitory.models.dto.pagination.PaginationStudent;
-import com.managedormitory.models.dto.room.RoomPriceAndWaterPriceDto;
-import com.managedormitory.models.dto.student.StudentDetailDto;
-import com.managedormitory.models.dto.student.StudentDto;
-import com.managedormitory.models.dto.student.StudentMoveDto;
-import com.managedormitory.models.dto.student.StudentNewDto;
+import com.managedormitory.models.dto.room.InfoMoneyDto;
+import com.managedormitory.models.dto.student.*;
 import com.managedormitory.models.filter.StudentFilterDto;
 import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.StringUtil;
@@ -44,6 +41,11 @@ public class StudentController {
         return studentService.getAllStudentDto();
     }
 
+    @GetMapping("/allStudentActive")
+    public List<StudentDetailDto> getAllStudentsActive() {
+        return studentService.getAllStudentDtoActive();
+    }
+
     @GetMapping("/{id}")
     public StudentDetailDto getDetailAStudent(@PathVariable Integer id) {
         try {
@@ -55,7 +57,7 @@ public class StudentController {
     }
 
     @GetMapping("/{id}/studentLeft")
-    public StudentMoveDto getRoomBillDto(@PathVariable Integer id) {
+    public StudentLeftDto getRoomBillDto(@PathVariable Integer id) {
         try {
             return studentService.getInfoMovingStudent(id);
         } catch (Exception e) {
@@ -64,8 +66,8 @@ public class StudentController {
     }
 
     @GetMapping("/{roomId}/money-room-and-money-water")
-    public RoomPriceAndWaterPriceDto getRoomPriceAndWaterPrice(@PathVariable Integer roomId) {
-        return studentService.getRoomPriceAndWaterPrice(roomId);
+    public InfoMoneyDto getRoomPriceAndWaterPrice(@PathVariable Integer roomId) {
+        return studentService.getInfoMoneyDtoForNewStudent(roomId);
     }
 
     @GetMapping("/duration_money_between_two_room")
@@ -92,18 +94,34 @@ public class StudentController {
         return null;
     }
 
-    @GetMapping("/demoExport")
-    public ResponseEntity<Resource> demo(@RequestBody StudentNewDto studentNewDto) {
+    @PostMapping("/exportPDF")
+    public ResponseEntity<Resource> exportToPDF(@RequestBody StudentNewDto studentNewDto) {
         InputStreamResource file = new InputStreamResource(studentService.exportPDFStudentNew(studentNewDto));
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + studentNewDto.getStudentDto().getIdCard() + LocalDate.now().toString() + ".pdf")
                 .contentType(MediaType.parseMediaType("application/pdf"))
                 .body(file);
     }
 
-    @PostMapping("/exportPDF")
-    public ResponseEntity<Resource> exportToPDF(@RequestBody StudentNewDto studentNewDto) {
-        InputStreamResource file = new InputStreamResource(studentService.exportPDFStudentNew(studentNewDto));
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + studentNewDto.getStudentDto().getIdCard() + LocalDate.now().toString() + ".pdf")
+    @PostMapping("/exportPDFRemoveStudent")
+    public ResponseEntity<Resource> exportPDFStudentRemove(@RequestBody StudentLeftDto studentMoveDto) {
+        InputStreamResource file = new InputStreamResource(studentService.exportPDFStudentRemove(studentMoveDto));
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + studentMoveDto.getIdCard() + LocalDate.now().toString() + ".pdf")
+                .contentType(MediaType.parseMediaType("application/pdf"))
+                .body(file);
+    }
+
+    @PostMapping("/exportPDFSwitchRoomStudent")
+    public ResponseEntity<Resource> exportPDFSwitchRoomStudent(@RequestBody InfoSwitchRoom infoSwitchRoom) {
+        InputStreamResource file = new InputStreamResource(studentService.exportPDFStudentSwitchRoom(infoSwitchRoom));
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + infoSwitchRoom.getStudentIdCard() + LocalDate.now().toString() + ".pdf")
+                .contentType(MediaType.parseMediaType("application/pdf"))
+                .body(file);
+    }
+
+    @PostMapping("/exportPDFStudentPayment")
+    public ResponseEntity<Resource> exportPDFStudentPayment(@RequestBody StudentBill studentBill) {
+        InputStreamResource file = new InputStreamResource(studentService.exportPDFStudentPayment(studentBill));
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + studentBill.getStudentIdCard() + LocalDate.now().toString() + ".pdf")
                 .contentType(MediaType.parseMediaType("application/pdf"))
                 .body(file);
     }
@@ -114,8 +132,13 @@ public class StudentController {
     }
 
     @PostMapping("/studentLeft")
-    public int addStudentLeft(@RequestBody StudentMoveDto studentMoveDto) {
+    public int addStudentLeft(@RequestBody StudentLeftDto studentMoveDto) {
         return studentService.addStudentLeft(studentMoveDto);
+    }
+
+    @PostMapping("/create-payment")
+    public int createPayment(@RequestBody StudentBill studentBill) {
+        return studentService.addPaymentForStudent(studentBill);
     }
 
     @PutMapping("/{id}")

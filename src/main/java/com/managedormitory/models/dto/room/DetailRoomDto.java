@@ -26,7 +26,6 @@ public class DetailRoomDto {
     private List<StudentDto> students;
     private Boolean isPayRoom;
     private Boolean isPayWaterBill;
-    private Boolean isPayVehicleBill;
 
     public DetailRoomDto(Room room, StudentConvertToStudentDto studentConvertToStudentDto) {
         this.id = room.getId();

@@ -15,7 +15,7 @@ public class TypeRoom {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(length = 20)
     private Integer id;
 
     @Column(length = 100, name = "name", nullable = false)
@@ -24,7 +24,7 @@ public class TypeRoom {
     //@NotBlank(message = "Name is mandatory")
     private String name;
 
-    @Column
+    @Column(length = 3)
     @NonNull
     //@NotBlank
     private Integer maxQuantity;

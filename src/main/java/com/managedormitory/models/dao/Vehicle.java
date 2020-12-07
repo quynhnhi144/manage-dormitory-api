@@ -14,14 +14,15 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name="vehicle")
 public class Vehicle {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(length = 20)
     private Integer id;
 
-    @Column
+    @Column(length = 20)
     @NonNull
     private String licensePlates;
 

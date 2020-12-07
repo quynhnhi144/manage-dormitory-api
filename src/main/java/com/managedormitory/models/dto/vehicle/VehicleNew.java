@@ -13,5 +13,5 @@ public class VehicleNew {
     private String licensePlates;
     private Integer typeVehicleId;
     private Integer vehiclePriceId;
-    private  VehicleBillDto vehicleBillDto;
+    private VehicleBillDto vehicleBillDto;
 }

@@ -9,8 +9,10 @@ import com.managedormitory.models.dao.StudentLeft;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
 import com.managedormitory.models.dto.room.RoomDto;
+import com.managedormitory.models.dto.room.RoomPayment;
+import com.managedormitory.models.dto.student.StudentBill;
 import com.managedormitory.models.dto.student.StudentDto;
-import com.managedormitory.models.dto.student.StudentMoveDto;
+import com.managedormitory.models.dto.student.StudentLeftDto;
 import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.repositories.PriceListRepository;
 import com.managedormitory.repositories.RoomRepository;
@@ -91,11 +93,9 @@ public class RoomServiceImpl implements RoomService {
             if (roomDtosDdList.contains(room.getId())) {
                 detailRoomDto.setIsPayRoom(true);
                 detailRoomDto.setIsPayWaterBill(true);
-                detailRoomDto.setIsPayVehicleBill(true);
             } else {
                 detailRoomDto.setIsPayRoom(false);
                 detailRoomDto.setIsPayWaterBill(false);
-                detailRoomDto.setIsPayVehicleBill(false);
             }
             detailRoomDtos.add(detailRoomDto);
         }
@@ -113,7 +113,7 @@ public class RoomServiceImpl implements RoomService {
         if (roomFilterDto.getRoomNameOrUserManager() != null && !roomFilterDto.getRoomNameOrUserManager().equals("")) {
             String searchText = roomFilterDto.getRoomNameOrUserManager().toLowerCase() + StringUtil.DOT_STAR;
             detailRoomDtos = detailRoomDtos.stream()
-                    .filter(detailRoomDto -> detailRoomDto.getUserManager().toLowerCase().matches(searchText)
+                    .filter(detailRoomDto -> detailRoomDto.getUserManager() != null && detailRoomDto.getUserManager().toLowerCase().matches(searchText)
                             || detailRoomDto.getName().toLowerCase().matches(searchText))
                     .collect(Collectors.toList());
         }
@@ -193,11 +193,20 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public List<StudentMoveDto> getPaymentOfAllStudentsInRoom(Integer id) {
-        DetailRoomDto detailRoomDto = getRoomById(id);
-        return detailRoomDto.getStudents().stream()
-                .map(studentDto -> studentService.getInfoMovingStudent(studentDto.getId()))
+    public List<DetailRoomDto> getEnoughConditionSwitchRooms() {
+        return getAllDetailRoomDto().stream()
+                .filter(detailRoomDto -> detailRoomDto.getTypeRoom() != null && detailRoomDto.getTypeRoom().getMaxQuantity() - detailRoomDto.getQuantityStudent() > 0 && detailRoomDto.getIsPayRoom() && detailRoomDto.getIsPayWaterBill()
+                        || (detailRoomDto.getQuantityStudent() == 0 && detailRoomDto.getStudents().size() == 0))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public RoomPayment getPaymentOfAllStudentsInRoom(Integer id) {
+        DetailRoomDto detailRoomDto = getRoomById(id);
+        List<StudentBill> studentBills = detailRoomDto.getStudents().stream()
+                .map(studentDto -> studentService.getInfoMoneyRoomPaymentDto(studentDto.getId()))
+                .collect(Collectors.toList());
+        return new RoomPayment(id, detailRoomDto.getName(), studentBills);
     }
 
     @Override

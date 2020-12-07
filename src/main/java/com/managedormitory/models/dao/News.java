@@ -13,19 +13,23 @@ public class News {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(length = 20)
     private Integer id;
 
-    @Column
+    @Column(length = 255)
     private String title;
 
-    @Column
+    @Column(length = 255)
     private String introduction;
 
-    @Column
+    @Column(length = 255)
     private String content;
 
-    @Column
-    private String informationSoruce;
+    @Column(length = 255)
+    private String pathImage;
+
+    @Column(length = 255)
+    private String informationSource;
 
     @Column
     private Date createDate;

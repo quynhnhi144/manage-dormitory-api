@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class PowerBill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "bill_id")
+    @Column(name = "bill_id", length = 20)
     private Integer billId;
 
     @Column
@@ -24,16 +24,16 @@ public class PowerBill {
     @Column
     private LocalDate endDate;
 
-    @Column
+    @Column(length = 20)
     private Long numberOfPowerBegin;
 
-    @Column
+    @Column(length = 20)
     private Long numberOfPowerEnd;
 
-    @Column
+    @Column(length = 20)
     private Long numberOfPowerUsed;
 
-    @Column
+    @Column(length = 20)
     private Float numberOfMoneyMustPay;
 
     @Column
