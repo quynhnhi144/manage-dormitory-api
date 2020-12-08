@@ -1,7 +1,11 @@
 package com.managedormitory.services.impl;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.managedormitory.converters.StudentConvertToStudentDto;
 import com.managedormitory.exceptions.BadRequestException;
+import com.managedormitory.helper.ExportPDFBill;
 import com.managedormitory.helper.PowerBillExcelHelper;
 import com.managedormitory.helper.PowerBillReadExcelHelper;
 import com.managedormitory.models.dao.PriceList;
@@ -12,8 +16,8 @@ import com.managedormitory.models.dto.powerbill.PowerBillDetail;
 import com.managedormitory.models.dto.powerbill.PowerBillDto;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.student.StudentDto;
+import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.PowerBillFilter;
-import com.managedormitory.repositories.PowerBillRepository;
 import com.managedormitory.repositories.custom.PowerBillRepositoryCustom;
 import com.managedormitory.services.PowerBillService;
 import com.managedormitory.services.RoomService;
@@ -22,7 +26,6 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -194,11 +197,6 @@ public class PowerBillServiceImpl implements PowerBillService {
             helper.setTo(studentDto.getEmail());
             helper.setSubject(subject);
             helper.setText(text);
-//            String path = "/home/nhile/Downloads/link.txt";
-//
-//            // Attachment
-//            FileSystemResource file = new FileSystemResource(new File(path));
-//            helper.addAttachment("link", file);
             javaMailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();
@@ -225,5 +223,44 @@ public class PowerBillServiceImpl implements PowerBillService {
             return powerBillDetail;
         }
         throw new BadRequestException("Cannot implement the add power bill method!!!");
+    }
+
+    @Override
+    public ByteArrayInputStream exportPDFPowerBillNew(PowerBillDetail powerBillDetail) {
+        ExportPDFBill exportPDFBill = new ExportPDFBill(powerBillDetail);
+        Document document
+                = new Document(PageSize.A4);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+            exportPDFBill.writeBillHeader(document);
+            exportPDFBill.writeBillData(t -> {
+                BaseFont baseFont = null;
+                try {
+                    baseFont = BaseFont.createFont(exportPDFBill.getFontName(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    Font font = new Font(baseFont, 16);
+
+                    Paragraph infoStudent = new Paragraph();
+                    infoStudent.add(new Paragraph("Số phòng:                " + powerBillDetail.getDetailRoomDto().getName(), font));
+
+                    infoStudent.add(new Paragraph("Số tiền là:                " + Math.abs(powerBillDetail.getNumberOfMoneyMustPay()) + " đ" + " (Tiền điện)", font));
+                    infoStudent.add(new Paragraph("\n", font));
+                    infoStudent.add(new Paragraph("\n", font));
+                    infoStudent.add(new Paragraph("                                                              Ngày thanh toán: " + LocalDate.now(), font));
+                    infoStudent.add(new Paragraph("\n", font));
+                    document.add(infoStudent);
+                } catch (DocumentException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            exportPDFBill.writeBillFooter(document);
+            document.close();
+        } catch (DocumentException | IOException e) {
+            e.printStackTrace();
+        }
+        return new ByteArrayInputStream(outputStream.toByteArray());
     }
 }

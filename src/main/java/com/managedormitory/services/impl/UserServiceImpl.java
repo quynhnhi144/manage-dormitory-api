@@ -13,16 +13,14 @@ import com.managedormitory.repositories.custom.UserRepositoryCustom;
 import com.managedormitory.services.UserService;
 import com.managedormitory.utils.DateUtil;
 import com.managedormitory.utils.PaginationUtils;
+import com.managedormitory.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,6 +67,7 @@ public class UserServiceImpl implements UserService {
     public PaginationUser paginationGetAllUsers(String fullName, int skip, int take) {
         List<UserDto> userDtos = getAllUserDto();
         if (fullName != null && !fullName.equals("")) {
+            String searchText = fullName.toLowerCase() + StringUtil.DOT_STAR;
             userDtos = userDtos.stream()
                     .filter(userDto -> userDto.getFullName().toLowerCase().equals(fullName.toLowerCase()))
                     .collect(Collectors.toList());

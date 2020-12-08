@@ -22,6 +22,8 @@ public interface StudentService {
 
     List<StudentDetailDto> getAllStudentDtoActive();
 
+    List<StudentDetailDto> getAllStayingStudent();
+
     PaginationStudent paginationGetAllStudents(StudentFilterDto studentFilterDto, int skip, int take);
 
     StudentDetailDto getStudentById(Integer id);

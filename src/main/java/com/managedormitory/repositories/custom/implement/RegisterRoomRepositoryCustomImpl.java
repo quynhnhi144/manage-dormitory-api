@@ -29,7 +29,8 @@ public class RegisterRoomRepositoryCustomImpl implements RegisterRoomRepositoryC
                 "FROM register_room rr\n" +
                 "         JOIN room r ON r.id = rr.room_id\n" +
                 "         JOIN type_room tr ON tr.id = r.type_room_id\n" +
-                "         JOIN campus c on r.campus_id = c.id";
+                "         JOIN campus c on r.campus_id = c.id\n" +
+                "ORDER BY rr.id ASC";
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryGet);
         query.addScalar("id", StandardBasicTypes.INTEGER)
                 .addScalar("address", StandardBasicTypes.STRING)
@@ -55,6 +56,15 @@ public class RegisterRoomRepositoryCustomImpl implements RegisterRoomRepositoryC
         query.setParameter("id", new TypedParameterValue(IntegerType.INSTANCE, id));
 
         return query.executeUpdate();
+    }
+
+    @Override
+    public int countRegisterOfARoom(Integer roomId) {
+        String queryCount = "select count(rr.room_id) from register_room rr left join room r on r.id = rr.room_id\n" +
+                "where rr.room_id = :roomId";
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryCount);
+        query.setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, roomId));
+      return  ((Number) query.getSingleResult()).intValue();
     }
 
     public static <Entity> List<Entity> safeList(Query query) {

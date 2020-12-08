@@ -8,6 +8,7 @@ import com.managedormitory.models.dao.Room;
 import com.managedormitory.models.dao.StudentLeft;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
+import com.managedormitory.models.dto.room.RoomAndCountRegister;
 import com.managedormitory.models.dto.room.RoomDto;
 import com.managedormitory.models.dto.room.RoomPayment;
 import com.managedormitory.models.dto.student.StudentBill;
@@ -17,6 +18,7 @@ import com.managedormitory.models.filter.RoomFilterDto;
 import com.managedormitory.repositories.PriceListRepository;
 import com.managedormitory.repositories.RoomRepository;
 import com.managedormitory.repositories.StudentLeftRepository;
+import com.managedormitory.repositories.custom.RegisterRoomRepositoryCustom;
 import com.managedormitory.repositories.custom.RoomRepositoryCustom;
 import com.managedormitory.services.RoomService;
 import com.managedormitory.services.StudentService;
@@ -29,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,6 +54,9 @@ public class RoomServiceImpl implements RoomService {
 
     @Autowired
     private StudentService studentService;
+
+    @Autowired
+    private RegisterRoomRepositoryCustom registerRoomRepositoryCustom;
 
     @Override
     public List<Room> getAllRooms() {
@@ -176,11 +182,12 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public List<DetailRoomDto> getAllRemainingRoomDto(String searchText) {
+    public List<RoomAndCountRegister> getAllRemainingRoomDto(String searchText) {
         List<DetailRoomDto> detailRoomDtos = getAllDetailRoomDto().stream()
                 .filter(detailRoomDto -> detailRoomDto.getTypeRoom() != null && detailRoomDto.getTypeRoom().getMaxQuantity() - detailRoomDto.getQuantityStudent() > 0
                         || (detailRoomDto.getQuantityStudent() == 0 && detailRoomDto.getStudents().size() == 0))
                 .collect(Collectors.toList());
+
 
         if (searchText != null && !searchText.equals("")) {
             String searchTextConverted = searchText.toLowerCase() + StringUtil.DOT_STAR;
@@ -189,7 +196,9 @@ public class RoomServiceImpl implements RoomService {
                             || detailRoomDto.getTypeRoom().getName().toLowerCase().matches(searchTextConverted))
                     .collect(Collectors.toList());
         }
-        return detailRoomDtos;
+        return detailRoomDtos.stream()
+                .map(detailRoomDto -> new RoomAndCountRegister(detailRoomDto, registerRoomRepositoryCustom.countRegisterOfARoom(detailRoomDto.getId())))
+                .collect(Collectors.toList());
     }
 
     @Override

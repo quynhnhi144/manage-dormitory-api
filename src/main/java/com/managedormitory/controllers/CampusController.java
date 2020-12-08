@@ -1,6 +1,5 @@
 package com.managedormitory.controllers;
 
-import com.managedormitory.models.dao.Campus;
 import com.managedormitory.models.dto.CampusDto;
 import com.managedormitory.services.CampusService;
 import org.springframework.beans.factory.annotation.Autowired;

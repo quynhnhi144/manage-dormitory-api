@@ -157,6 +157,19 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public List<StudentDetailDto> getAllStayingStudent() {
+        List<StudentDetailDto> studentDetailDtos = getAllStudentDto();
+        List<StudentDetailDto> stayingStudents = new ArrayList<>();
+        List<String> studentLeftIdCards = getAllStudentLeft().stream().map(StudentLeft::getIdCard).collect(Collectors.toList());
+        for (StudentDetailDto studentDetailDto : studentDetailDtos) {
+            if (!studentLeftIdCards.contains(studentDetailDto.getIdCard())) {
+                stayingStudents.add(studentDetailDto);
+            }
+        }
+        return stayingStudents;
+    }
+
+    @Override
     public PaginationStudent paginationGetAllStudents(StudentFilterDto studentFilterDto, int skip, int take) {
         List<StudentDetailDto> studentDetailDtos = getAllStudentDto();
         if (studentFilterDto.getCampusName() != null) {
