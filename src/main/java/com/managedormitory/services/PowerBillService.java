@@ -3,6 +3,7 @@ package com.managedormitory.services;
 import com.managedormitory.models.dto.pagination.PaginationPowerBill;
 import com.managedormitory.models.dto.powerbill.PowerBillDetail;
 import com.managedormitory.models.dto.student.StudentDto;
+import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.PowerBillFilter;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -21,7 +22,6 @@ public interface PowerBillService {
 
     PaginationPowerBill paginationGetAllPowerBills(PowerBillFilter powerBillFilter, LocalDate date, int skip, int take);
 
-
     PowerBillDetail getAPowerBill(LocalDate date, Integer roomId);
 
     PowerBillDetail updatePowerBill(Integer roomId, PowerBillDetail powerBillDetail);
@@ -33,4 +33,6 @@ public interface PowerBillService {
     int importExcelFile(MultipartFile multipartFile, LocalDate localDate);
 
     PowerBillDetail addPowerBill(Integer roomId, PowerBillDetail powerBillDetail);
+
+    ByteArrayInputStream exportPDFPowerBillNew(PowerBillDetail powerBillDetail);
 }

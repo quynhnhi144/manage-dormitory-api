@@ -1,10 +1,9 @@
 package com.managedormitory.controllers;
 
 import com.managedormitory.models.dto.MessageResponse;
-import com.managedormitory.models.dto.PowerBillImport;
 import com.managedormitory.models.dto.pagination.PaginationPowerBill;
 import com.managedormitory.models.dto.powerbill.PowerBillDetail;
-import com.managedormitory.models.dto.powerbill.PowerBillDto;
+import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.PowerBillFilter;
 import com.managedormitory.services.PowerBillService;
 import com.managedormitory.utils.CalculateMoney;
@@ -24,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -130,6 +128,14 @@ public class PowerBillController {
         // Get file name
         LocalDate localDate = DateUtil.getLDateFromString(date);
         return powerBillService.importExcelFile(file, localDate);
+    }
+
+    @PostMapping("/exportPDF")
+    public ResponseEntity<Resource> exportToPDF(@RequestBody PowerBillDetail powerBillDetail) {
+        InputStreamResource file = new InputStreamResource(powerBillService.exportPDFPowerBillNew(powerBillDetail));
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + powerBillDetail.getDetailRoomDto().getName() + LocalDate.now().toString() + ".pdf")
+                .contentType(MediaType.parseMediaType("application/pdf"))
+                .body(file);
     }
 
 

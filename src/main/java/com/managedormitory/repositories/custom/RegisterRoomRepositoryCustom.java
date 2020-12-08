@@ -10,4 +10,6 @@ public interface RegisterRoomRepositoryCustom {
     List<RegisterRoomDto> getAllRegisterRoom();
 
     int deleteRegisterRoom(Integer id);
+
+    int countRegisterOfARoom(Integer roomId);
 }

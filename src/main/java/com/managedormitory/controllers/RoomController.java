@@ -3,6 +3,7 @@ package com.managedormitory.controllers;
 import com.managedormitory.exceptions.NotFoundException;
 import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.pagination.PaginationRoom;
+import com.managedormitory.models.dto.room.RoomAndCountRegister;
 import com.managedormitory.models.dto.room.RoomPayment;
 import com.managedormitory.models.dto.student.StudentBill;
 import com.managedormitory.models.dto.student.StudentLeftDto;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin
@@ -39,7 +41,7 @@ public class RoomController {
     }
 
     @GetMapping("/remaining-room")
-    public List<DetailRoomDto> getAllRemainingRooms(@RequestParam(required = false) String searchText) {
+    public List<RoomAndCountRegister> getAllRemainingRooms(@RequestParam(required = false) String searchText) {
         return roomService.getAllRemainingRoomDto(searchText);
     }
 
