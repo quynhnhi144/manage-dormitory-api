@@ -1,6 +1,8 @@
 package com.managedormitory.services.impl;
 
 import com.managedormitory.exceptions.BadRequestException;
+import com.managedormitory.exceptions.NotFoundException;
+import com.managedormitory.models.dao.Mail;
 import com.managedormitory.models.dto.pagination.PaginationRegisterRoom;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomIncludePayment;
@@ -14,9 +16,14 @@ import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.PaginationUtils;
 import com.managedormitory.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +78,14 @@ public class RegisterRoomServiceImpl implements RegisterRoomService {
     }
 
     @Override
+    public RegisterRoomDto getRegisterRoomById(Integer id) {
+        return getAllRegisterRoom().stream()
+                .filter(t -> t.getId() == id)
+                .findFirst().orElseThrow(() -> new NotFoundException("Không thể tìm thấy id: "));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
     public int deleteRegisterRoom(Integer id) {
         if (registerRoomRepositoryCustom.deleteRegisterRoom(id) > 0) {
             return 1;
@@ -90,4 +105,23 @@ public class RegisterRoomServiceImpl implements RegisterRoomService {
             throw new BadRequestException("Khong them sinh vien vao phong duoc!!!");
         }
     }
+
+    @Override
+    public void sendMail(Mail mail, RegisterRoomDto registerRoomDto, JavaMailSender javaMailSender, SimpleMailMessage message) {
+        System.out.println("registerRoomDto: " + registerRoomDto);
+        message.setTo(registerRoomDto.getEmail());
+        message.setSubject(mail.getSubject());
+        message.setText(mail.getContent());
+        javaMailSender.send(message);
+    }
+
+    @Override
+    public void sendMail(Mail mail, StudentNewDto studentNewDto, JavaMailSender javaMailSender, SimpleMailMessage message) {
+        message.setTo(studentNewDto.getStudentDto().getEmail());
+        message.setSubject(mail.getSubject());
+        message.setText(mail.getContent());
+        javaMailSender.send(message);
+    }
+
+
 }

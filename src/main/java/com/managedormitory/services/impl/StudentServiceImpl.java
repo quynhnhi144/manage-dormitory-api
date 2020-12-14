@@ -639,10 +639,16 @@ public class StudentServiceImpl implements StudentService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto) {
-        if (studentRepositoryCustom.registerRemainingRoomForStudent(registerRoomDto) > 0) {
-            return 1;
+        List<String> idCardList = getAllStayingStudent().stream()
+                .map(StudentDetailDto::getIdCard).collect(Collectors.toList());
+        if (idCardList.contains(registerRoomDto.getIdCard())) {
+            throw new BadRequestException("Mã số sinh viên này đã bị trùng");
         } else {
-            return 0;
+            if (studentRepositoryCustom.registerRemainingRoomForStudent(registerRoomDto) > 0) {
+                return 1;
+            } else {
+                throw new BadRequestException("Không thể thưc hiện việc này!!!");
+            }
         }
     }
 
