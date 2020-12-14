@@ -25,4 +25,8 @@ public class StringUtil {
     public static String DLTDHP = "Độc lập - Tự do - Hạnh phúc";
     public static String TITLE = "PHIẾU THANH TOÁN";
     public static final String PATH_TO_FONT = "/font/arialuni.ttf";
+    public static final String SUBJECT_SUCCESS_REGISTER_ROOM = "Thông tin về đăng ký phòng";
+    public static final String CONTENT_SUCCESS_REGISTER_ROOM = "Chúc mừng bạn đã đăng ký thành công \nBạn hãy đến trung tâm ký túc xá để đóng tiền trong thời gian sớm nhất.\nNếu không thì đăng ký của bạn sẽ bị hủy";
+    public static final String CONTENT_SUCCESS_ADD_STUDENT = "Chúc mừng bạn đã trở thành một sinh viên sinh sống tại ký túc xá";
+    public static final String CONTENT_REJECT_REGISTER_ROOM = "Rất tiếc đăng ký của bạn đã bị hủy";
 }
