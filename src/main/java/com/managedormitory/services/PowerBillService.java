@@ -18,7 +18,7 @@ import java.util.List;
 public interface PowerBillService {
     List<PowerBillDetail> getAllDetailPowerBills(LocalDate date);
 
-    List<PowerBillDetail> getAllPowerBillByMaxEndDate();
+    List<PowerBillDetail> getAllDetailPowerBillByMaxEndDate();
 
     PaginationPowerBill paginationGetAllPowerBills(PowerBillFilter powerBillFilter, LocalDate date, int skip, int take);
 

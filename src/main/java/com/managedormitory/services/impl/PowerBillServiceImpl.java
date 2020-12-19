@@ -88,7 +88,7 @@ public class PowerBillServiceImpl implements PowerBillService {
     }
 
     @Override
-    public List<PowerBillDetail> getAllPowerBillByMaxEndDate() {
+    public List<PowerBillDetail> getAllDetailPowerBillByMaxEndDate() {
         List<Room> rooms = roomService.getAllRooms();
         List<PowerBillDto> powerBillDtos = powerBillRepositoryCustom.getAllPowerBillByMaxEndDate();
         List<PowerBillDetail> powerBillDetails = new ArrayList<>();
@@ -172,15 +172,26 @@ public class PowerBillServiceImpl implements PowerBillService {
             for (PowerBillDetail powerBillDetaiCurrent : powerBillDetails) {
                 Row row = powerBillExcelHelper.getSheet().createRow(rowCount++);
                 int columnCount = 0;
+
                 powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getDetailRoomDto().getId(), style);
                 powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getDetailRoomDto().getName(), style);
-                powerBillExcelHelper.createCell(row, columnCount++, DateUtil.getLDateFromSDate(powerBillDetaiCurrent.getStartDate()).toString(), style);
-                powerBillExcelHelper.createCell(row, columnCount++, DateUtil.getLDateFromSDate(powerBillDetaiCurrent.getEndDate()).toString(), style);
-                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfPowerBegin(), style);
-                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfPowerEnd(), style);
-                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfPowerUsed(), style);
-                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfMoneyMustPay() + "đ", style);
-                powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.isPay() ? "x" : "--", style);
+                if (powerBillDetaiCurrent.getStartDate() == null && powerBillDetaiCurrent.getEndDate() == null) {
+                    powerBillExcelHelper.createCell(row, columnCount++, "--", style);
+                    powerBillExcelHelper.createCell(row, columnCount++, "--", style);
+                    powerBillExcelHelper.createCell(row, columnCount++, "--", style);
+                    powerBillExcelHelper.createCell(row, columnCount++, "--", style);
+                    powerBillExcelHelper.createCell(row, columnCount++, "--", style);
+                    powerBillExcelHelper.createCell(row, columnCount++, "--", style);
+                    powerBillExcelHelper.createCell(row, columnCount++, "--", style);
+                } else if (powerBillDetaiCurrent.getStartDate() != null && powerBillDetaiCurrent.getEndDate() != null) {
+                    powerBillExcelHelper.createCell(row, columnCount++, DateUtil.getLDateFromSDate(powerBillDetaiCurrent.getStartDate()).toString(), style);
+                    powerBillExcelHelper.createCell(row, columnCount++, DateUtil.getLDateFromSDate(powerBillDetaiCurrent.getEndDate()).toString(), style);
+                    powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfPowerBegin(), style);
+                    powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfPowerEnd(), style);
+                    powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfPowerUsed(), style);
+                    powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.getNumberOfMoneyMustPay() + "đ", style);
+                    powerBillExcelHelper.createCell(row, columnCount++, powerBillDetaiCurrent.isPay() ? "x" : "--", style);
+                }
             }
         });
 
@@ -208,7 +219,7 @@ public class PowerBillServiceImpl implements PowerBillService {
     public int importExcelFile(MultipartFile multipartFile, LocalDate localDate) {
         try {
             List<PowerBillImport> powerBillImports = PowerBillReadExcelHelper.parseExcelFile(multipartFile.getInputStream());
-            List<PowerBillDetail> powerBillDetails = getAllPowerBillByMaxEndDate();
+            List<PowerBillDetail> powerBillDetails = getAllDetailPowerBillByMaxEndDate();
             return powerBillRepositoryCustom.insertPowerBills(powerBillDetails, powerBillImports);
 
         } catch (IOException e) {

@@ -1,5 +1,6 @@
 package com.managedormitory.repositories.custom.implement;
 
+import com.managedormitory.exceptions.BadRequestException;
 import com.managedormitory.models.dto.PowerBillImport;
 import com.managedormitory.models.dto.powerbill.PowerBillDetail;
 import com.managedormitory.models.dto.powerbill.PowerBillDto;
@@ -51,7 +52,6 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
                         "FROM power_bill pb\n" +
                         "         JOIN room r ON r.id = pb.room_id\n" +
                         "         JOIN price_list pl ON pl.id = pb.price_list_id\n" +
-                        "\n" +
                         "WHERE extract(month from pb.end_date) = :month AND extract(year from pb.end_date) = :year\n" +
                         "GROUP BY pb.room_id, r.name, pb.is_pay, pl.id, pl.name, pl.price, pb.number_of_money_must_pay, pb.number_of_power_begin,\n" +
                         "         pb.number_of_power_end, pb.number_of_power_used\n" +
@@ -80,26 +80,33 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
     @Override
     public List<PowerBillDto> getAllPowerBillByMaxEndDate() {
         String queryNative =
-                "SELECT DISTINCT ON (pb.room_id) pb.room_id AS roomId,\n" +
-                        "                                r.name AS roomName,\n" +
-                        "                                MAX(pb.bill_id) AS billId,\n" +
-                        "                                MAX(pb.start_date) AS startDate,\n" +
-                        "                                MAX(pb.end_date) AS endDate,\n" +
-                        "                                pb.number_of_power_begin AS numberOfPowerBegin,\n" +
-                        "                                pb.number_of_power_end AS numberOfPowerEnd,\n" +
-                        "                                pb.number_of_power_used AS numberOfPowerUsed,\n" +
-                        "                                pb.number_of_money_must_pay AS numberOfMoneyMustPay" +
-                        ",\n" +
-                        "                                pb.is_pay AS isPay,\n" +
-                        "                                pl.id AS idPriceList,\n" +
-                        "                                pl.name AS namePriceList,\n" +
-                        "                                pl.price AS priceAKWH\n" +
+                "with max_date as (select pb.room_id,\n" +
+                        "                         MAX(pb.bill_id)    AS billId,\n" +
+                        "                         MAX(pb.end_date)   AS endDate,\n" +
+                        "                         MAX(pb.start_date) AS startDate\n" +
+                        "                  FROM power_bill pb\n" +
+                        "                  group by pb.room_id)\n" +
+                        "SELECT pb.room_id as roomId,\n" +
+                        "       r.name as roomName,\n"+
+                        "       md.billId as billId,\n" +
+                        "       md.startDate as startDate,\n" +
+                        "       md.endDate as endDate,\n" +
+                        "       pb.number_of_power_begin    AS numberOfPowerBegin,\n" +
+                        "       pb.number_of_power_end      AS numberOfPowerEnd,\n" +
+                        "       pb.number_of_power_used     AS numberOfPowerUsed,\n" +
+                        "       pb.number_of_money_must_pay AS numberOfMoneyMustPay,\n" +
+                        "       pb.is_pay                   AS isPay,\n" +
+                        "       pl.id                       AS idPriceList,\n" +
+                        "       pl.name                     AS namePriceList,\n" +
+                        "       pl.price                    AS priceAKWH\n" +
                         "FROM power_bill pb\n" +
-                        "         JOIN room r ON r.id = pb.room_id\n" +
-                        "         JOIN price_list pl ON pl.id = pb.price_list_id\n" +
-                        "GROUP BY pb.room_id, r.name, pb.is_pay, pl.id, pl.name, pl.price, pb.number_of_money_must_pay, pb.number_of_power_begin,\n" +
-                        "         pb.number_of_power_end, pb.number_of_power_used\n" +
-                        "ORDER BY roomId ASC";
+                        "         LEFT JOIN room r ON r.id = pb.room_id\n" +
+                        "         LEFT JOIN price_list pl ON pl.id = pb.price_list_id\n" +
+                        "         LEFT JOIN max_date md on md.room_id = pb.room_id\n" +
+                        "WHERE pb.bill_id = md.billId\n" +
+                        "  and pb.end_date = md.endDate\n" +
+                        "  and pb.start_date = md.startDate\n" +
+                        "ORDER BY pb.room_id ASC";
 
         NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryNative);
         query.addScalar("roomId", StandardBasicTypes.INTEGER)
@@ -150,31 +157,42 @@ public class PowerBillRepositoryCustomImpl implements PowerBillRepositoryCustom 
 
     @Override
     public int insertPowerBills(List<PowerBillDetail> powerBillDetails, List<PowerBillImport> powerBillImports) {
+        // xu ly de duoc list bill moi nhat
         List<PowerBillDetail> powerBillDetailsInsert = new ArrayList<>();
         for (int i = 0; i < powerBillDetails.size(); i++) {
             PowerBillDetail powerBillDetail = powerBillDetails.get(i);
             for (int j = 0; j < powerBillImports.size(); j++) {
                 PowerBillImport powerBillImport = powerBillImports.get(j);
                 if (powerBillImport.getRoomName().equals(powerBillDetail.getDetailRoomDto().getName())) {
-                    PowerBillDetail powerBillDetailNew = new PowerBillDetail(
-                            powerBillDetail.getDetailRoomDto(),
-                            powerBillDetail.getBillId(),
-                            powerBillDetail.getEndDate(),
-                            DateUtil.getSDateFromLDate(powerBillImport.getEndDate()),
-                            powerBillDetail.getNumberOfPowerEnd(),
-                            powerBillImport.getNumberOfPowerEnd(),
-                            powerBillImport.getNumberOfPowerEnd() - powerBillDetail.getNumberOfPowerEnd(),
-                            false,
-                            powerBillDetail.getPriceList(),
-                            CalculateMoney.calculatePowerBill(powerBillDetail, powerBillDetail.getNumberOfPowerEnd(),
-                                    powerBillImport.getNumberOfPowerEnd())
-                    );
-                    System.out.println(powerBillDetailNew);
-                    powerBillDetailsInsert.add(powerBillDetailNew);
+                    if (powerBillImport.getNumberOfPowerEnd() < powerBillDetail.getNumberOfPowerEnd()) {
+                        throw new BadRequestException("Chỉ số điện mới của phòng " + powerBillImport.getRoomName() + " không phù hợp!!! Hãy kiểm tra lại");
+                    } else {
+                        boolean isPay = false;
+                        if (powerBillImport.getNumberOfPowerEnd() == powerBillDetail.getNumberOfPowerEnd()) {
+                            isPay = true;
+                        }
+
+                        PowerBillDetail powerBillDetailNew = new PowerBillDetail(
+                                powerBillDetail.getDetailRoomDto(),
+                                powerBillDetail.getBillId(),
+                                powerBillDetail.getEndDate(),
+                                DateUtil.getSDateFromLDate(powerBillImport.getEndDate()),
+                                powerBillDetail.getNumberOfPowerEnd(),
+                                powerBillImport.getNumberOfPowerEnd(),
+                                powerBillImport.getNumberOfPowerEnd() - powerBillDetail.getNumberOfPowerEnd(),
+                                isPay,
+                                powerBillDetail.getPriceList(),
+                                CalculateMoney.calculatePowerBill(powerBillDetail, powerBillDetail.getNumberOfPowerEnd(),
+                                        powerBillImport.getNumberOfPowerEnd())
+                        );
+                        System.out.println(powerBillDetailNew);
+                        powerBillDetailsInsert.add(powerBillDetailNew);
+                    }
                 }
             }
         }
 
+        // cau lenh insert cho list bill
         String queryInsert = "INSERT INTO power_bill(start_date, end_date, number_of_power_begin, number_of_power_end, number_of_power_used, number_of_money_must_pay, is_pay, room_id, price_list_id)" +
                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 

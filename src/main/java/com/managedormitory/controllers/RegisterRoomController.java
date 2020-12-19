@@ -66,7 +66,6 @@ public class RegisterRoomController {
         return studentService.registerRemainingRoomForStudent(registerRoomDto);
     }
 
-
     @PostMapping("/{id}/addStudent")
     public int addStudentFromRegisterRoom(@PathVariable Integer id, @RequestBody StudentNewDto studentNewDto) {
         return registerRoomService.addStudentFromRegisterRoom(id, studentNewDto);
