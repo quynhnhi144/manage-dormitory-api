@@ -17,7 +17,7 @@ public class PowerBillReadExcelHelper {
         try {
             Workbook workbook = new XSSFWorkbook(is);
 
-            Sheet sheet = workbook.getSheet("powerBill");
+            Sheet sheet = workbook.getSheet("Hóa đơn điện");
             Iterator rows = sheet.iterator();
 
             List<PowerBillImport> powerBillImports = new ArrayList<>();
@@ -61,7 +61,7 @@ public class PowerBillReadExcelHelper {
             workbook.close();
             return powerBillImports;
         } catch (IOException e) {
-            throw new RuntimeException("FAIL!! " + e.getMessage());
+            throw new RuntimeException("Lỗi!!! " + e.getMessage());
         }
     }
 }
