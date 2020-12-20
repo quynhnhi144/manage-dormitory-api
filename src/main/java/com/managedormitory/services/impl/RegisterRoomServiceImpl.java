@@ -6,12 +6,15 @@ import com.managedormitory.models.dao.Mail;
 import com.managedormitory.models.dto.pagination.PaginationRegisterRoom;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomIncludePayment;
+import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.room.InfoMoneyDto;
+import com.managedormitory.models.dto.student.StudentDetailDto;
 import com.managedormitory.models.dto.student.StudentDto;
 import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.RegisterRoomFilter;
 import com.managedormitory.repositories.custom.RegisterRoomRepositoryCustom;
 import com.managedormitory.services.RegisterRoomService;
+import com.managedormitory.services.RoomService;
 import com.managedormitory.services.StudentService;
 import com.managedormitory.utils.PaginationUtils;
 import com.managedormitory.utils.StringUtil;
@@ -36,6 +39,9 @@ public class RegisterRoomServiceImpl implements RegisterRoomService {
 
     @Autowired
     private StudentService studentService;
+
+    @Autowired
+    private RoomService roomService;
 
     @Override
     public List<RegisterRoomDto> getAllRegisterRoom() {
@@ -82,6 +88,25 @@ public class RegisterRoomServiceImpl implements RegisterRoomService {
         return getAllRegisterRoom().stream()
                 .filter(t -> t.getId() == id)
                 .findFirst().orElseThrow(() -> new NotFoundException("Không thể tìm thấy id: "));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public DetailRoomDto addRegisterRoom(RegisterRoomDto registerRoomDto) {
+        List<String> idCardListStayingStudent = studentService.getAllStayingStudent().stream()
+                .map(StudentDetailDto::getIdCard).collect(Collectors.toList());
+
+        List<String> idCardListRegisterRoom = getAllRegisterRoom().stream()
+                .map(RegisterRoomDto::getIdCard).collect(Collectors.toList());
+        if (!idCardListStayingStudent.contains(registerRoomDto.getIdCard()) && !idCardListRegisterRoom.contains(registerRoomDto.getIdCard())) {
+            if (registerRoomRepositoryCustom.addRegisterRoom(registerRoomDto) > 0) {
+              return roomService.getRoomById(registerRoomDto.getRoomId());
+            } else {
+                throw new BadRequestException("Không thể thưc hiện việc này!!!");
+            }
+        } else {
+            throw new BadRequestException("Mã số sinh viên này đã bị trùng");
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)

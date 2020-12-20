@@ -4,6 +4,7 @@ import com.managedormitory.models.dao.Mail;
 import com.managedormitory.models.dto.pagination.PaginationRegisterRoom;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomIncludePayment;
+import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.RegisterRoomFilter;
 import org.springframework.mail.SimpleMailMessage;
@@ -22,6 +23,8 @@ public interface RegisterRoomService {
 
     RegisterRoomDto getRegisterRoomById(Integer id);
 
+    DetailRoomDto addRegisterRoom(RegisterRoomDto registerRoomDto);
+
     int deleteRegisterRoom(Integer id);
 
     int addStudentFromRegisterRoom(Integer registerRoomId, StudentNewDto studentNewDto);
@@ -29,7 +32,5 @@ public interface RegisterRoomService {
     void sendMail(Mail mail, RegisterRoomDto registerRoomDto, JavaMailSender javaMailSender, SimpleMailMessage message);
 
     void sendMail(Mail mail, StudentNewDto studentNewDto, JavaMailSender javaMailSender, SimpleMailMessage message);
-
-
 
 }

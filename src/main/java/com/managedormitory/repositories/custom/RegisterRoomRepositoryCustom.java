@@ -9,6 +9,8 @@ import java.util.List;
 public interface RegisterRoomRepositoryCustom {
     List<RegisterRoomDto> getAllRegisterRoom();
 
+    int addRegisterRoom(RegisterRoomDto registerRoomDto);
+
     int deleteRegisterRoom(Integer id);
 
     int countRegisterOfARoom(Integer roomId);

@@ -6,8 +6,10 @@ import org.hibernate.Session;
 import org.hibernate.jpa.TypedParameterValue;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToBeanResultTransformer;
+import org.hibernate.type.DateType;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.StringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +49,23 @@ public class RegisterRoomRepositoryCustomImpl implements RegisterRoomRepositoryC
         query.setResultTransformer(new AliasToBeanResultTransformer(RegisterRoomDto.class));
         return safeList(query);
 
+    }
+
+    @Override
+    public int addRegisterRoom(RegisterRoomDto registerRoomDto) {
+        String queryAddStudentForRemainingRoom = "INSERT INTO register_room (address, birthday, email, id_card, phone, starting_date_of_stay, student_name, room_id)\n" +
+                "VALUES(:address, :birthday, :email, :idCard, :phone, :startingDateOfStay, :studentName, :roomId)";
+        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAddStudentForRemainingRoom);
+        query.setParameter("address", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getAddress()))
+                .setParameter("birthday", new TypedParameterValue(DateType.INSTANCE, registerRoomDto.getBirthday()))
+                .setParameter("email", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getEmail()))
+                .setParameter("idCard", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getIdCard()))
+                .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getPhone()))
+                .setParameter("startingDateOfStay", new TypedParameterValue(DateType.INSTANCE, registerRoomDto.getStartingDateOfStay()))
+                .setParameter("studentName", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getStudentName()))
+                .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, registerRoomDto.getRoomId()));
+
+        return query.executeUpdate();
     }
 
     @Override

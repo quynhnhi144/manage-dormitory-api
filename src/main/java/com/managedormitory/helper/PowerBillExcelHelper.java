@@ -53,7 +53,7 @@ public class PowerBillExcelHelper<E> {
         for (int i = 0; i < strings.length; i++) {
             createCell(row, i, strings[i], style);
             if (i == strings.length - 1) {
-                createCell(row, strings.length + 1, "Date: " + currentDate, style);
+                createCell(row, strings.length + 1, "Ngày: " + currentDate, style);
             }
         }
     }

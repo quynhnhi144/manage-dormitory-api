@@ -171,22 +171,22 @@ public class StudentRepositoryImplCustom implements StudentRepositoryCustom {
         return query.executeUpdate();
     }
 
-    @Override
-    public int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto) {
-        String queryAddStudentForRemainingRoom = "INSERT INTO register_room (address, birthday, email, id_card, phone, starting_date_of_stay, student_name, room_id)\n" +
-                "VALUES(:address, :birthday, :email, :idCard, :phone, :startingDateOfStay, :studentName, :roomId)";
-        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAddStudentForRemainingRoom);
-        query.setParameter("address", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getAddress()))
-                .setParameter("birthday", new TypedParameterValue(DateType.INSTANCE, registerRoomDto.getBirthday()))
-                .setParameter("email", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getEmail()))
-                .setParameter("idCard", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getIdCard()))
-                .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getPhone()))
-                .setParameter("startingDateOfStay", new TypedParameterValue(DateType.INSTANCE, registerRoomDto.getStartingDateOfStay()))
-                .setParameter("studentName", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getStudentName()))
-                .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, registerRoomDto.getRoomId()));
-
-        return query.executeUpdate();
-    }
+//    @Override
+//    public int addRegisterRoom(RegisterRoomDto registerRoomDto) {
+//        String queryAddStudentForRemainingRoom = "INSERT INTO register_room (address, birthday, email, id_card, phone, starting_date_of_stay, student_name, room_id)\n" +
+//                "VALUES(:address, :birthday, :email, :idCard, :phone, :startingDateOfStay, :studentName, :roomId)";
+//        NativeQuery<Query> query = getCurrentSession().createNativeQuery(queryAddStudentForRemainingRoom);
+//        query.setParameter("address", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getAddress()))
+//                .setParameter("birthday", new TypedParameterValue(DateType.INSTANCE, registerRoomDto.getBirthday()))
+//                .setParameter("email", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getEmail()))
+//                .setParameter("idCard", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getIdCard()))
+//                .setParameter("phone", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getPhone()))
+//                .setParameter("startingDateOfStay", new TypedParameterValue(DateType.INSTANCE, registerRoomDto.getStartingDateOfStay()))
+//                .setParameter("studentName", new TypedParameterValue(StringType.INSTANCE, registerRoomDto.getStudentName()))
+//                .setParameter("roomId", new TypedParameterValue(IntegerType.INSTANCE, registerRoomDto.getRoomId()));
+//
+//        return query.executeUpdate();
+//    }
 
     public static <Entity> List<Entity> safeList(Query query) {
         return query.getResultList();

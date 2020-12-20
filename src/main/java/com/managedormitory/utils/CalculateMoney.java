@@ -15,7 +15,8 @@ public class CalculateMoney {
 
     public static float calculatePowerBill(PowerBillDetail powerBillDetail) {
         System.out.println("cal:" + powerBillDetail);
-        float pricePowerAKWH = powerBillDetail.getPriceList().getPrice();
+        float pricePowerAKWH = 0;
+         pricePowerAKWH = powerBillDetail.getPriceList().getPrice();
         long numberOfPowerUsed = powerBillDetail.getNumberOfPowerEnd() - powerBillDetail.getNumberOfPowerBegin();
         float money = 0;
         if (numberOfPowerUsed <= LimitedPower.LOW_POWER) {
