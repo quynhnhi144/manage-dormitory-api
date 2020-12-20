@@ -5,6 +5,7 @@ import com.managedormitory.models.dto.MessageResponse;
 import com.managedormitory.models.dto.pagination.PaginationRegisterRoom;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomDto;
 import com.managedormitory.models.dto.registerRoom.RegisterRoomIncludePayment;
+import com.managedormitory.models.dto.room.DetailRoomDto;
 import com.managedormitory.models.dto.student.StudentNewDto;
 import com.managedormitory.models.filter.RegisterRoomFilter;
 import com.managedormitory.services.RegisterRoomService;
@@ -62,8 +63,8 @@ public class RegisterRoomController {
     }
 
     @PostMapping()
-    public int registerRemainingRoomForStudent(@RequestBody RegisterRoomDto registerRoomDto) {
-        return studentService.registerRemainingRoomForStudent(registerRoomDto);
+    public DetailRoomDto registerRemainingRoomForStudent(@RequestBody RegisterRoomDto registerRoomDto) {
+        return registerRoomService.addRegisterRoom(registerRoomDto);
     }
 
     @PostMapping("/{id}/addStudent")

@@ -636,21 +636,21 @@ public class StudentServiceImpl implements StudentService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto) {
-        List<String> idCardList = getAllStayingStudent().stream()
-                .map(StudentDetailDto::getIdCard).collect(Collectors.toList());
-        if (idCardList.contains(registerRoomDto.getIdCard())) {
-            throw new BadRequestException("Mã số sinh viên này đã bị trùng");
-        } else {
-            if (studentRepositoryCustom.registerRemainingRoomForStudent(registerRoomDto) > 0) {
-                return 1;
-            } else {
-                throw new BadRequestException("Không thể thưc hiện việc này!!!");
-            }
-        }
-    }
+//    @Transactional(rollbackFor = Exception.class)
+//    @Override
+//    public int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto) {
+//        List<String> idCardList = getAllStayingStudent().stream()
+//                .map(StudentDetailDto::getIdCard).collect(Collectors.toList());
+//        if (idCardList.contains(registerRoomDto.getIdCard())) {
+//            throw new BadRequestException("Mã số sinh viên này đã bị trùng");
+//        } else {
+//            if (studentRepositoryCustom.registerRemainingRoomForStudent(registerRoomDto) > 0) {
+//                return 1;
+//            } else {
+//                throw new BadRequestException("Không thể thưc hiện việc này!!!");
+//            }
+//        }
+//    }
 
     @Transactional(rollbackFor = Exception.class)
     @Override

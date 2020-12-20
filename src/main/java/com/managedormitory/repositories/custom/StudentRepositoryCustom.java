@@ -23,5 +23,5 @@ public interface StudentRepositoryCustom {
 
     int addStudent(StudentDto studentDto);
 
-    int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto);
+//    int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto);
 }

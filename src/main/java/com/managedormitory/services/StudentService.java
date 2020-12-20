@@ -62,7 +62,7 @@ public interface StudentService {
 
     List<StudentDetailDto> getStudentsByIdCard(String idCard);
 
-    int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto);
+//    int registerRemainingRoomForStudent(RegisterRoomDto registerRoomDto);
 
     int addPaymentForStudent(StudentBill studentBill);
 }
